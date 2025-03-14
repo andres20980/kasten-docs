@@ -1,5 +1,7 @@
 name: Scrape Kasten Docs
 
+description: "Este workflow realiza el scraping diario de la documentación de Kasten."
+
 on:
   schedule:
     - cron: "0 3 * * *"  # Todos los días a las 03:00 UTC
