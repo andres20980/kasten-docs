@@ -1,90 +1,205 @@
 import os
+import logging
 import requests
 from bs4 import BeautifulSoup
-import markdownify
-import time
+from urllib.parse import urljoin, urlparse
+import shutil
+import re
+import multiprocessing
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from tqdm import tqdm
 
-# Configuración
-BASE_URL = "https://docs.kasten.io/latest/install/index.html"
-BASE_DIR = "docs"
-MAX_FILES = 20
-MAX_SIZE_MB = 10
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+# 🔹 Configuración del LOG
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(message)s',
+    handlers=[
+        logging.FileHandler("scraper.log", mode='w'),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger()
 
-# Función para obtener todos los enlaces internos
-def get_links(base_url):
-    response = requests.get(base_url, headers=HEADERS)
-    if response.status_code != 200:
-        print(f"Error al acceder a {base_url}")
+# 🔹 URL base del sitio a scrapear
+BASE_URL = 'https://docs.kasten.io/latest/'
+
+# 🔹 Directorios de trabajo
+DOCS_DIR = 'docs/'
+TMP_DIR = os.path.join(DOCS_DIR, 'tmp/')
+os.makedirs(DOCS_DIR, exist_ok=True)
+os.makedirs(TMP_DIR, exist_ok=True)
+
+# 🔹 Headers para evitar bloqueos
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+}
+
+# 🔹 Número de hilos para scraping en paralelo
+MAX_WORKERS = int(os.getenv('MAX_WORKERS', multiprocessing.cpu_count() * 2))
+
+
+### 🔹 Función para obtener los enlaces de la página principal
+def get_main_links():
+    """ Extrae los enlaces relevantes desde la página principal del sitio """
+    try:
+        response = requests.get(BASE_URL, headers=HEADERS)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        links = set()
+        for a in soup.select('.toctree-l1 > a.reference.internal'):
+            href = a['href']
+            if href.endswith(('.html', '/')) and 'releasenotes' not in href:
+                full_url = urljoin(BASE_URL, href)
+                links.add(full_url)
+
+        return list(links)
+
+    except requests.exceptions.RequestException as e:
+        logger.error(f"❌ Error al obtener enlaces principales: {e}")
         return []
 
-    soup = BeautifulSoup(response.text, "html.parser")
-    links = []
 
-    for a in soup.find_all("a", href=True):
-        href = a["href"]
-        if href.startswith("/") or href.startswith("https://docs.kasten.io"):
-            full_url = href if href.startswith("http") else f"https://docs.kasten.io{href}"
-            if full_url not in links and "kasten.io" in full_url:
-                links.append(full_url)
+### 🔹 Función para extraer enlaces internos dentro de una página
+def get_internal_links(soup, base_url):
+    """ Extrae los enlaces internos de una página específica """
+    internal_links = set()
+    for a in soup.select('a[href]'):
+        href = a['href']
+        if href.startswith('#') or 'mailto:' in href:
+            continue
 
-    return links
+        full_url = urljoin(base_url, href)
+        if BASE_URL in full_url and full_url != base_url and full_url.endswith(('.html', '/')) and 'releasenotes' not in full_url:
+            internal_links.add(full_url)
 
-# Función para limpiar y convertir HTML a Markdown
-def clean_content(html):
-    soup = BeautifulSoup(html, "html.parser")
+    return list(internal_links)
 
-    # Eliminar elementos innecesarios
-    for tag in soup(["script", "style", "nav", "footer", "header", "meta"]):
-        tag.extract()
 
-    return markdownify.markdownify(str(soup), heading_style="ATX")
+### 🔹 Función para extraer contenido de una página
+def scrape_page(url):
+    """ Extrae y limpia el contenido de una página específica, incluyendo enlaces internos """
+    try:
+        response = requests.get(url, headers=HEADERS)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-# Función para guardar contenido en archivos
-def save_content(filename, content):
-    filepath = os.path.join(BASE_DIR, filename)
+        # Remover elementos irrelevantes
+        for tag in soup(["script", "style", "link", "meta"]):
+            tag.decompose()
 
-    if not os.path.exists(BASE_DIR):
-        os.makedirs(BASE_DIR)
+        title = soup.find('h1')
+        page_content = f"# {title.text.strip()}\n\n" if title else ""
 
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(content)
+        sections = set()
+        for tag in soup.find_all(['h2', 'h3', 'h4', 'p', 'ul', 'ol']):
+            text = tag.text.strip()
+            if "Release Notes" in text:
+                continue
 
-    print(f"Guardado: {filename}")
+            if tag.name in ['h2', 'h3', 'h4']:
+                page_content += f"\n## {text}\n"
+            elif tag.name == 'p':
+                if text not in sections:
+                    page_content += f"{text}\n"
+                    sections.add(text)
+            elif tag.name == 'ul':
+                for li in tag.find_all('li'):
+                    li_text = li.text.strip()
+                    if li_text not in sections:
+                        page_content += f"- {li_text}\n"
+                        sections.add(li_text)
+            elif tag.name == 'ol':
+                for i, li in enumerate(tag.find_all('li'), 1):
+                    li_text = li.text.strip()
+                    if li_text not in sections:
+                        page_content += f"{i}. {li_text}\n"
+                        sections.add(li_text)
 
-# Scraping principal
-def scrape_docs():
-    links = get_links(BASE_URL)
-    total_links = len(links)
-    print(f"Encontrados {total_links} enlaces.")
+        if not page_content.strip():
+            return None, None, []
 
-    chunk_size = max(1, total_links // MAX_FILES)
-    file_count = 1
-    collected_texts = []
+        file_name = urlparse(url).path.strip('/').replace('/', '_').replace('.html', '') + ".md"
+        file_name = re.sub(r'\.md\.md$', '.md', file_name)  # Corrige archivos con doble `.md.md`
+        category = file_name.split('_')[1] if '_' in file_name else "otros"
+        file_path = os.path.join(TMP_DIR, file_name)
 
-    for i, link in enumerate(links):
-        print(f"Procesando {link}...")
-        response = requests.get(link, headers=HEADERS)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(page_content)
 
-        if response.status_code == 200:
-            content_md = clean_content(response.text)
-            collected_texts.append(content_md)
+        return file_path, category, get_internal_links(soup, url)
 
-        # Cada "chunk_size" páginas, guardamos un archivo
-        if (i + 1) % chunk_size == 0 or i == total_links - 1:
-            combined_text = "\n\n".join(collected_texts)
-            filename = f"{str(file_count).zfill(2)}_documento.md"
+    except Exception as e:
+        logger.error(f"❌ Error al procesar {url}: {e}")
+        return None, None, []
 
-            # Verificar tamaño antes de guardar
-            if len(combined_text.encode("utf-8")) / (1024 * 1024) < MAX_SIZE_MB:
-                save_content(filename, combined_text)
-                file_count += 1
-                collected_texts = []
 
-        if file_count > MAX_FILES:
-            break
+### 🔹 Función para scrapear todas las páginas en paralelo con UNA barra de progreso
+def scrape_all():
+    """ Scrapear todas las páginas principales y sus enlaces internos """
+    main_links = get_main_links()
+    if not main_links:
+        return {}
 
-        time.sleep(1)  # Para evitar bloqueo por demasiadas peticiones
+    logger.info(f"\n🔗 Se detectaron {len(main_links)} enlaces principales para procesar.")
+
+    scraped_files = {}
+    visited_urls = set(main_links)
+    urls_to_scrape = main_links
+
+    total_pages = 0
+    all_urls = []
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        while urls_to_scrape:
+            futures = {executor.submit(scrape_page, url): url for url in urls_to_scrape}
+            urls_to_scrape = []
+
+            for future in as_completed(futures):
+                file, category, internal_links = future.result()
+                if file:
+                    scraped_files.setdefault(category, []).append(file)
+                    total_pages += 1
+                for link in internal_links:
+                    if link not in visited_urls:
+                        visited_urls.add(link)
+                        urls_to_scrape.append(link)
+                        all_urls.append(link)
+
+    logger.info(f"\n🔗 Se detectaron {len(all_urls)} enlaces internos adicionales.\n")
+
+    return scraped_files, total_pages
+
+
+### 🔹 Función para unificar archivos por categoría
+def unify_files(scraped_files):
+    """ Unifica archivos en un solo Markdown por cada categoría """
+    for category, files in scraped_files.items():
+        output_file = os.path.join(DOCS_DIR, f"{category}.md")
+
+        with open(output_file, 'w', encoding='utf-8') as f_out:
+            f_out.write(f"# {category.capitalize()} Documentation\n\n")
+            for file in files:
+                with open(file, 'r', encoding='utf-8') as f_in:
+                    f_out.write(f"\n\n## {os.path.basename(file)}\n")
+                    f_out.write(f_in.read())
+
+    shutil.rmtree(TMP_DIR, ignore_errors=True)
+
+
+### 🔹 Función principal
+def main():
+    print("\n🚀 Iniciando scraping del manual de Kasten K10\n")
+    scraped_files, total_pages = scrape_all()
+
+    if scraped_files:
+        unify_files(scraped_files)
+        print("\n📜 Resumen:")
+        print(f"✅ Total de archivos procesados: {total_pages}")
+        print(f"📂 Archivos unificados en la carpeta: {DOCS_DIR}")
+        print("🟢 Proceso finalizado con éxito.\n")
+    else:
+        print("⚠️ No se encontraron archivos para procesar.")
 
 if __name__ == "__main__":
-    scrape_docs()
+    main()
