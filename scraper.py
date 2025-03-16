@@ -8,41 +8,53 @@ import re
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
+from requests.adapters import HTTPAdapter
+from requests.packages.urllib3.util.retry import Retry
 
-# 🔹 Configuración del LOG
+# Directorio y archivo de log
+current_dir = os.path.dirname(os.path.abspath(__file__))
+log_file = os.path.join(current_dir, "scraper.log")
+
+# Configuración del logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(message)s',
     handlers=[
-        logging.FileHandler("scraper.log", mode='w'),
-        logging.StreamHandler()
-    ]
+        logging.FileHandler(log_file, mode='a'),  # Modo 'a' para asegurar que los logs se acumulen
+        logging.StreamHandler(),
+    ],
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger()
 
 # 🔹 URL base del sitio a scrapear
-BASE_URL = 'https://docs.kasten.io/latest/'
+BASE_URL = os.getenv('BASE_URL', 'https://docs.kasten.io/latest/')
 
 # 🔹 Directorios de trabajo
-DOCS_DIR = 'docs/'
+DOCS_DIR = os.getenv('DOCS_DIR', 'docs/')
 TMP_DIR = os.path.join(DOCS_DIR, 'tmp/')
 os.makedirs(DOCS_DIR, exist_ok=True)
 os.makedirs(TMP_DIR, exist_ok=True)
 
 # 🔹 Headers para evitar bloqueos
 HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
+    'User-Agent': os.getenv('USER_AGENT', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36')
 }
 
 # 🔹 Número de hilos para scraping en paralelo
 MAX_WORKERS = int(os.getenv('MAX_WORKERS', multiprocessing.cpu_count() * 2))
 
+# 🔹 Configuración de reintentos y pool de conexiones
+session = requests.Session()
+retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
+adapter = HTTPAdapter(max_retries=retries, pool_connections=20, pool_maxsize=100)  # Aumenta el pool de conexiones y el tamaño máximo
+session.mount('http://', adapter)
+session.mount('https://', adapter)
 
 ### 🔹 Función para obtener los enlaces de la página principal
 def get_main_links():
     """ Extrae los enlaces relevantes desde la página principal del sitio """
     try:
-        response = requests.get(BASE_URL, headers=HEADERS)
+        response = session.get(BASE_URL, headers=HEADERS)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -59,7 +71,6 @@ def get_main_links():
         logger.error(f"❌ Error al obtener enlaces principales: {e}")
         return []
 
-
 ### 🔹 Función para extraer enlaces internos dentro de una página
 def get_internal_links(soup, base_url):
     """ Extrae los enlaces internos de una página específica """
@@ -75,12 +86,11 @@ def get_internal_links(soup, base_url):
 
     return list(internal_links)
 
-
 ### 🔹 Función para extraer contenido de una página
 def scrape_page(url):
     """ Extrae y limpia el contenido de una página específica, incluyendo enlaces internos """
     try:
-        response = requests.get(url, headers=HEADERS)
+        response = session.get(url, headers=HEADERS)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -133,7 +143,6 @@ def scrape_page(url):
         logger.error(f"❌ Error al procesar {url}: {e}")
         return None, None, []
 
-
 ### 🔹 Función para scrapear todas las páginas en paralelo con UNA barra de progreso
 def scrape_all():
     """ Scrapear todas las páginas principales y sus enlaces internos """
@@ -155,7 +164,7 @@ def scrape_all():
             futures = {executor.submit(scrape_page, url): url for url in urls_to_scrape}
             urls_to_scrape = []
 
-            for future in as_completed(futures):
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Scraping pages"):
                 file, category, internal_links = future.result()
                 if file:
                     scraped_files.setdefault(category, []).append(file)
@@ -169,7 +178,6 @@ def scrape_all():
     logger.info(f"\n🔗 Se detectaron {len(all_urls)} enlaces internos adicionales.\n")
 
     return scraped_files, total_pages
-
 
 ### 🔹 Función para unificar archivos por categoría
 def unify_files(scraped_files):
@@ -186,7 +194,6 @@ def unify_files(scraped_files):
 
     shutil.rmtree(TMP_DIR, ignore_errors=True)
 
-
 ### 🔹 Función principal
 def main():
     print("\n🚀 Iniciando scraping del manual de Kasten K10\n")
@@ -201,5 +208,54 @@ def main():
     else:
         print("⚠️ No se encontraron archivos para procesar.")
 
+import os
+import re
+
+def clean_documentation(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        lines = file.readlines()
+
+    cleaned_lines = []
+    for line in lines:
+        # Eliminar espacios extra al final de cada línea
+        clean_line = line.rstrip() + '\n'
+        
+        # Corregir encabezados para asegurar consistencia, por ejemplo:
+        clean_line = re.sub(r'#+', lambda match: '#' * (len(match.group(0)) + 1), clean_line)
+
+        # Agregar más reglas de limpieza según sea necesario
+        # Ejemplo: eliminar líneas completamente vacías
+        if clean_line.strip():
+            cleaned_lines.append(clean_line)
+
+    # Escribir de nuevo al archivo con las líneas limpias
+    with open(file_path, 'w', encoding='utf-8') as file:
+        file.writelines(cleaned_lines)
+
+    print(f"Archivo limpiado: {file_path}")
+
+
+def clean_all_documents(directory):
+    for filename in os.listdir(directory):
+        if filename.endswith('.md'):  # Asegurarse de que sólo se procesan archivos Markdown
+            file_path = os.path.join(directory, filename)
+            clean_documentation(file_path)
+
+def main():
+    print("\n🚀 Iniciando scraping del manual de Kasten K10\n")
+    scraped_files, total_pages = scrape_all()
+
+    if scraped_files:
+        unify_files(scraped_files)
+        print("\n📜 Resumen:")
+        print(f"✅ Total de archivos procesados: {total_pages}")
+        print(f"📂 Archivos unificados en la carpeta: {DOCS_DIR}")
+        # Llamar a la función de limpieza después de unificar los archivos
+        clean_all_documents(DOCS_DIR)
+        print("🟢 Proceso finalizado con éxito.\n")
+    else:
+        print("⚠️ No se encontraron archivos para procesar.")
+
 if __name__ == "__main__":
     main()
+
