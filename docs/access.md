@@ -18,98 +18,41 @@ existing installation.
 The platform can be accessed through the Veeam Kasten Dashboard, through
 the Veeam Kasten API, or the kubectl CLI.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_access_rbac_ui.md
-## Veeam Kasten RBAC Dashboardï
+### latest_access_authorization.md
+## Authorizationï
 - Dashboard Access
 - API and Command Line
 - Authentication
 - Authorization
+Administrative Access
+Limited Access
+Additional RBAC Access
+- Administrative Access
+- Limited Access
+- Additional RBAC Access
 - Veeam Kasten RBAC
 - Veeam Kasten RBAC Dashboard
-User Access
-Admin Access
-Multi Tenant Access
-Read-Only Access
-Customizing Access
-- User Access
-Admin Access
-Multi Tenant Access
-Read-Only Access
-Customizing Access
-- Admin Access
-- Multi Tenant Access
-- Read-Only Access
-- Customizing Access
 -
 - Accessing Veeam Kasten
-- Veeam Kasten RBAC Dashboard
-The Veeam Kasten Role Based Access Control (RBAC) dashboard can be
-used to setup varying levels of access to Veeam Kasten's dashboard
-and APIs.
-Note
-This dashboard can be viewed only if the user is authorized to
-view Kubernetes namespace-scoped Roles, Role Bindings and/or Cluster
-Roles and Cluster Role Bindings. Refer RBAC
-permissions for more information.
-### User Accessï
-Veeam Kasten allows users to manage Kubernetes access through the Veeam
-Kasten dashboard. Users can create Role Bindings as well as Cluster Role
-Bindings by choosing existing or creating new Roles and Cluster Roles.
-Bindings are available for subject type Users and Groups. If a
-Service Account binding is required, use the format
-system:serviceaccount:<sa_namespace>:<sa_name> in the User field for a single
-Service Account in a specific namespace. Alternatively, use the format
-system:serviceaccounts:<sa_name> in the Group field for a Service
-Account in all namespaces.
-### Admin Accessï
-To setup administrator access for a user or group, the Veeam Kasten
-RBAC dashboard can be used to create a Cluster Role Binding. Select
-the Cluster Role named k10-admin from the drop down. Provide one
-or more users/groups while configuring the subjects of the Cluster
-Role Binding.
-### Multi Tenant Accessï
-To setup access for users so that they can perform data protection
-operations, only in their namespaces, the Veeam Kasten RBAC dashboard
-can be used to create Role Binding(s) in a specific list of namespaces.
-Select the Cluster Role named k10-basic from the drop down.
-Provide one or more users/groups while configuring the subjects of
-the Role Binding.
-### Read-Only Accessï
-To setup read-only access for users, the Veeam Kasten RBAC dashboard can
-be used to create a Cluster Role Binding. Select the Cluster Role named
-k10-config-view from the drop down. Provide one or more users/groups
-while configuring the subjects of the Cluster Role Binding.
-### Customizing Accessï
-To customize access to Veeam Kasten dashboard and APIs, users can create
-custom Roles and Cluster Roles and create corresponding Role Bindings and
-Cluster Role Bindings using those Roles and Cluster Roles as well as the
-default ones deployed when Veeam Kasten is installed.
-Veeam Kasten will only display a table of permissions related to
-Veeam Kasten resources, while creating Roles and Cluster Roles.
-### Rolesï
-Single or multiple Roles can be created via the Veeam Kasten dashboard.
-Roles can be created for multiple namespaces by selecting them from the
-drop down menu. A separate instance of the Role will be created in each
-namespace.
-Permissions are grouped into three categories: Read (get, list, and watch),
-Write (create, update, and patch), and Delete (delete). These groups of
-permissions can be applied to all Veeam Kasten resources, groups of Veeam
-Kasten resources, or individual Veeam Kasten resources.
-### Cluster Rolesï
-A Cluster Role can be created by selecting the permissions from the
-resources table.
-### Role Bindingsï
-Single or multiple Role Bindings can be created via the Veeam Kasten dashboard.
-If a Role Binding is be created in a namespace, either a Cluster Role or a
-Role from the corresponding namespace can be selected from the drop down menu.
-If multiple Role Bindings are to be created, a Cluster Role can be selected
-from the drop down.
-### Cluster Role Bindingsï
-A Cluster Role Binding can be created by choosing a Cluster Role from the
-drop down. A Cluster Role Binding will give access throughout the entire
-cluster.
-Veeam Kasten will only display a subset of Roles and Cluster Roles which
-cover Veeam Kasten APIs while creating Bindings.
+- Authorization
+### Administrative Accessï
+For admin access, make sure that when using kubectl or trying
+to access the Veeam Kasten dashboard
+with Token Authentication you authenticate with
+a user that has a ClusterRoleBinding to the predefined k10-admin
+role.
+### Limited Accessï
+Non-admin users may be granted limited permissions to Veeam Kasten.
+Read-only access to the dashboard config is granted by creating a
+ClusterRoleBinding between the user and the predefined
+k10-config-view role. In addition, users may be granted operational
+access to their applications by creating a RoleBinding to the
+k10-basic role in their application's namespace.
+### Additional RBAC Accessï
+Veeam Kasten now supports a more flexible permissions model
+which allows scoping of user permissions to perform Veeam Kasten
+actions only within the context of specified applications.
+Check out Veeam Kasten RBAC for more information.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_access_dashboard.md
 ## Dashboard Accessï
@@ -249,6 +192,99 @@ following option:
 Additionally, to specify the TLS insecureEdgeTerminationPolicy or
 termination Route parameters, the following option needs
 to be specified:
+© Copyright 2017-2024, Kasten, Inc.
+### latest_access_rbac_ui.md
+## Veeam Kasten RBAC Dashboardï
+- Dashboard Access
+- API and Command Line
+- Authentication
+- Authorization
+- Veeam Kasten RBAC
+- Veeam Kasten RBAC Dashboard
+User Access
+Admin Access
+Multi Tenant Access
+Read-Only Access
+Customizing Access
+- User Access
+Admin Access
+Multi Tenant Access
+Read-Only Access
+Customizing Access
+- Admin Access
+- Multi Tenant Access
+- Read-Only Access
+- Customizing Access
+-
+- Accessing Veeam Kasten
+- Veeam Kasten RBAC Dashboard
+The Veeam Kasten Role Based Access Control (RBAC) dashboard can be
+used to setup varying levels of access to Veeam Kasten's dashboard
+and APIs.
+Note
+This dashboard can be viewed only if the user is authorized to
+view Kubernetes namespace-scoped Roles, Role Bindings and/or Cluster
+Roles and Cluster Role Bindings. Refer RBAC
+permissions for more information.
+### User Accessï
+Veeam Kasten allows users to manage Kubernetes access through the Veeam
+Kasten dashboard. Users can create Role Bindings as well as Cluster Role
+Bindings by choosing existing or creating new Roles and Cluster Roles.
+Bindings are available for subject type Users and Groups. If a
+Service Account binding is required, use the format
+system:serviceaccount:<sa_namespace>:<sa_name> in the User field for a single
+Service Account in a specific namespace. Alternatively, use the format
+system:serviceaccounts:<sa_name> in the Group field for a Service
+Account in all namespaces.
+### Admin Accessï
+To setup administrator access for a user or group, the Veeam Kasten
+RBAC dashboard can be used to create a Cluster Role Binding. Select
+the Cluster Role named k10-admin from the drop down. Provide one
+or more users/groups while configuring the subjects of the Cluster
+Role Binding.
+### Multi Tenant Accessï
+To setup access for users so that they can perform data protection
+operations, only in their namespaces, the Veeam Kasten RBAC dashboard
+can be used to create Role Binding(s) in a specific list of namespaces.
+Select the Cluster Role named k10-basic from the drop down.
+Provide one or more users/groups while configuring the subjects of
+the Role Binding.
+### Read-Only Accessï
+To setup read-only access for users, the Veeam Kasten RBAC dashboard can
+be used to create a Cluster Role Binding. Select the Cluster Role named
+k10-config-view from the drop down. Provide one or more users/groups
+while configuring the subjects of the Cluster Role Binding.
+### Customizing Accessï
+To customize access to Veeam Kasten dashboard and APIs, users can create
+custom Roles and Cluster Roles and create corresponding Role Bindings and
+Cluster Role Bindings using those Roles and Cluster Roles as well as the
+default ones deployed when Veeam Kasten is installed.
+Veeam Kasten will only display a table of permissions related to
+Veeam Kasten resources, while creating Roles and Cluster Roles.
+### Rolesï
+Single or multiple Roles can be created via the Veeam Kasten dashboard.
+Roles can be created for multiple namespaces by selecting them from the
+drop down menu. A separate instance of the Role will be created in each
+namespace.
+Permissions are grouped into three categories: Read (get, list, and watch),
+Write (create, update, and patch), and Delete (delete). These groups of
+permissions can be applied to all Veeam Kasten resources, groups of Veeam
+Kasten resources, or individual Veeam Kasten resources.
+### Cluster Rolesï
+A Cluster Role can be created by selecting the permissions from the
+resources table.
+### Role Bindingsï
+Single or multiple Role Bindings can be created via the Veeam Kasten dashboard.
+If a Role Binding is be created in a namespace, either a Cluster Role or a
+Role from the corresponding namespace can be selected from the drop down menu.
+If multiple Role Bindings are to be created, a Cluster Role can be selected
+from the drop down.
+### Cluster Role Bindingsï
+A Cluster Role Binding can be created by choosing a Cluster Role from the
+drop down. A Cluster Role Binding will give access throughout the entire
+cluster.
+Veeam Kasten will only display a subset of Roles and Cluster Roles which
+cover Veeam Kasten APIs while creating Bindings.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_access_rbac.md
 ## Veeam Kasten RBACï
@@ -400,42 +436,6 @@ to grant themselves administrative privileges.
 Please refer to Kubernetes documentation for more details.
 The corresponding Cluster Role Binding is needed to bind the Cluster Role
 to users and groups.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_access_authorization.md
-## Authorizationï
-- Dashboard Access
-- API and Command Line
-- Authentication
-- Authorization
-Administrative Access
-Limited Access
-Additional RBAC Access
-- Administrative Access
-- Limited Access
-- Additional RBAC Access
-- Veeam Kasten RBAC
-- Veeam Kasten RBAC Dashboard
--
-- Accessing Veeam Kasten
-- Authorization
-### Administrative Accessï
-For admin access, make sure that when using kubectl or trying
-to access the Veeam Kasten dashboard
-with Token Authentication you authenticate with
-a user that has a ClusterRoleBinding to the predefined k10-admin
-role.
-### Limited Accessï
-Non-admin users may be granted limited permissions to Veeam Kasten.
-Read-only access to the dashboard config is granted by creating a
-ClusterRoleBinding between the user and the predefined
-k10-config-view role. In addition, users may be granted operational
-access to their applications by creating a RoleBinding to the
-k10-basic role in their application's namespace.
-### Additional RBAC Accessï
-Veeam Kasten now supports a more flexible permissions model
-which allows scoping of user permissions to perform Veeam Kasten
-actions only within the context of specified applications.
-Check out Veeam Kasten RBAC for more information.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_access_authentication.md
 ## Authenticationï

@@ -51,6 +51,96 @@ and Kubernetes API Aggregation.
 The simplest way to use the API is through kubectl.
 To understand the API better refer to the following:
 © Copyright 2017-2024, Kasten, Inc.
+### latest_api_auditconfigs.md
+## AuditConfigsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Creating an Audit Config
+Updating an Audit Config
+Deleting an Audit Config
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+Creating an Audit Config
+Updating an Audit Config
+Deleting an Audit Config
+- Creating an Audit Config
+- Updating an Audit Config
+- Deleting an Audit Config
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- AuditConfigs
+An AuditConfig custom resource (CR) is used to send Veeam Kasten
+audit event logs to a cloud object store by using a reference to a
+Location Profile.
+### Creating an Audit Configï
+When creating an AuditConfig, you first need to
+create a Location Profile that points to a cloud
+object store.
+With a Location Profile already defined, you can now create an Audit Config
+by executing the following commands:
+The AuditConfig can assume four different statuses:
+Status
+Meaning
+Pending
+Created and waiting for Location
+Profile
+UpdateRequested
+Audit Config or Location Profile has changed
+DeleteRequested
+Stop sending logs to this Location Profile
+Success
+Sending logs to this Location Profile
+### Updating an Audit Configï
+To update an AuditConfig, edit the spec portion using your preferred
+method for submitting resource changes with kubectl.
+Once the change is submitted, Veeam Kasten will re-validate the audit config
+and update .status.validation accordingly.
+This action will trigger the extended audit mechanism to update and send logs
+to the updated Location Profile.
+### Deleting an Audit Configï
+You can delete an AuditConfig using the following command:
+This action will trigger the extended audit mechanism to stop sending logs to
+this Location Profile.
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_api_concepts.md
 ## API Conceptsï
 - Veeam Kasten Disaster Recovery
@@ -147,8 +237,8 @@ resources.
 represents pod security context settings to access
 target storage to execute backup and restore operations.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_api_transformsets.md
-## Transform Setsï
+### latest_api_repositories.md
+## Repositoriesï
 - Veeam Kasten Disaster Recovery
 - API and Command Line
 API Concepts
@@ -159,13 +249,12 @@ Policy Presets
 Actions
 Transforms
 Transform Sets
-Example TransformSet Operations
-TransformSet API Type
 Blueprint Bindings
 Applications
 Restore Points
 Reports
 Repositories
+StorageRepository
 KastenDR
 StorageSecurityContext
 - API Concepts
@@ -176,15 +265,13 @@ StorageSecurityContext
 - Actions
 - Transforms
 - Transform Sets
-Example TransformSet Operations
-TransformSet API Type
-- Example TransformSet Operations
-- TransformSet API Type
 - Blueprint Bindings
 - Applications
 - Restore Points
 - Reports
 - Repositories
+StorageRepository
+- StorageRepository
 - KastenDR
 - StorageSecurityContext
 - Monitoring
@@ -200,44 +287,47 @@ TransformSet API Type
 -
 - Accessing Veeam Kasten
 - API and Command Line
-- Transform Sets
-A TransformSet custom resource (CR) is used to save and reuse the set of
-Transforms to be used in
-Restore Actions,
-Restore Cluster Actions and
-Policies.
-### Example TransformSet Operationsï
-- Create a TransformSet
-- Update a TransformSet
-- Using a TransformSet
-- Delete a TransformSet
-### Create a TransformSetï
-The following example illustrates how to create a transform set that contains
-two transforms, one of which changes the deadline parameter value to 300
-seconds and another one scales deployments to 3 replicas.
-### Update a TransformSetï
-To update a TransformSet, edit the spec portion of a TransformSet CR
-using your preferred method of submitting resource changes with kubectl.
-Once the change is submitted, Veeam Kasten will re-validate the TransformSet
-and update .status.validation accordingly.
-Since Veeam Kasten processes API object changes asynchronously, to avoid
-confusion with a previous TransformSet status, it is recommended as
-convention that the status portion of the TransformSet is omitted
-when submitting changes.
-Warning
-### Using a TransformSetï
-The following example illustrates how to use a TransformSet
-in a RestoreAction.
-The TransformSet will be applied to the restored application.
-### Delete a TransformSetï
-A TransformSet can be deleted using the following command.
-### TransformSet API Typeï
-The following is a complete specification of a TransformSet CR.
-To learn more about the transforms structure,
-see Transforms.
+- Repositories
+### StorageRepositoryï
+A StorageRepository API resource is used to represent how Veeam
+Kasten backup data is stored at a particular location
+(represented by a Profile<api_profile>).
+Veeam Kasten will distribute backup data generated by a
+Policy<api_policy> run into one or more repositories,
+based on data type and deduplication domain.
+The API gives the user an insight into the status of these
+repositories, and provides a means of performing
+maintenance and management actions on them.
+### List StorageRepositories Exampleï
+The following example illustrates listing all StorageRepositories
+created by a policy backing up two applications, each
+with PVCs.
+### Get StorageRepositories Details Exampleï
+In addition to getting a StorageRepository, you can also query the details
+associated with the restore point. You would use the details
+sub-resource for that purpose.
+### Modify StorageRepository Background Maintenance Behaviorï
+Veeam Kasten will periodically run maintenance on the
+StorageRepositories it creates. Among other tasks, the maintenance
+process tidies up unused data, detects inconsistent states, and
+measures the overall storage usage over time. This behavior can be
+disabled on a per-repository basis by modifying the spec.disableMaintenance
+field. Additionally, the background operations performed on the
+repository will, by default, have a 10-hour timeout. The timeout
+can be customized as needed by setting the
+spec.backgroundProcessTimeout field.
+### Delete StorageRepository Exampleï
+StorageRepository API resources can be deleted. Functionally, this only
+serves to clean up the API representation; no backup data will be deleted,
+and Veeam Kasten still tracks the associated repository data internally.
+After deletion, if the repository is used again (e.g., by creating a new backup),
+the StorageRepository API representation will be recreated.
+### StorageRepository API Typeï
+The following is a complete specification of the StorageRepository
+resource.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_api_blueprintbindings.md
-## Blueprint Bindingsï
+### latest_api_dr.md
+## KastenDRï
 - Veeam Kasten Disaster Recovery
 - API and Command Line
 API Concepts
@@ -249,14 +339,13 @@ Actions
 Transforms
 Transform Sets
 Blueprint Bindings
-Resource Selector
-Example BlueprintBinding Operations
-BlueprintBinding API Type
 Applications
 Restore Points
 Reports
 Repositories
 KastenDR
+KastenDRReview
+KastenDRRestore
 StorageSecurityContext
 - API Concepts
 - AuditConfigs
@@ -267,17 +356,15 @@ StorageSecurityContext
 - Transforms
 - Transform Sets
 - Blueprint Bindings
-Resource Selector
-Example BlueprintBinding Operations
-BlueprintBinding API Type
-- Resource Selector
-- Example BlueprintBinding Operations
-- BlueprintBinding API Type
 - Applications
 - Restore Points
 - Reports
 - Repositories
 - KastenDR
+KastenDRReview
+KastenDRRestore
+- KastenDRReview
+- KastenDRRestore
 - StorageSecurityContext
 - Monitoring
 - Auditing Veeam Kasten
@@ -292,180 +379,79 @@ BlueprintBinding API Type
 -
 - Accessing Veeam Kasten
 - API and Command Line
-- Blueprint Bindings
-A BlueprintBinding custom resource (CR) is used to automate the assignment
-of Kanister blueprints to applications. Once a BlueprintBinding is created,
-Veeam Kasten will use it during snapshot, export and restore routines to
-automatically run a desired blueprint for matching workloads including
-workloads that are yet to be created in a cluster. You can learn more about
-Kanister blueprints in this section.
-A BlueprintBinding consists of two parts: a reference to a Kanister
-blueprint and a resource selector. For resources that match the selector,
-Veeam Kasten will automatically use the specified blueprint.
-Warning
-For complete documentation of the BlueprintBinding CR,
-refer to BlueprintBinding API Type.
-### Resource Selectorï
-The resources portion of the blueprint binding spec indicates which
-kind of resources this blueprint binding will apply to.
-Note
-For a resource to match the selector, it must meet all the requirements
-from matchAll and at least one requirement from matchAny (if any).
-A blueprint binding with no requirements is considered invalid.
-Both matchAll and matchAny portions of resources represent a list
-of resource requirements to meet. A single resource requirement can set
-one of the following constraints:
-- type: selects resources by group, version, resource and name (GVRN) values
-- namespace: selects resources by namespace
-- annotations: selects resources by annotations
-- labels: selects resources by labels
-### Example BlueprintBinding Operationsï
-- Create a Blueprint Binding
-- Update a Blueprint Binding
-- Delete a Blueprint Binding
-### Create a Blueprint Bindingï
-The following example illustrates how to create a blueprint binding
-which will automatically apply a blueprint to all statefulsets
-in the group apps that has no custom blueprint annotations.
-### Update a Blueprint Bindingï
-To update a BlueprintBinding, edit the spec portion of a BlueprintBinding
-CR using your preferred method of submitting resource changes with kubectl.
-E.g. disabled: true can be added to the spec to
-disable the blueprint binding.
-Once the change is submitted, Veeam Kasten will re-validate the
-BlueprintBinding and update .status.validation accordingly.
-### Delete a Blueprint Bindingï
-You can delete a BlueprintBinding using the following command.
-### BlueprintBinding API Typeï
-The following is a complete specification of the BlueprintBinding CR.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_k10apps.md
-## Applicationsï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Life Cycle and Namespaces
-Application Operations
-Veeam Kasten App API Type
-Veeam Kasten App Details API Type
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-Life Cycle and Namespaces
-Application Operations
-Veeam Kasten App API Type
-Veeam Kasten App Details API Type
-- Life Cycle and Namespaces
-- Application Operations
-- Veeam Kasten App API Type
-- Veeam Kasten App Details API Type
-- Restore Points
-- Reports
-- Repositories
 - KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Applications
+The DR API group consists of two resources used to initiate a
+Veeam Kasten Disaster Recovery (KDR) restore operation:
+### KastenDRReviewï
+KastenDRReview is an API resource used to fetch a list of available
+Veeam Kasten Disaster Recovery (KDR) restore points for a provided source
+cluster, from a provided location profile.
+This resource provides the ability to track the progress of the operation,
+report on any errors encountered, and provide details regarding
+each available KDR restore point. The output is used to determine the id
+of a specific KDR restore point to be used in defining a KastenDRRestore
+resource.
+### Create a KastenDRReview Exampleï
+The following example illustrates how to create a KastenDRReview resource.
+This resource connects to the specified Veeam Kasten location profile and
+fetches KDR restore point information for the specified source cluster UID.
+Creating a KastenDRReview resource assumes the following prerequisites:
+- The location profile containing KDR restore points has been configured
+- The k10-dr-secret secret
+has been configured in the install namespace
 Note
-The Application resource is in developer
-preview and a number of breaking changes to the resource API
-schema may happen in subsequent releases.
-An Application resource represents an application that
-Veeam Kasten has been automatically discovered on the Kubernetes cluster.
-The application encapsulates all stateless and stateful resources
-that comprise it.
-### Life Cycle and Namespacesï
-Application resources are read-only and are automatically
-instantiated by Veeam Kasten when it discovers applications that are
-running on the Kubernetes cluster.
-An Application resource is available in for each application
-that is currently running in the cluster. This resource resides in the same
-namespace as the application that it corresponds to.
-When an application, for which Veeam Kasten has at least one existing
-RestorePointContent from a previous backup,
-is deleted from the cluster, a Application resource
-representing the application is still available in the namespace where
-Veeam Kasten is installed. The resource will be marked as a deleted
-application, but it will be possible for an administrator to restore
-the application.
-Apps are also available to  track applications that have been
-deleted from the Kubernetes cluster, but are available to be restored
-based on an existing RestorePointContent
-captured by Veeam Kasten.
-### Application Operationsï
-### List of Applicationsï
-The Application API allows you to discover all applications
-that are installed and currently present on the Kubernetes cluster.
-### List of Deleted Applicationsï
-The Application API allows you to discover applications
-that Veeam Kasten can restore which have been previously deleted from
-the cluster.
-### Restore of Deleted Applicationsï
-In addition to discovery of deleted applications, Veeam Kasten makes it
-possible to restore an application that has been deleted but was
-previously protected.
-The procedure, which requires Veeam Kasten administrative privileges,
-is as follows:
-- Step 1: Find the RestorePointContent that corresponds to the desired
-point-in-time.
-- Step 2: Re-create the namespace where you would like to restore the
-application.
-- Step 3: Create a RestorePoint in the new namespace that is backed
-by the RestorePointContent. See Creating RestorePoint from RestorePointContent Example for details.
-- Step 4: Initiate a RestoreAction to restore the application from
-the created RestorePoint. See RestoreAction for details.
-### Get Application Componentsï
-In addition to discovering the applications on the cluster, Veeam Kasten
-also tracks all resources associated with the application. You can get a
-summary of all resources (stateful and stateless) discovered in the context
-of the application. This is done by querying a details sub-resource for the
-particular application you are interested in.
-### Initiate Backup for an Applicationï
-Apps can be protected on a scheduled basis using a Policy or
-in an ad hoc manner using a BackupAction.
-For details see, Create a Backup Policy or
-BackupAction.
-### Veeam Kasten App API Typeï
-The following is a complete specification of the Application resource.
-The Application resource is read-only.
-### Veeam Kasten App Details API Typeï
-The following is a complete specification of the appDetails section
-of the Application API. These fields are only available in the
-Application API when the details sub-resource is used as shown in the
-example above.
+To avoid accidental, concurrent requests, only a single instance
+of a KastenDRReview is allowed to exist.
+### List KastenDRReviews Exampleï
+The following example illustrates listing all KastenDRReviews resources.
+The status field provides information about the available
+KDR restore points, operation progress and any errors.
+### Delete KastenDRReview Exampleï
+KastenDRReview API resources can be deleted.
+Functionally, this only serves to clean up the
+API representation; no restore point data will be deleted.
+### KastenDRReview API Typeï
+The following is a complete specification of the KastenDRReview resource.
+### KastenDRRestoreï
+KastenDRRestore is an API resource used to manage and track
+Veeam Kasten Disaster Recovery (KDR) restore operations.
+This resource allows users to:
+- Initiate a KDR restore operation from the latest
+KDR restore point
+- Initiate a KDR restore operation from a specific
+restore point provided by the KastenDRReview process.
+- Specify which resources to skip during the
+restore process (e.g., secrets, profiles).
+- Monitor the status of the restore operation,
+including error information, cause and
+the phase of the operation.
+### Create a KastenDRRestore Exampleï
+The following examples illustrate how to create a KastenDRRestore resource.
+Creating a KastenDRRestore resource assumes the following prerequisites:
+- The k10-dr-secret Secret
+has been configured in the install namespace
+To avoid accidental, concurrent requests, only a single instance
+of a KastenDRRestore is allowed to exist.
+### Use Latest KDR Restore Pointï
+The following example fetches all KDR restore points for the
+referenced source cluster and restores the latest available
+as of the specified point in time.
+This method can be used without first creating a KastenDRReview.
+The pointInTime parameter is optional and can only be used for
+review and restore operations from an immutable location profile.
+### Use Specific KDR Restore Pointï
+The following example restores using a specific KDR restore point (id),
+from an existing KastenDRReview resource (kastenDRReviewRef).
+### List KastenDRRestore Exampleï
+The following example illustrates listing all KastenDRRestore resources
+in a namespace. The phase column indicates the various step through which
+restore operation is progressing.
+### Delete KastenDRRestore Exampleï
+KastenDRRestore API resources can be deleted.
+Functionally, this only serves to clean up the
+API representation.
+### KastenDRRestore API Typeï
+The following is a complete specification of the KastenDRRestore resource.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_api_restorepoints.md
 ## Restore Pointsï
@@ -643,6 +629,219 @@ ClusterRestorePoint resource.
 The following is a complete specification of the ClusterRestorePoint
 resource.
 © Copyright 2017-2024, Kasten, Inc.
+### latest_api_blueprintbindings.md
+## Blueprint Bindingsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Resource Selector
+Example BlueprintBinding Operations
+BlueprintBinding API Type
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+Resource Selector
+Example BlueprintBinding Operations
+BlueprintBinding API Type
+- Resource Selector
+- Example BlueprintBinding Operations
+- BlueprintBinding API Type
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Blueprint Bindings
+A BlueprintBinding custom resource (CR) is used to automate the assignment
+of Kanister blueprints to applications. Once a BlueprintBinding is created,
+Veeam Kasten will use it during snapshot, export and restore routines to
+automatically run a desired blueprint for matching workloads including
+workloads that are yet to be created in a cluster. You can learn more about
+Kanister blueprints in this section.
+A BlueprintBinding consists of two parts: a reference to a Kanister
+blueprint and a resource selector. For resources that match the selector,
+Veeam Kasten will automatically use the specified blueprint.
+Warning
+For complete documentation of the BlueprintBinding CR,
+refer to BlueprintBinding API Type.
+### Resource Selectorï
+The resources portion of the blueprint binding spec indicates which
+kind of resources this blueprint binding will apply to.
+Note
+For a resource to match the selector, it must meet all the requirements
+from matchAll and at least one requirement from matchAny (if any).
+A blueprint binding with no requirements is considered invalid.
+Both matchAll and matchAny portions of resources represent a list
+of resource requirements to meet. A single resource requirement can set
+one of the following constraints:
+- type: selects resources by group, version, resource and name (GVRN) values
+- namespace: selects resources by namespace
+- annotations: selects resources by annotations
+- labels: selects resources by labels
+### Example BlueprintBinding Operationsï
+- Create a Blueprint Binding
+- Update a Blueprint Binding
+- Delete a Blueprint Binding
+### Create a Blueprint Bindingï
+The following example illustrates how to create a blueprint binding
+which will automatically apply a blueprint to all statefulsets
+in the group apps that has no custom blueprint annotations.
+### Update a Blueprint Bindingï
+To update a BlueprintBinding, edit the spec portion of a BlueprintBinding
+CR using your preferred method of submitting resource changes with kubectl.
+E.g. disabled: true can be added to the spec to
+disable the blueprint binding.
+Once the change is submitted, Veeam Kasten will re-validate the
+BlueprintBinding and update .status.validation accordingly.
+### Delete a Blueprint Bindingï
+You can delete a BlueprintBinding using the following command.
+### BlueprintBinding API Typeï
+The following is a complete specification of the BlueprintBinding CR.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_storagesecuritycontexts.md
+## StorageSecurityContextï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+StorageSecurityContextBinding
+Example of StorageSecurityContext and StorageSecurityContextBindings Usage
+StorageSecurityContext API Type
+StorageSecurityContextBinding API Type
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+StorageSecurityContextBinding
+Example of StorageSecurityContext and StorageSecurityContextBindings Usage
+StorageSecurityContext API Type
+StorageSecurityContextBinding API Type
+- StorageSecurityContextBinding
+- Example of StorageSecurityContext and StorageSecurityContextBindings Usage
+- StorageSecurityContext API Type
+- StorageSecurityContextBinding API Type
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- StorageSecurityContext
+A StorageSecurityContext custom resource (CR)
+represents pod security context settings to access target storage
+to execute backup and restore operations.
+Once the StorageSecurityContext is created
+and bound to specific storage using StorageSecurityContextBinding,
+Veeam Kasten will use the parameters set in the StorageSecurityContext
+for its internal pods, which access bound storage.
+Note
+### StorageSecurityContextBindingï
+StorageSecurityContextBinding binds a StorageSecurityContext to a storage.
+Warning
+Bindings might be one of three types:
+- Volume - binds StorageSecurityContext to a PV.
+- StorageClass - binds StorageSecurityContext to a StorageClass.
+- Provisioner - binds StorageSecurityContext to a Provisioner.
+### Example of StorageSecurityContext and StorageSecurityContextBindings Usageï
+- Create a StorageSecurityContext
+- Create a StorageSecurityContextBinding
+As an example, an NFS storage with the
+filestore.csi.storage.gke.io StorageClass is used.
+- NFS CSI driver should support VolumeSnapshots
+- NFS CSI driver should support fsGroup
+In this example, only UID and GID are set in the StorageSecurityContext.
+However, if a target storage contains files or directories owned by
+several different GIDs, SupplementalGroup should also be used to
+enable Veeam Kasten to read all the data. Please note that after the restore,
+the owner of files and directories will be set to the UID and GID
+specified in the StorageSecurityContext.
+### Create a StorageSecurityContextï
+The following example illustrates how to create a StorageSecurityContext
+for NFS storage:
+For complete documentation of StorageSecurityContext CR,
+please refer to StorageSecurityContext API Type.
+When the StorageSecurityContext is applied, Veeam Kasten will start
+a pod that reads the target storage with UID=1005 and GID=1006. If the target storage
+contains files owned by other users,
+which cannot be accessed
+by the provided UID and GID, Veeam Kasten will fail
+to complete the Export process.
+### Create a StorageSecurityContextBindingï
+The following example illustrates
+how to create a StorageSecurityContextBinding to bind
+the StorageSecurityContext named
+"sample-storage-security-context" to all storages
+created with filestore.csi.storage.gke.io Provisioner.
+For complete documentation of StorageSecurityContextBinding CR,
+please refer to StorageSecurityContextBinding API Type.
+### StorageSecurityContext API Typeï
+### StorageSecurityContextBinding API Typeï
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_api_profiles.md
 ## Profilesï
 - Veeam Kasten Disaster Recovery
@@ -819,8 +1018,8 @@ A Veeam Repository Location Profile
 requires a credential secret in the format below.
 Alternatively, the secret can be created using kubectl as follows:
 © Copyright 2017-2024, Kasten, Inc.
-### latest_api_reports.md
-## Reportsï
+### latest_api_k10apps.md
+## Applicationsï
 - Veeam Kasten Disaster Recovery
 - API and Command Line
 API Concepts
@@ -833,9 +1032,12 @@ Transforms
 Transform Sets
 Blueprint Bindings
 Applications
+Life Cycle and Namespaces
+Application Operations
+Veeam Kasten App API Type
+Veeam Kasten App Details API Type
 Restore Points
 Reports
-Report
 Repositories
 KastenDR
 StorageSecurityContext
@@ -849,10 +1051,16 @@ StorageSecurityContext
 - Transform Sets
 - Blueprint Bindings
 - Applications
+Life Cycle and Namespaces
+Application Operations
+Veeam Kasten App API Type
+Veeam Kasten App Details API Type
+- Life Cycle and Namespaces
+- Application Operations
+- Veeam Kasten App API Type
+- Veeam Kasten App Details API Type
 - Restore Points
 - Reports
-Report
-- Report
 - Repositories
 - KastenDR
 - StorageSecurityContext
@@ -869,244 +1077,74 @@ Report
 -
 - Accessing Veeam Kasten
 - API and Command Line
-- Reports
+- Applications
 Note
-The Report resource is in developer preview and
-a number of breaking changes to the resource API schema may happen
-in subsequent releases.
-### Reportï
-A Report API resource captures information about the state
-of the system at the time the report was generated as well
-as select metrics collected from the Veeam Kasten Prometheus service.
-A Report is produced by a
-ReportAction when Veeam Kasten Reports are
-enabled.
-Enabling and viewing Reports in the Veeam Kasten dashboard or with
-the API are discussed more fully in
-Reporting.
-### Report API Typeï
-The following is a complete specification of the Report
-resource.
-### Retiring Reportsï
-By default the reports are not retired. To set up a retention count,
-update the policy spec to include the desired value:
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_dr.md
-## KastenDRï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-KastenDRReview
-KastenDRRestore
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-KastenDRReview
-KastenDRRestore
-- KastenDRReview
-- KastenDRRestore
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- KastenDR
-The DR API group consists of two resources used to initiate a
-Veeam Kasten Disaster Recovery (KDR) restore operation:
-### KastenDRReviewï
-KastenDRReview is an API resource used to fetch a list of available
-Veeam Kasten Disaster Recovery (KDR) restore points for a provided source
-cluster, from a provided location profile.
-This resource provides the ability to track the progress of the operation,
-report on any errors encountered, and provide details regarding
-each available KDR restore point. The output is used to determine the id
-of a specific KDR restore point to be used in defining a KastenDRRestore
-resource.
-### Create a KastenDRReview Exampleï
-The following example illustrates how to create a KastenDRReview resource.
-This resource connects to the specified Veeam Kasten location profile and
-fetches KDR restore point information for the specified source cluster UID.
-Creating a KastenDRReview resource assumes the following prerequisites:
-- The location profile containing KDR restore points has been configured
-- The k10-dr-secret secret
-has been configured in the install namespace
-Note
-To avoid accidental, concurrent requests, only a single instance
-of a KastenDRReview is allowed to exist.
-### List KastenDRReviews Exampleï
-The following example illustrates listing all KastenDRReviews resources.
-The status field provides information about the available
-KDR restore points, operation progress and any errors.
-### Delete KastenDRReview Exampleï
-KastenDRReview API resources can be deleted.
-Functionally, this only serves to clean up the
-API representation; no restore point data will be deleted.
-### KastenDRReview API Typeï
-The following is a complete specification of the KastenDRReview resource.
-### KastenDRRestoreï
-KastenDRRestore is an API resource used to manage and track
-Veeam Kasten Disaster Recovery (KDR) restore operations.
-This resource allows users to:
-- Initiate a KDR restore operation from the latest
-KDR restore point
-- Initiate a KDR restore operation from a specific
-restore point provided by the KastenDRReview process.
-- Specify which resources to skip during the
-restore process (e.g., secrets, profiles).
-- Monitor the status of the restore operation,
-including error information, cause and
-the phase of the operation.
-### Create a KastenDRRestore Exampleï
-The following examples illustrate how to create a KastenDRRestore resource.
-Creating a KastenDRRestore resource assumes the following prerequisites:
-- The k10-dr-secret Secret
-has been configured in the install namespace
-To avoid accidental, concurrent requests, only a single instance
-of a KastenDRRestore is allowed to exist.
-### Use Latest KDR Restore Pointï
-The following example fetches all KDR restore points for the
-referenced source cluster and restores the latest available
-as of the specified point in time.
-This method can be used without first creating a KastenDRReview.
-The pointInTime parameter is optional and can only be used for
-review and restore operations from an immutable location profile.
-### Use Specific KDR Restore Pointï
-The following example restores using a specific KDR restore point (id),
-from an existing KastenDRReview resource (kastenDRReviewRef).
-### List KastenDRRestore Exampleï
-The following example illustrates listing all KastenDRRestore resources
-in a namespace. The phase column indicates the various step through which
-restore operation is progressing.
-### Delete KastenDRRestore Exampleï
-KastenDRRestore API resources can be deleted.
-Functionally, this only serves to clean up the
-API representation.
-### KastenDRRestore API Typeï
-The following is a complete specification of the KastenDRRestore resource.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_policypresets.md
-## Policy Presetsï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Example PolicyPreset Operations
-PolicyPreset API Type
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-Example PolicyPreset Operations
-PolicyPreset API Type
-- Example PolicyPreset Operations
-- PolicyPreset API Type
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Policy Presets
-A PolicyPreset custom resource (CR) is used to save and reuse
-configuration of Veeam Kasten Policies. Follow this
-page to learn more about using Veeam Kasten Policy Presets.
-A PolicyPreset specifies schedule, retention, location and
-infrastructure information, while Policy that uses a preset
-is supposed to specify application specific information.
-A detailed description of the schedule settings can be found
-in the Policy Scheduling section.
-For complete documentation of the PolicyPreset CR,
-refer to PolicyPreset API Type.
-### Example PolicyPreset Operationsï
-- Create a PolicyPreset
-- Update a PolicyPreset
-- Delete a PolicyPreset
-### Create a PolicyPresetï
-The following example illustrates how to create a preset for policies
-which execute hourly, retain 24 hourly and 7 daily snapshots and
-export every daily snapshot with the same retention schedule
-as for snapshots (i.e. retain 7 daily exported snapshots).
-### Update a PolicyPresetï
-To update a PolicyPreset, edit the spec portion of a PolicyPreset CR
-using your preferred method of submitting resource changes with kubectl.
-Once the change is submitted, Veeam Kasten will re-validate the PolicyPreset
-and update .status.validation accordingly.
-Since Veeam Kasten processes API object changes asynchronously, to avoid
-confusion with a previous PolicyPreset status, it is recommended as
-convention that the status portion of the PolicyPreset is omitted
-when submitting changes.
-Warning
-### Delete a PolicyPresetï
-You can delete a PolicyPreset using the following command.
-All the policies that use the deleted preset will be
-automatically marked as invalid.
-### PolicyPreset API Typeï
-The following is a complete specification of the PolicyPreset CR.
+The Application resource is in developer
+preview and a number of breaking changes to the resource API
+schema may happen in subsequent releases.
+An Application resource represents an application that
+Veeam Kasten has been automatically discovered on the Kubernetes cluster.
+The application encapsulates all stateless and stateful resources
+that comprise it.
+### Life Cycle and Namespacesï
+Application resources are read-only and are automatically
+instantiated by Veeam Kasten when it discovers applications that are
+running on the Kubernetes cluster.
+An Application resource is available in for each application
+that is currently running in the cluster. This resource resides in the same
+namespace as the application that it corresponds to.
+When an application, for which Veeam Kasten has at least one existing
+RestorePointContent from a previous backup,
+is deleted from the cluster, a Application resource
+representing the application is still available in the namespace where
+Veeam Kasten is installed. The resource will be marked as a deleted
+application, but it will be possible for an administrator to restore
+the application.
+Apps are also available to  track applications that have been
+deleted from the Kubernetes cluster, but are available to be restored
+based on an existing RestorePointContent
+captured by Veeam Kasten.
+### Application Operationsï
+### List of Applicationsï
+The Application API allows you to discover all applications
+that are installed and currently present on the Kubernetes cluster.
+### List of Deleted Applicationsï
+The Application API allows you to discover applications
+that Veeam Kasten can restore which have been previously deleted from
+the cluster.
+### Restore of Deleted Applicationsï
+In addition to discovery of deleted applications, Veeam Kasten makes it
+possible to restore an application that has been deleted but was
+previously protected.
+The procedure, which requires Veeam Kasten administrative privileges,
+is as follows:
+- Step 1: Find the RestorePointContent that corresponds to the desired
+point-in-time.
+- Step 2: Re-create the namespace where you would like to restore the
+application.
+- Step 3: Create a RestorePoint in the new namespace that is backed
+by the RestorePointContent. See Creating RestorePoint from RestorePointContent Example for details.
+- Step 4: Initiate a RestoreAction to restore the application from
+the created RestorePoint. See RestoreAction for details.
+### Get Application Componentsï
+In addition to discovering the applications on the cluster, Veeam Kasten
+also tracks all resources associated with the application. You can get a
+summary of all resources (stateful and stateless) discovered in the context
+of the application. This is done by querying a details sub-resource for the
+particular application you are interested in.
+### Initiate Backup for an Applicationï
+Apps can be protected on a scheduled basis using a Policy or
+in an ad hoc manner using a BackupAction.
+For details see, Create a Backup Policy or
+BackupAction.
+### Veeam Kasten App API Typeï
+The following is a complete specification of the Application resource.
+The Application resource is read-only.
+### Veeam Kasten App Details API Typeï
+The following is a complete specification of the appDetails section
+of the Application API. These fields are only available in the
+Application API when the details sub-resource is used as shown in the
+example above.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_api_transforms.md
 ## Transformsï
@@ -1395,8 +1433,8 @@ Transform to change the storage class on a persistent volume claim (pvc):
 Resource to operate on:
 Transformed resource:
 © Copyright 2017-2024, Kasten, Inc.
-### latest_api_repositories.md
-## Repositoriesï
+### latest_api_policypresets.md
+## Policy Presetsï
 - Veeam Kasten Disaster Recovery
 - API and Command Line
 API Concepts
@@ -1404,208 +1442,8 @@ AuditConfigs
 Profiles
 Policies
 Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-StorageRepository
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-StorageRepository
-- StorageRepository
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Repositories
-### StorageRepositoryï
-A StorageRepository API resource is used to represent how Veeam
-Kasten backup data is stored at a particular location
-(represented by a Profile<api_profile>).
-Veeam Kasten will distribute backup data generated by a
-Policy<api_policy> run into one or more repositories,
-based on data type and deduplication domain.
-The API gives the user an insight into the status of these
-repositories, and provides a means of performing
-maintenance and management actions on them.
-### List StorageRepositories Exampleï
-The following example illustrates listing all StorageRepositories
-created by a policy backing up two applications, each
-with PVCs.
-### Get StorageRepositories Details Exampleï
-In addition to getting a StorageRepository, you can also query the details
-associated with the restore point. You would use the details
-sub-resource for that purpose.
-### Modify StorageRepository Background Maintenance Behaviorï
-Veeam Kasten will periodically run maintenance on the
-StorageRepositories it creates. Among other tasks, the maintenance
-process tidies up unused data, detects inconsistent states, and
-measures the overall storage usage over time. This behavior can be
-disabled on a per-repository basis by modifying the spec.disableMaintenance
-field. Additionally, the background operations performed on the
-repository will, by default, have a 10-hour timeout. The timeout
-can be customized as needed by setting the
-spec.backgroundProcessTimeout field.
-### Delete StorageRepository Exampleï
-StorageRepository API resources can be deleted. Functionally, this only
-serves to clean up the API representation; no backup data will be deleted,
-and Veeam Kasten still tracks the associated repository data internally.
-After deletion, if the repository is used again (e.g., by creating a new backup),
-the StorageRepository API representation will be recreated.
-### StorageRepository API Typeï
-The following is a complete specification of the StorageRepository
-resource.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_storagesecuritycontexts.md
-## StorageSecurityContextï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-StorageSecurityContextBinding
-Example of StorageSecurityContext and StorageSecurityContextBindings Usage
-StorageSecurityContext API Type
-StorageSecurityContextBinding API Type
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-StorageSecurityContextBinding
-Example of StorageSecurityContext and StorageSecurityContextBindings Usage
-StorageSecurityContext API Type
-StorageSecurityContextBinding API Type
-- StorageSecurityContextBinding
-- Example of StorageSecurityContext and StorageSecurityContextBindings Usage
-- StorageSecurityContext API Type
-- StorageSecurityContextBinding API Type
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- StorageSecurityContext
-A StorageSecurityContext custom resource (CR)
-represents pod security context settings to access target storage
-to execute backup and restore operations.
-Once the StorageSecurityContext is created
-and bound to specific storage using StorageSecurityContextBinding,
-Veeam Kasten will use the parameters set in the StorageSecurityContext
-for its internal pods, which access bound storage.
-Note
-### StorageSecurityContextBindingï
-StorageSecurityContextBinding binds a StorageSecurityContext to a storage.
-Warning
-Bindings might be one of three types:
-- Volume - binds StorageSecurityContext to a PV.
-- StorageClass - binds StorageSecurityContext to a StorageClass.
-- Provisioner - binds StorageSecurityContext to a Provisioner.
-### Example of StorageSecurityContext and StorageSecurityContextBindings Usageï
-- Create a StorageSecurityContext
-- Create a StorageSecurityContextBinding
-As an example, an NFS storage with the
-filestore.csi.storage.gke.io StorageClass is used.
-- NFS CSI driver should support VolumeSnapshots
-- NFS CSI driver should support fsGroup
-In this example, only UID and GID are set in the StorageSecurityContext.
-However, if a target storage contains files or directories owned by
-several different GIDs, SupplementalGroup should also be used to
-enable Veeam Kasten to read all the data. Please note that after the restore,
-the owner of files and directories will be set to the UID and GID
-specified in the StorageSecurityContext.
-### Create a StorageSecurityContextï
-The following example illustrates how to create a StorageSecurityContext
-for NFS storage:
-For complete documentation of StorageSecurityContext CR,
-please refer to StorageSecurityContext API Type.
-When the StorageSecurityContext is applied, Veeam Kasten will start
-a pod that reads the target storage with UID=1005 and GID=1006. If the target storage
-contains files owned by other users,
-which cannot be accessed
-by the provided UID and GID, Veeam Kasten will fail
-to complete the Export process.
-### Create a StorageSecurityContextBindingï
-The following example illustrates
-how to create a StorageSecurityContextBinding to bind
-the StorageSecurityContext named
-"sample-storage-security-context" to all storages
-created with filestore.csi.storage.gke.io Provisioner.
-For complete documentation of StorageSecurityContextBinding CR,
-please refer to StorageSecurityContextBinding API Type.
-### StorageSecurityContext API Typeï
-### StorageSecurityContextBinding API Typeï
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_auditconfigs.md
-## AuditConfigsï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Creating an Audit Config
-Updating an Audit Config
-Deleting an Audit Config
-Profiles
-Policies
-Policy Presets
+Example PolicyPreset Operations
+PolicyPreset API Type
 Actions
 Transforms
 Transform Sets
@@ -1618,15 +1456,13 @@ KastenDR
 StorageSecurityContext
 - API Concepts
 - AuditConfigs
-Creating an Audit Config
-Updating an Audit Config
-Deleting an Audit Config
-- Creating an Audit Config
-- Updating an Audit Config
-- Deleting an Audit Config
 - Profiles
 - Policies
 - Policy Presets
+Example PolicyPreset Operations
+PolicyPreset API Type
+- Example PolicyPreset Operations
+- PolicyPreset API Type
 - Actions
 - Transforms
 - Transform Sets
@@ -1650,39 +1486,203 @@ Deleting an Audit Config
 -
 - Accessing Veeam Kasten
 - API and Command Line
-- AuditConfigs
-An AuditConfig custom resource (CR) is used to send Veeam Kasten
-audit event logs to a cloud object store by using a reference to a
-Location Profile.
-### Creating an Audit Configï
-When creating an AuditConfig, you first need to
-create a Location Profile that points to a cloud
-object store.
-With a Location Profile already defined, you can now create an Audit Config
-by executing the following commands:
-The AuditConfig can assume four different statuses:
-Status
-Meaning
-Pending
-Created and waiting for Location
-Profile
-UpdateRequested
-Audit Config or Location Profile has changed
-DeleteRequested
-Stop sending logs to this Location Profile
-Success
-Sending logs to this Location Profile
-### Updating an Audit Configï
-To update an AuditConfig, edit the spec portion using your preferred
-method for submitting resource changes with kubectl.
-Once the change is submitted, Veeam Kasten will re-validate the audit config
+- Policy Presets
+A PolicyPreset custom resource (CR) is used to save and reuse
+configuration of Veeam Kasten Policies. Follow this
+page to learn more about using Veeam Kasten Policy Presets.
+A PolicyPreset specifies schedule, retention, location and
+infrastructure information, while Policy that uses a preset
+is supposed to specify application specific information.
+A detailed description of the schedule settings can be found
+in the Policy Scheduling section.
+For complete documentation of the PolicyPreset CR,
+refer to PolicyPreset API Type.
+### Example PolicyPreset Operationsï
+- Create a PolicyPreset
+- Update a PolicyPreset
+- Delete a PolicyPreset
+### Create a PolicyPresetï
+The following example illustrates how to create a preset for policies
+which execute hourly, retain 24 hourly and 7 daily snapshots and
+export every daily snapshot with the same retention schedule
+as for snapshots (i.e. retain 7 daily exported snapshots).
+### Update a PolicyPresetï
+To update a PolicyPreset, edit the spec portion of a PolicyPreset CR
+using your preferred method of submitting resource changes with kubectl.
+Once the change is submitted, Veeam Kasten will re-validate the PolicyPreset
 and update .status.validation accordingly.
-This action will trigger the extended audit mechanism to update and send logs
-to the updated Location Profile.
-### Deleting an Audit Configï
-You can delete an AuditConfig using the following command:
-This action will trigger the extended audit mechanism to stop sending logs to
-this Location Profile.
+Since Veeam Kasten processes API object changes asynchronously, to avoid
+confusion with a previous PolicyPreset status, it is recommended as
+convention that the status portion of the PolicyPreset is omitted
+when submitting changes.
+Warning
+### Delete a PolicyPresetï
+You can delete a PolicyPreset using the following command.
+All the policies that use the deleted preset will be
+automatically marked as invalid.
+### PolicyPreset API Typeï
+The following is a complete specification of the PolicyPreset CR.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_reports.md
+## Reportsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Report
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+Report
+- Report
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Reports
+Note
+The Report resource is in developer preview and
+a number of breaking changes to the resource API schema may happen
+in subsequent releases.
+### Reportï
+A Report API resource captures information about the state
+of the system at the time the report was generated as well
+as select metrics collected from the Veeam Kasten Prometheus service.
+A Report is produced by a
+ReportAction when Veeam Kasten Reports are
+enabled.
+Enabling and viewing Reports in the Veeam Kasten dashboard or with
+the API are discussed more fully in
+Reporting.
+### Report API Typeï
+The following is a complete specification of the Report
+resource.
+### Retiring Reportsï
+By default the reports are not retired. To set up a retention count,
+update the policy spec to include the desired value:
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_transformsets.md
+## Transform Setsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Example TransformSet Operations
+TransformSet API Type
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+Example TransformSet Operations
+TransformSet API Type
+- Example TransformSet Operations
+- TransformSet API Type
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Transform Sets
+A TransformSet custom resource (CR) is used to save and reuse the set of
+Transforms to be used in
+Restore Actions,
+Restore Cluster Actions and
+Policies.
+### Example TransformSet Operationsï
+- Create a TransformSet
+- Update a TransformSet
+- Using a TransformSet
+- Delete a TransformSet
+### Create a TransformSetï
+The following example illustrates how to create a transform set that contains
+two transforms, one of which changes the deadline parameter value to 300
+seconds and another one scales deployments to 3 replicas.
+### Update a TransformSetï
+To update a TransformSet, edit the spec portion of a TransformSet CR
+using your preferred method of submitting resource changes with kubectl.
+Once the change is submitted, Veeam Kasten will re-validate the TransformSet
+and update .status.validation accordingly.
+Since Veeam Kasten processes API object changes asynchronously, to avoid
+confusion with a previous TransformSet status, it is recommended as
+convention that the status portion of the TransformSet is omitted
+when submitting changes.
+Warning
+### Using a TransformSetï
+The following example illustrates how to use a TransformSet
+in a RestoreAction.
+The TransformSet will be applied to the restored application.
+### Delete a TransformSetï
+A TransformSet can be deleted using the following command.
+### TransformSet API Typeï
+The following is a complete specification of a TransformSet CR.
+To learn more about the transforms structure,
+see Transforms.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_api_policies.md
 ## Policiesï
