@@ -20,61 +20,6 @@ ranging from command-line interaction to monitoring the status of policies and
 jobs in the system. The following sections cover these topics in
 depth.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_operating_audit.md
-## Auditing Veeam Kastenï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-Authentication Mode
-Request Attribution
-- Authentication Mode
-- Request Attribution
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Auditing Veeam Kasten
-Independent of whether the dashboard, CLI, or API is used to access
-Veeam Kasten, the usage translates into native Kubernetes API calls.
-Veeam Kasten usage can therefore be transparently audited using the
-Kubernetes Auditing
-feature without requiring any additional changes.
-Note
-Managed Kubernetes providers like EKS, GKE, and AKS do not allow any
-modifications to the kube-apiserver flags,  thereby lacking control
-over the passed-in audit policy. Typically, these providers log the audit
-events at the metadata level, resulting in the loss of important
-information within the request and response bodies.
-This approach is not applicable if you want to send these logs to
-different cloud object stores or use NFS for storing the logs.
-Since the Kubernetes Auditing feature only has access to Kubernetes API calls,
-any internal Veeam Kasten event that does not use this API will not get logged.
-The ongoing work with integrating Veeam Kasten more closely with
-Security Information and Event Management (SIEM) platforms,
-such as with Datadog, will allow for a more robust auditing of Veeam Kasten.
-When viewing audit logs, consider the following:
-### Authentication Modeï
-For correct user attribution, we depend on Veeam Kasten to be set up with OIDC
-or token-based authentication.
-- OIDC: When OIDC is enabled, Kubernetes user impersonation will
-be used based on the email address extracted from the provided OIDC
-token.
-- Token-based Authentication: When token-based authentication is
-enabled, the token is used directly for making API calls.
-### Request Attributionï
-Note that there are two callers of Veeam Kasten and Kubernetes APIs in the
-Veeam Kasten system. Actions triggered by the dashboard, CLI, or API will be
-attributed to the user that initiated them. Other system actions
-(e.g., validation of a Profile or Policy) will be attributed to the
-Veeam Kasten Service Account (SA).
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_garbagecollector.md
 ## Garbage Collectorï
 - Veeam Kasten Disaster Recovery
@@ -113,6 +58,187 @@ as determined by spec.expiresAt.
 This can be set via kubectl or on the manual snapshot page in the UI.
 - CSISnapshot - temporary CSI snapshots created during restore operations.
 - PersistentVolumes - temporary volumes created during restore operations.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_support.md
+## Support and Troubleshootingï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+Supported Kubernetes Versions
+Gathering Debugging Information
+Application Debug Information
+Veeam Kasten Tools
+Storage Class Validation
+Security Disclosures
+- Supported Kubernetes Versions
+- Gathering Debugging Information
+Application Debug Information
+- Application Debug Information
+- Veeam Kasten Tools
+- Storage Class Validation
+- Security Disclosures
+- Uninstalling Veeam Kasten
+-
+- Operating Veeam Kasten
+- Support and Troubleshooting
+If you have questions or need support, please refer to
+Veeam Kasten Community Support
+or open a case via https://my.veeam.com.
+### Supported Kubernetes Versionsï
+Veeam Kasten currently supports deployments running on the following certified
+Kubernetes distributions and respective OpenShift versions:
+Note: Veeam Kasten also does not support distributions/versions that have
+been declared 'End of Life' status as defined by their respective
+entity/community/vendor (in other words, distributions/versions for which
+maintenance is not provided anymore by their supporting
+entity/community/vendor).
+Kubernetes
+RedHat Openshift
+Notes
+1.31
+Respective OpenShift version is not supported yet
+1.30
+4.17
+1.29
+4.16
+1.28
+4.15
+1.27
+4.14
+Kubernetes version only supported when deployed as an OpenShift cluster
+1.26
+4.13
+1.25
+4.12
+### Gathering Debugging Informationï
+Admin users running 4.5.7 or later can get support logs from the
+System Information page under the Settings menu in the
+navigation sidebar.
+Alternatively, if you run into problems with Veeam Kasten, please run
+these commands on your cluster as a first step to get information to
+support. The script assumes that your default kubectl context is
+pointed to the cluster you have installed Veeam Kasten on and that
+Veeam Kasten is installed in the kasten-io namespace.
+By default, the debug script will generate a compressed archive file
+k10_debug_logs.tar.gz which will have separate log files
+for Veeam Kasten services.
+If you installed Veeam Kasten in a different namespace or want to log to
+a different file you can specify additional option flags to the script:
+See the script usage message for additional help.
+The debug script can optionally gather metrics from the Prometheus
+server installed by Veeam Kasten,
+by specifying the --prom-duration flag with a value indicating
+the desired duration (e.g. "1d", "3h25m").
+The start time of the metric collection is implicitly assumed to
+be the current time less the specified duration, but can be adjusted
+with the --prom-start-time flag to specify a time in the past.
+The format is either the simple duration string that is accepted by
+the duration flag,
+or a string that is parsable with the date command, which could
+be a timestamp or a free form relative or absolute time specification.
+For example:
+would collect 270 minutes of metrics starting from 51 hours in the past.
+Note
+Metrics capture only works with the Prometheus instance installed
+by Veeam Kasten.
+The specified duration directly impacts the size of the captured
+metrics data so constrain the duration accordingly.
+One can also consider using the --prom-metrics-only flag to
+separate the collection of metrics from the collection of the logs.
+### Application Debug Informationï
+If you are having issues with a particular application, please also
+gather the following information.
+Please also get the Helm status:
+### Veeam Kasten Toolsï
+The k10tools binary has commands that can help with validating if a cluster
+is setup correctly before installing Veeam Kasten and for debugging Veeam
+Kasten's micro services.
+To learn more about this, see Veeam Kasten Tools.
+### Storage Class Validationï
+k10tools provides an option to validate
+storage classes via CSI Capabilities Check or
+Generic Volume Snapshot Capabilities Check commands.
+It is also possible for admin users to validate storage classes from the
+Veeam Kasten dashboard, under the System Information page of the
+Settings menu in the navigation sidebar. The state "Unknown" is shown
+until validation is run.
+### Security Disclosuresï
+We value the critical role that the security community plays in helping
+us protect the confidentiality, integrity, and availability of our software,
+services, and information. If you have information about security
+vulnerabilities that affect Kasten software, services, or information, please
+report it via our vulnerability disclosure program.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_security_requirements.md
+## Security Requirementsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+Permissions Requirements
+runAsUser, runAsGroup
+fsGroup
+NFS Location Profile
+- Permissions Requirements
+- runAsUser, runAsGroup
+- fsGroup
+- NFS Location Profile
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Security Requirements
+Veeam Kasten requires additional privileges to efficiently
+backup and restore applications due to the nature of
+backup, recovery, and migration operations.
+This article contains descriptions and motivation
+for all the privileges required by Veeam Kasten.
+### Permissions Requirementsï
+Veeam Kasten requires the following capabilities for both
+the Veeam Kasten installation namespace (default: kasten-io)
+and the target application's namespace:
+- DAC_OVERRIDE: Allows to read the data on the volume
+regardless of the permissions set.
+Veeam Kasten needs this capability to read all the data from the volume.
+- FOWNER: Allows to change owner (chown) of the files and directories.
+This capability allows Veeam Kasten to correctly restore
+the owner of the entity following the restore process.
+- CHOWN: Allows to change permissions (chmod) of files and directories.
+This capability allows Veeam Kasten to correctly restore access permissions
+for the entity following the restore process.
+See Linux Capabilities for a detailed description of the above capability requirements.
+### runAsUser, runAsGroupï
+Veeam Kasten runs pods with UID = 1000 and GID = 1000,
+which need to be permitted by the security policies.
+Additionally, it might be required to allow
+the default Prometheus UID\GID.
+See Monitoring for
+information about Grafana and Prometheus usage.
+Note
+### fsGroupï
+Value 1000 for fsGroup parameter
+should be allowed by security policies.
+During the restore phase, Veeam Kasten creates a volume for restoring data
+and sets fsGroup = 1000 to the internal restore-data-*
+pod's securityContext so that data can be written to that volume.
+### NFS Location Profileï
+If the NFS location profile is used in rootless mode,
+the security policies must allow the supplementalGroup
+used by the profile.
+See NFS Location Profile for details.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_siem.md
 ## Integrating Security Information and Event Management (SIEM) Systemsï
@@ -370,70 +496,6 @@ the  Sentinel documentation
 for details on creating automation rules to manage notifications and
 responses.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_operating_security_requirements.md
-## Security Requirementsï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-Permissions Requirements
-runAsUser, runAsGroup
-fsGroup
-NFS Location Profile
-- Permissions Requirements
-- runAsUser, runAsGroup
-- fsGroup
-- NFS Location Profile
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Security Requirements
-Veeam Kasten requires additional privileges to efficiently
-backup and restore applications due to the nature of
-backup, recovery, and migration operations.
-This article contains descriptions and motivation
-for all the privileges required by Veeam Kasten.
-### Permissions Requirementsï
-Veeam Kasten requires the following capabilities for both
-the Veeam Kasten installation namespace (default: kasten-io)
-and the target application's namespace:
-- DAC_OVERRIDE: Allows to read the data on the volume
-regardless of the permissions set.
-Veeam Kasten needs this capability to read all the data from the volume.
-- FOWNER: Allows to change owner (chown) of the files and directories.
-This capability allows Veeam Kasten to correctly restore
-the owner of the entity following the restore process.
-- CHOWN: Allows to change permissions (chmod) of files and directories.
-This capability allows Veeam Kasten to correctly restore access permissions
-for the entity following the restore process.
-See Linux Capabilities for a detailed description of the above capability requirements.
-### runAsUser, runAsGroupï
-Veeam Kasten runs pods with UID = 1000 and GID = 1000,
-which need to be permitted by the security policies.
-Additionally, it might be required to allow
-the default Prometheus UID\GID.
-See Monitoring for
-information about Grafana and Prometheus usage.
-Note
-### fsGroupï
-Value 1000 for fsGroup parameter
-should be allowed by security policies.
-During the restore phase, Veeam Kasten creates a volume for restoring data
-and sets fsGroup = 1000 to the internal restore-data-*
-pod's securityContext so that data can be written to that volume.
-### NFS Location Profileï
-If the NFS location profile is used in rootless mode,
-the security policies must allow the supplementalGroup
-used by the profile.
-See NFS Location Profile for details.
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_reporting.md
 ## Reportingï
 - Veeam Kasten Disaster Recovery
@@ -495,6 +557,61 @@ The --sort-by=.spec.reportTimestamp option can be added to ensure the
 most recent reports are listed last.
 An individual report can also be shown using the -o yaml option for
 kubectl get:
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_audit.md
+## Auditing Veeam Kastenï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+Authentication Mode
+Request Attribution
+- Authentication Mode
+- Request Attribution
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Auditing Veeam Kasten
+Independent of whether the dashboard, CLI, or API is used to access
+Veeam Kasten, the usage translates into native Kubernetes API calls.
+Veeam Kasten usage can therefore be transparently audited using the
+Kubernetes Auditing
+feature without requiring any additional changes.
+Note
+Managed Kubernetes providers like EKS, GKE, and AKS do not allow any
+modifications to the kube-apiserver flags,  thereby lacking control
+over the passed-in audit policy. Typically, these providers log the audit
+events at the metadata level, resulting in the loss of important
+information within the request and response bodies.
+This approach is not applicable if you want to send these logs to
+different cloud object stores or use NFS for storing the logs.
+Since the Kubernetes Auditing feature only has access to Kubernetes API calls,
+any internal Veeam Kasten event that does not use this API will not get logged.
+The ongoing work with integrating Veeam Kasten more closely with
+Security Information and Event Management (SIEM) platforms,
+such as with Datadog, will allow for a more robust auditing of Veeam Kasten.
+When viewing audit logs, consider the following:
+### Authentication Modeï
+For correct user attribution, we depend on Veeam Kasten to be set up with OIDC
+or token-based authentication.
+- OIDC: When OIDC is enabled, Kubernetes user impersonation will
+be used based on the email address extracted from the provided OIDC
+token.
+- Token-based Authentication: When token-based authentication is
+enabled, the token is used directly for making API calls.
+### Request Attributionï
+Note that there are two callers of Veeam Kasten and Kubernetes APIs in the
+Veeam Kasten system. Actions triggered by the dashboard, CLI, or API will be
+attributed to the user that initiated them. Other system actions
+(e.g., validation of a Profile or Policy) will be attributed to the
+Veeam Kasten Service Account (SA).
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_uninstall.md
 ## Uninstalling Veeam Kastenï
@@ -1048,6 +1165,677 @@ about action runs and storage consumption. For more information about
 Veeam Kasten Reporting, see Reporting
 ### Integration with External Toolsï
 © Copyright 2017-2024, Kasten, Inc.
+### latest_operating_k10tools.md
+## Veeam Kasten Toolsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+Authentication Service
+Catalog Service
+Backup Actions
+Kubernetes Nodes
+Application Information
+Veeam Kasten Primer for Pre-Flight Checks
+Veeam Kasten Primer for Upgrades
+Veeam Kasten Primer for Storage Connectivity Checks
+Veeam Kasten Primer for Storage Integration Checks
+CSI Capabilities Check
+Direct Cloud Provider Integration Checks
+vSphere First Class Disk Integration Check
+Veeam Kasten Primer Block Mount Check
+Veeam Kasten Primer for Authentication Service Checks
+Generic Volume Snapshot Capabilities Check
+Veeam Kasten Generic Storage Backup Sidecar Injection
+CA Certificate Check
+Installation of Veeam Kasten in OpenShift clusters
+Extracting OpenShift CA Certificates
+Listing vSphere snapshots created by Veeam Kasten
+- Authentication Service
+- Catalog Service
+- Backup Actions
+- Kubernetes Nodes
+- Application Information
+- Veeam Kasten Primer for Pre-Flight Checks
+- Veeam Kasten Primer for Upgrades
+- Veeam Kasten Primer for Storage Connectivity Checks
+- Veeam Kasten Primer for Storage Integration Checks
+CSI Capabilities Check
+Direct Cloud Provider Integration Checks
+vSphere First Class Disk Integration Check
+- CSI Capabilities Check
+- Direct Cloud Provider Integration Checks
+- vSphere First Class Disk Integration Check
+- Veeam Kasten Primer Block Mount Check
+- Veeam Kasten Primer for Authentication Service Checks
+- Generic Volume Snapshot Capabilities Check
+- Veeam Kasten Generic Storage Backup Sidecar Injection
+- CA Certificate Check
+- Installation of Veeam Kasten in OpenShift clusters
+- Extracting OpenShift CA Certificates
+- Listing vSphere snapshots created by Veeam Kasten
+-
+- Operating Veeam Kasten
+- Veeam Kasten Tools
+The k10tools binary has commands that can help with validating if a cluster
+is setup correctly before installing Veeam Kasten and for debugging Veeam
+Kasten's micro services. The latest version of k10tools can be found here.
+Binaries are available for the following operating systems and architectures:
+Operating System
+x86_84 (amd64)
+Arm (arm64/v8)
+Power (ppc64le)
+Linux
+Yes
+MacOS
+No
+Windows
+### Authentication Serviceï
+The k10tools debug auth sub command can be used to debug
+Veeam Kasten's Authentication service when it is setup with Active
+Directory or OpenShift based authentication. Provide -d openshift
+flag for OpenShift based authentication. It verifies connection to the
+OpenShift OAuth server and the OpenShift Service Account token. It
+also searches for any error events in Service Account.
+### Catalog Serviceï
+The k10tools debug catalog size sub command can be used to obtain
+the size of K10's catalog and the disk usage of the volume
+where the catalog is stored.
+### Backup Actionsï
+The k10tools debug backupactions sub command can be used to obtain
+the backupactions created in the respective cluster. Use the -o json
+flag to obtain more information in the JSON format.
+### Kubernetes Nodesï
+The k10tools debug node sub command can be used to obtain information
+about the Kubernetes nodes. Use the -o json flag to obtain more
+information in the JSON format.
+### Application Informationï
+The k10tools debug applications sub command can be used
+to obtain information
+about the applications running in given namespace.
+Use the -o json flag to obtain more
+information in the JSON format
+(Note: Right now, JSON format support is only provided for PVCs).
+Use -n to provide the namespace.
+In case the namespace is not provided, application information
+will be
+fetched from the default namespace.
+e.g. -n kasten-io
+### Veeam Kasten Primer for Pre-Flight Checksï
+The k10tools primer sub command can be used to run pre-flight checks
+before installing Veeam Kasten. Refer to the section about
+Pre-Flight Checks for more details.
+The code block below shows an example of the output when executed on a
+Kubernetes cluster deployed in Digital Ocean.
+### Veeam Kasten Primer for Upgradesï
+The k10tools primer upgrade sub command can be used to find the recommended
+upgrade path of your Veeam Kasten version and to check there is adequate space to
+perform the upgrades. It only provides commands for Helm deployments.
+See Upgrading Veeam Kasten for additional details.
+This tool requires Internet access to http://gcr.io
+### Veeam Kasten Primer for Storage Connectivity Checksï
+Note
+Run k10tools primer storage connect --help command to observe
+all supported sub-commands.
+The k10tools primer storage connect command family can be used
+to check a given storage provider accessibility.
+Currently the following storage providers are supported for this
+group of checks:
+- Azure
+- Google Cloud Storage (GCS)
+- Portworx (PWX)
+- S3 Compatible Storage
+- Veeam Backup Server (VBR)
+- vSphere
+Each sub-command corresponding to a particular storage provider accepts
+a configuration file with parameters required for making connection. The
+configuration file format can be observed by issuing config-yaml
+sub-command in the following way (example is for GCS):
+The output below is an example of running GCS connectivity checker:
+### Veeam Kasten Primer for Storage Integration Checksï
+Run k10tools primer storage check --help command to observe
+all supported sub-commands.
+### CSI Capabilities Checkï
+The k10tools primer storage check csi sub-command can be used to check
+a specified CSI storage class is able to carry out snapshot and restoration
+activities or report configuration issues if not. It creates a temporary
+application to test this.
+The command accepts a configuration file in the following format:
+The output below is an example of running CSI checker:
+### Direct Cloud Provider Integration Checksï
+The k10tools primer storage check sub-command family allows
+checking snapshot/restore capabilities through native API integration
+of capable cloud storage providers via direct storage API invocations.
+For now the following cloud providers are supported:
+- Amazon Elastic Block Store (AWS EBS)
+- Azure Persistent Disk
+- Google Compute Engine Persistent Disk (GCE PD)
+To run a desired check the k10tools primer storage check command
+should be appended with either awsebs, or azure, or gcepd
+suffix. Each of these sub-commands accepts parameters passed via
+configuration files to create a test application performing
+snapshot/restore via vendor specific storage APIs. The format of which
+sub-command can be observed by executing
+k10tools primer storage check <awsebs|azure|gcepd> config-yaml.
+Example configuration file format for GCE PD checker:
+The output below is an example of running GCE PD provider check:
+### vSphere First Class Disk Integration Checkï
+Due to limited functionality provided by vSphere CSI driver Veeam
+Kasten has to use both volume provisioning via CSI interface and
+manual calling vSphere API for doing snapshots and restores of volumes.
+The k10tools primer storage check vsphere sub-command provisions
+a First Class Disk (FCD) volume using a CSI storage class and performs
+snapshot/restore via vSphere API.
+The command accepts a configuration file in the following format
+(can be observed by running config-yaml command):
+The output below is an example of running vSphere CSI checker:
+### Veeam Kasten Primer Block Mount Checkï
+The k10tools primer storage check blockmount sub-command is
+provided to test if the PersistentVolumes provisioned by
+a StorageClass can be supported in block mode
+by Veeam Kasten.
+If a StorageClass passes this test then see
+Block Mode Exports for how to indicate
+this fact to Veeam Kasten.
+The checker performs two tests:
+1. The kubestr block mount test is used to
+verify that the StorageClass volumes can be used with Block
+VolumeMounts.
+2. If first test succeeds, then a second test is
+run to verify that Veeam Kasten can restore block data to such volumes.
+This step is performed only if Veeam Kasten does not use provisioner
+specific direct network APIs to restore data to a block volume
+during import.
+Both tests independently allocate and release the Kubernetes resources
+they need, and it takes a few minutes for the test to complete.
+The checker can be invoked by the k10primer.sh script in a
+manner similar to that described in the
+Pre-flight Checks:
+Alternatively, for more control over the invocation of the checker,
+use a local copy of the k10tools program to obtain a
+YAML configuration file as follows:
+The YAML output should be saved to a file and edited to set the
+desired StorageClass. Only the storage_class property is
+required; other properties will default to the values displayed
+in the output if not explicitly set.
+Then run the checker as follows:
+The test emits multiple messages as it progresses.
+On success, you will see a summary message like this at the end:
+On failure, the summary message would look like this:
+The checker may produce spurious errors if the StorageClass specifies
+the Immediate VolumeBindingMode and the PersistentVolumes
+provisioned by the test have different node affinities.
+In such a case use a variant of the StorageClass that specifies
+the WaitForFirstConsumer VolumeBindingMode instead.
+Use the -h flag to get all command usage options.
+### Veeam Kasten Primer for Authentication Service Checksï
+Run k10tools primer auth check --help command
+to observe all supported sub-commands.
+The k10tools primer auth check sub-command family allows doing
+basic sanity checks for 3rd-party authentication services. Currently
+it supports checkers for ActiveDirectory/LDAP and OIDC.
+Each service specific command accepts required parameters via
+a configuration file, format of which can be observed by running
+config-yaml sub-command (example is for OIDC checker):
+The output below is an example of running OIDC checker:
+### Generic Volume Snapshot Capabilities Checkï
+The k10tools primer gvs-cluster-check command can be used to check
+if the cluster is compatible for Veeam Kasten Generic Volume Snapshot.
+Veeam Kasten Generic backup commands are executed on a pod running
+kanister-tools image and checked for appropriate output.
+Use -n flag to provide namespace.
+By default, kasten-io namespace will be used.
+Use -s flag to provide a storageclass for the checks to be run against.
+By default, no storage class will be used and the checks will be done using
+temporary storage from the node the pod runs on.
+Use --service-account flag to specify the service account to be used
+by pods during GVS checks. By default, default service
+account will be used.
+By default, the k10tools command will use the publicly available
+kanister-tools image at gcr.io/kasten-images/kanister-tools:<K10 version>.
+Since this image is not available in air-gapped environments, to
+override the default image, set the KANISTER_TOOLS environment variable
+to the kanister-tools image that is available in the air-gapped
+environment's local registry.
+export KANISTER_TOOLS=<your local registry>/<your local repository name>/kanister-tools:k10-<K10 version>
+### Veeam Kasten Generic Storage Backup Sidecar Injectionï
+The k10tools k10genericbackup can be used to make Kubernetes
+workloads compatible for K10 Generic Storage Backup by injecting a
+Kanister sidecar and setting the forcegenericbackup=true annotation
+on the workloads.
+### CA Certificate Checkï
+The k10tools debug ca-certificate command can be used to check
+if the CA certificate is installed properly in Veeam Kasten.
+The -n flag can be used to provide namespace and it
+defaults to kasten-io.
+More information on
+installation
+process.
+### Installation of Veeam Kasten in OpenShift clustersï
+The k10tools openshift prepare-install command can be used to
+prepare an OpenShift cluster for installation of Veeam Kasten.
+It extracts a CA Certificate from the cluster, installs it in
+the namespace where Veeam Kasten will be installed, and generates
+the helm command to be used for installing Veeam Kasten.
+The -n flag can be used to provide the namespace where Veeam
+Kasten will be installed. The default namespace is kasten-io.
+--recreate-resources flag recreates resources that
+may have been created by previous execution of this command.
+Set --insecure-ca flag to true if Certificate Issuing
+Authority is not trusted.
+### Extracting OpenShift CA Certificatesï
+The k10tools openshift extract-certificates command is used to extract
+CA certificates from OpenShift clusters to the Veeam Kasten namespace.
+The following flags can be used to configure the command:
+- --ca-cert-configmap-name. The name of the Kubernetes ConfigMap that
+contains all certificates required for Veeam Kasten. If no name is provided,
+the default name custom-ca-bundle-store will be used.
+If the ConfigMap with the used name does not exist, the command will
+generate a new ConfigMap.
+If the ConfigMap with the used name exists, the command will merge
+newly extracted certificates with the existing certificates
+in the ConfigMap without creating duplicates.
+- If the ConfigMap with the used name does not exist, the command will
+generate a new ConfigMap.
+- If the ConfigMap with the used name exists, the command will merge
+newly extracted certificates with the existing certificates
+in the ConfigMap without creating duplicates.
+- --k10-namespace or -n. The Kubernetes namespace where Veeam Kasten
+is expected to be installed. The default value is kasten-io.
+- --release-name. The K10 Release Name. The default value is k10.
+--ca-cert-configmap-name. The name of the Kubernetes ConfigMap that
+contains all certificates required for Veeam Kasten. If no name is provided,
+the default name custom-ca-bundle-store will be used.
+### Listing vSphere snapshots created by Veeam Kastenï
+Veeam Kasten integrates with the vSphere clusters using direct integration.
+Veeam Kasten snapshots can be listed using k10tools.
+Only snapshots created starting with version 5.0.7 will be listed
+by the current version of the tool.
+Earlier snapshots might be listed if they had been created
+using a vSphere infrastructure profile with the tagging option enabled
+(Deprecated since then).
+To list earlier snapshots, k10tools v6.5.0
+should be used with an additional environment variable:
+## category name can be found from the vSphere infrastructure profile, in the form of "k10:<UUID>"
+export VSPHERE_SNAPSHOT_TAGGING_CATEGORY=$(kubectl -n kasten-io get profiles $(kubectl -n kasten-io get profiles -o=jsonpath='{.items[?(@.spec.infra.type=="VSphere")].metadata.name}') -o jsonpath='{.spec.infra.vsphere.categoryName}')
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_footprint.md
+## Resource Requirementsï
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+Requirement Types
+Requirement Guidelines
+Configuring Veeam Kasten Resource Usage for Core Pods
+Prometheus Pod's Resources
+Configuring Veeam Kasten Resource Usage for Worker Pods
+Configuring Cluster-Wide Worker Pod Resource Usage
+Configuring Granular Worker Pod Resource Usage
+Worker Pod Resource Usage Configuration Priority
+Configuring Metric Sidecar Resource Usage for Worker Pods
+- Requirement Types
+- Requirement Guidelines
+- Configuring Veeam Kasten Resource Usage for Core Pods
+Prometheus Pod's Resources
+- Prometheus Pod's Resources
+- Configuring Veeam Kasten Resource Usage for Worker Pods
+Configuring Cluster-Wide Worker Pod Resource Usage
+Configuring Granular Worker Pod Resource Usage
+Worker Pod Resource Usage Configuration Priority
+Configuring Metric Sidecar Resource Usage for Worker Pods
+- Configuring Cluster-Wide Worker Pod Resource Usage
+- Configuring Granular Worker Pod Resource Usage
+- Worker Pod Resource Usage Configuration Priority
+- Configuring Metric Sidecar Resource Usage for Worker Pods
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Resource Requirements
+Veeam Kasten's resource requirements are almost always related to
+the number of applications in your Kubernetes cluster and the kind
+of data management operations being performed (e.g., snapshots
+vs. backups).
+Some of the resource requirements are static (base resource
+requirements) while other resources are only required when certain
+work is done (dynamic resource requirements). The auto-scaling nature
+of Veeam Kasten ensures that resources consumed by dynamic
+requirements will always scale down to zero when no work is being
+performed.
+While the below recommendations for both requests and limits should be
+applicable to most clusters, it is important to note that the final
+requirement will be a function of your cluster and application scale,
+total amount of data, file size distribution, and data churn rate. You
+can always use Prometheus or Kubernetes Vertical Pod Autoscaling (VPA)
+with updates disabled to check your particular requirements.
+### Requirement Typesï
+- Base Requirements: These are the core resources needed for Veeam
+Kasten's internal scheduling and cleanup services, which are
+mostly driven by monitoring and catalog scale requirements.
+The resource footprint for these base requirements is usually
+static and generally does not noticeably grow with either a
+growth in catalog size (number of   Kubernetes resources protected)
+or number of applications protected.
+- Disaster Recovery: These are the resources needed to perform a
+DR of the Veeam Kasten install and are predominantly used to compress,
+deduplicate, encrypt, and transfer the Veeam Kasten catalog to object
+storage. Providing additional resources can also speed up the DR
+operation. The DR resource footprint is dynamic and scales down to
+zero when a DR is not being performed.
+- Backup Requirements: Resources for backup are required when data
+is transferred from volume snapshots to object storage or NFS file storage.
+While the backup requirements depend on your data, churn rate, and
+file system layout, the requirements are not unbounded and can easily
+fit in   a relatively narrow band. Providing additional resources can also
+speed up backup operations. To prevent unbounded parallelism when
+protecting a large number of workloads, Veeam Kasten bounds the number of
+simultaneous backup jobs (default 9). The backup resource footprint
+is dynamic and scales down to zero when a backup is not being
+performed.
+### Requirement Guidelinesï
+The below table lists the resource requirements for a Veeam Kasten install
+protecting 100 applications or namespaces.
+It should be noted that DR jobs are also included in the maximum
+parallelism limit (N) and therefore you can only have N
+simultaneous backup jobs or N-1 simultaneous backup jobs
+concurrently with 1 DR job.
+Type
+Requested CPU (Cores)
+Limit CPU (Cores)
+Requested Memory (GB)
+Limit Memory (GB)
+Base
+1
+2
+4
+DR
+0.3
+Dynamic (per parallel job)
+0.4
+Total
+3
+1.8
+4.8
+Note
+Kasten temporarily consumes approximately
+3GB of ephemeral storage on a worker node for each
+concurrent volume export or restore operation.
+Default worker node storage configuration can
+vary based on distribution. Configuring worker nodes
+with 100GB of storage is recommended to
+prevent interruptions to Kasten operations.
+### Configuring Veeam Kasten Resource Usage for Core Podsï
+Using Helm values, resource requests and limits can be set for
+the core Pods that make up Veeam Kasten's base requirements. Kubernetes
+resource management is at the container level, so in order
+to set resource values, you will need to provide both the deployment
+and container names. Custom resource usage can be set through
+Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+resources:
+  <deployment-name>:
+    <container-name>:
+      requests:
+        memory: <value>
+        cpu: <value>
+      limits:
+        memory: <value>
+        cpu: <value>
+Note
+See Resource units in Kubernetes
+for details on how to specify valid memory and CPU values.
+For example, this file will modify the settings for the
+catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
+which runs in the pod created by the catalog-svc deployment:
+resources:
+  catalog-svc:
+    catalog-svc:
+      requests:
+        memory: "1.5Gi"
+        cpu: "300m"
+      limits:
+        memory: "3Gi"
+        cpu: "1"
+    upgrade-init:
+      requests:
+        memory: "120Mi"
+        cpu: "100m"
+      limits:
+        memory: "360Mi"
+        cpu: "300m"
+    kanister-sidecar:
+      requests:
+        memory: "800Mi"
+        cpu: "250m"
+      limits:
+        memory: "950Mi"
+        cpu: "900m"
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=resources.<deployment-name>.<container-name>.[requests|limits].[memory|cpu]=<value>
+For the equivalent behavior of the example above, the following values
+can be provided:
+--set=resources.catalog-svc.catalog-svc.requests.memory=1.5Gi \
+--set=resources.catalog-svc.catalog-svc.requests.cpu=300m \
+--set=resources.catalog-svc.catalog-svc.limits.memory=3Gi \
+--set=resources.catalog-svc.catalog-svc.limits.cpu=1 \
+--set=resources.catalog-svc.upgrade-init.requests.memory=120Mi \
+--set=resources.catalog-svc.upgrade-init.requests.cpu=100m \
+--set=resources.catalog-svc.upgrade-init.limits.memory=360Mi \
+--set=resources.catalog-svc.upgrade-init.limits.cpu=300m \
+--set=resources.catalog-svc.kanister-sidecar.requests.memory=800Mi \
+--set=resources.catalog-svc.kanister-sidecar.requests.cpu=250m \
+--set=resources.catalog-svc.kanister-sidecar.limits.memory=950Mi \
+--set=resources.catalog-svc.kanister-sidecar.limits.cpu=900m
+Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+See Resource units in Kubernetes
+for details on how to specify valid memory and CPU values.
+For example, this file will modify the settings for the
+catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
+which runs in the pod created by the catalog-svc deployment:
+Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+For the equivalent behavior of the example above, the following values
+can be provided:
+When adjusting a container's resource limits or requests, if any setting
+is left empty, the Helm chart will assume it should be unspecified. Likewise,
+providing empty settings for a container will result in no limits/requests
+being applied.
+For example, the following Helm values file will yield no specified resource
+requests or limits for the kanister-sidecar container and only a CPU
+limit for the jobs-svc container, which runs in the pod
+created by the jobs-svc deployment:
+### Prometheus Pod's Resourcesï
+Resource requests and limits can be added to the Prometheus
+pod through Prometheus child Helm charts values.
+Custom resource usage can be set through Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+prometheus:
+  server:
+    resources:
+      requests:
+        memory: <value>
+        cpu: <value>
+      limits:
+        memory: <value>
+        cpu: <value>
+  configmapReload:
+    prometheus:
+      resources:
+        requests:
+          memory: <value>
+          cpu: <value>
+        limits:
+          memory: <value>
+          cpu: <value>
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=prometheus.server.resources.[requests|limits].[memory|cpu]=<value> \
+--set=prometheus.configmapReload.prometheus.resources.[requests|limits].[memory|cpu]=<value>
+### Configuring Veeam Kasten Resource Usage for Worker Podsï
+By default, Veeam Kasten does not assign resource requests or limits
+to temporary worker Pods. This allows Pods responsible for data
+movement during backup or restore operations to scale up as needed
+to ensure timely completion. If explicit resource settings are required
+in the environment, see the available methods below.
+### Configuring Cluster-Wide Worker Pod Resource Usageï
+Using Helm values, resource requests and limits can be set for the
+temporary worker Pods created by Veeam Kasten to perform operations.
+This method will set the same requests and limits for all injected
+Kanister sidecar containers used for Generic Volume Backup,
+as well as all other temporary worker Pods provisioned by Veeam Kasten.
+As it may be undesirable to configure the same requests and limits for
+all temporary worker Pods across all applications, a granular alternative is
+described in the following section.
+Veeam Kasten affinity-pvc-group- Pods have fixed
+resource requests and limits that cannot be modified. These Pods
+are used only for PVC/node placement prior to data restore and
+do not require customization based on workload.
+If namespace level resource limitations have been configured
+using LimitRange or ResourceQuota, the values below may be prevented
+from being applied or result in failure of the operation. Make sure
+resources are specified taking those restrictions into consideration.
+Cluster-wide resource requests and limits for Veeam Kasten worker Pods
+can be applied through Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+genericVolumeSnapshot:
+  resources:
+    requests:
+      memory: <value>
+      cpu: <value>
+    limits:
+      memory: <value>
+      cpu: <value>
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=genericVolumeSnapshot.resources.[requests|limits].[memory|cpu]=<value>
+### Configuring Granular Worker Pod Resource Usageï
+The following approach allows for specifying granular resource requests
+and limits for different types of Veeam Kasten worker Pods, as well as
+allowing configuration on a per application basis. The purpose is to
+accommodate "right-sizing" across different application profiles within
+a single cluster, rather than sizing all worker Pods based on the
+data mover requirements of the largest applications.
+Granular resource configuration uses the Veeam Kasten-specific custom
+resources, ActionPodSpec and ActionPodSpecBinding. An ActionPodSpec
+specifies the Pod categories and their associated request and limit values.
+An ActionPodSpec resource may be applied to a specific namespace using
+an ActionPodSpecBinding, or may be applied via reference within a policy.
+An ActionPodSpec can be created in any namespace and
+may be cross referenced from other namespaces.
+An ActionPodSpecBinding must be created in application namespace to
+which the referenced ActionPodSpec is being applied.
+To enable granular resource control,
+set the Helm flag workerPodCRDs.enabled to true.
+You can also define a default ActionPodSpec during installation.
+This will have the lowest priority and will be used if there
+is no ActionPodSpec defined for the namespace or action.
+### Examplesï
+An ActionPodSpec with an explicit resource configuration
+for the export-volume-to-repository Pod type and a default
+configuration for all other temporary worker Pods:
+An ActionPodSpecBinding applying an ActionPodSpec to
+the temporary worker Pods within a specific namespace:
+Alternatively, a Policy referencing an ActionPodSpec to
+affect temporary worker Pod resources provisioned as part of the
+backup action:
+### Action Pod Typesï
+This list contains Pod types that are affected by the specified settings.
+Typically, Pod types are associated with specific operations;
+however, on rare occasions,
+a single Pod type may be used for several similar operations.
+Pod type can also be found in the k10.kasten.io/actionPodType
+annotation on worker Pods.
+Pod Type Value
+Pod Type Description
+*
+Wildcard value to configure any worker Pods types not explicitly specified
+check-repository
+Performs checks on a repository during the export process
+create-repository
+Initializes a backup repository in an export location
+delete-block-data-from-repository
+Deletes backup data exported using block mode
+delete-collection
+Deletes the application manifest data associated with a backup
+delete-data-from-repository
+Deletes backup data exported using the default filesystem mode
+export-block-volume-to-repository
+Exports a snapshot using block mode
+export-volume-to-repository
+Exports a snapshot using the default filesystem mode
+image-copy
+Exports and restores container images from ImageStreams
+kanister-job
+Created by Blueprint actions to perform custom operations
+list-data-from-repository
+Lists data in the repository when retiring backups
+repository-operations
+Performs background operations such as repository scans and maintenance
+repository-server
+API server used for multiple operations including export, restore, and import
+restore-block-volume-from-repository
+Restores a volume exported using block mode
+restore-data-dr
+Restores Veeam Kasten from a Disaster Recovery backup
+restore-data-from-repository
+Restores a volume exported using the default filesystem mode
+upgrade-repository
+Upgrades the repository
+validate-repository
+Validates a remote repository when restoring a Disaster Recovery backup
+### Worker Pod Resource Usage Configuration Priorityï
+The cluster-wide genericVolumeSnapshot Helm setting holds the
+lowest priority and will be overridden by any applied ActionPodSpec.
+ActionPodSpec resources that are bound to a namespace using an
+ActionPodSpecBinding hold a lower priority than an ActionPodSpec
+explicitly specified as part of a policy. ActionPodSpec
+configurations from multiple sources are not merged;
+therefore, it is not possible to apply namespace-bound
+resources to one type of Pod and policy-specific resources to another.
+It is possible to override resources of worker pods globally through the
+Kanister Pod Overrideï,
+but this approach is not recommended.
+### Configuring Metric Sidecar Resource Usage for Worker Podsï
+By default, Veeam Kasten provisions a sidecar container on temporary
+worker Pods used to collect metrics to monitor resource utilization.
+Using Helm, resource requests and limits can be added to the metric sidecar
+container added to worker Pods. This setting is independent of either
+method previously detailed for configuring worker Pod resources.
+Custom resource requests and limits can be set through Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+workerPodMetricSidecar:
+  resources:
+    requests:
+      memory: <value>
+      cpu: <value>
+    limits:
+      memory: <value>
+      cpu: <value>
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=workerPodMetricSidecar.resources.[requests|limits].[memory|cpu]=<value>
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_dr.md
 ## Veeam Kasten Disaster Recoveryï
 - Veeam Kasten Disaster Recovery
@@ -1493,794 +2281,6 @@ It is critical that you delete this resource only when you are prepared
 to make the permanent cutover to the new DR-restored Veeam Kasten instance.
 Running multiple Veeam Kasten instances simultaneously, each assuming
 ownership, can corrupt backup data.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_footprint.md
-## Resource Requirementsï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-Requirement Types
-Requirement Guidelines
-Configuring Veeam Kasten Resource Usage for Core Pods
-Prometheus Pod's Resources
-Configuring Veeam Kasten Resource Usage for Worker Pods
-Configuring Cluster-Wide Worker Pod Resource Usage
-Configuring Granular Worker Pod Resource Usage
-Worker Pod Resource Usage Configuration Priority
-Configuring Metric Sidecar Resource Usage for Worker Pods
-- Requirement Types
-- Requirement Guidelines
-- Configuring Veeam Kasten Resource Usage for Core Pods
-Prometheus Pod's Resources
-- Prometheus Pod's Resources
-- Configuring Veeam Kasten Resource Usage for Worker Pods
-Configuring Cluster-Wide Worker Pod Resource Usage
-Configuring Granular Worker Pod Resource Usage
-Worker Pod Resource Usage Configuration Priority
-Configuring Metric Sidecar Resource Usage for Worker Pods
-- Configuring Cluster-Wide Worker Pod Resource Usage
-- Configuring Granular Worker Pod Resource Usage
-- Worker Pod Resource Usage Configuration Priority
-- Configuring Metric Sidecar Resource Usage for Worker Pods
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Resource Requirements
-Veeam Kasten's resource requirements are almost always related to
-the number of applications in your Kubernetes cluster and the kind
-of data management operations being performed (e.g., snapshots
-vs. backups).
-Some of the resource requirements are static (base resource
-requirements) while other resources are only required when certain
-work is done (dynamic resource requirements). The auto-scaling nature
-of Veeam Kasten ensures that resources consumed by dynamic
-requirements will always scale down to zero when no work is being
-performed.
-While the below recommendations for both requests and limits should be
-applicable to most clusters, it is important to note that the final
-requirement will be a function of your cluster and application scale,
-total amount of data, file size distribution, and data churn rate. You
-can always use Prometheus or Kubernetes Vertical Pod Autoscaling (VPA)
-with updates disabled to check your particular requirements.
-### Requirement Typesï
-- Base Requirements: These are the core resources needed for Veeam
-Kasten's internal scheduling and cleanup services, which are
-mostly driven by monitoring and catalog scale requirements.
-The resource footprint for these base requirements is usually
-static and generally does not noticeably grow with either a
-growth in catalog size (number of   Kubernetes resources protected)
-or number of applications protected.
-- Disaster Recovery: These are the resources needed to perform a
-DR of the Veeam Kasten install and are predominantly used to compress,
-deduplicate, encrypt, and transfer the Veeam Kasten catalog to object
-storage. Providing additional resources can also speed up the DR
-operation. The DR resource footprint is dynamic and scales down to
-zero when a DR is not being performed.
-- Backup Requirements: Resources for backup are required when data
-is transferred from volume snapshots to object storage or NFS file storage.
-While the backup requirements depend on your data, churn rate, and
-file system layout, the requirements are not unbounded and can easily
-fit in   a relatively narrow band. Providing additional resources can also
-speed up backup operations. To prevent unbounded parallelism when
-protecting a large number of workloads, Veeam Kasten bounds the number of
-simultaneous backup jobs (default 9). The backup resource footprint
-is dynamic and scales down to zero when a backup is not being
-performed.
-### Requirement Guidelinesï
-The below table lists the resource requirements for a Veeam Kasten install
-protecting 100 applications or namespaces.
-It should be noted that DR jobs are also included in the maximum
-parallelism limit (N) and therefore you can only have N
-simultaneous backup jobs or N-1 simultaneous backup jobs
-concurrently with 1 DR job.
-Type
-Requested CPU (Cores)
-Limit CPU (Cores)
-Requested Memory (GB)
-Limit Memory (GB)
-Base
-1
-2
-4
-DR
-0.3
-Dynamic (per parallel job)
-0.4
-Total
-3
-1.8
-4.8
-Note
-Kasten temporarily consumes approximately
-3GB of ephemeral storage on a worker node for each
-concurrent volume export or restore operation.
-Default worker node storage configuration can
-vary based on distribution. Configuring worker nodes
-with 100GB of storage is recommended to
-prevent interruptions to Kasten operations.
-### Configuring Veeam Kasten Resource Usage for Core Podsï
-Using Helm values, resource requests and limits can be set for
-the core Pods that make up Veeam Kasten's base requirements. Kubernetes
-resource management is at the container level, so in order
-to set resource values, you will need to provide both the deployment
-and container names. Custom resource usage can be set through
-Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-resources:
-  <deployment-name>:
-    <container-name>:
-      requests:
-        memory: <value>
-        cpu: <value>
-      limits:
-        memory: <value>
-        cpu: <value>
-Note
-See Resource units in Kubernetes
-for details on how to specify valid memory and CPU values.
-For example, this file will modify the settings for the
-catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
-which runs in the pod created by the catalog-svc deployment:
-resources:
-  catalog-svc:
-    catalog-svc:
-      requests:
-        memory: "1.5Gi"
-        cpu: "300m"
-      limits:
-        memory: "3Gi"
-        cpu: "1"
-    upgrade-init:
-      requests:
-        memory: "120Mi"
-        cpu: "100m"
-      limits:
-        memory: "360Mi"
-        cpu: "300m"
-    kanister-sidecar:
-      requests:
-        memory: "800Mi"
-        cpu: "250m"
-      limits:
-        memory: "950Mi"
-        cpu: "900m"
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=resources.<deployment-name>.<container-name>.[requests|limits].[memory|cpu]=<value>
-For the equivalent behavior of the example above, the following values
-can be provided:
---set=resources.catalog-svc.catalog-svc.requests.memory=1.5Gi \
---set=resources.catalog-svc.catalog-svc.requests.cpu=300m \
---set=resources.catalog-svc.catalog-svc.limits.memory=3Gi \
---set=resources.catalog-svc.catalog-svc.limits.cpu=1 \
---set=resources.catalog-svc.upgrade-init.requests.memory=120Mi \
---set=resources.catalog-svc.upgrade-init.requests.cpu=100m \
---set=resources.catalog-svc.upgrade-init.limits.memory=360Mi \
---set=resources.catalog-svc.upgrade-init.limits.cpu=300m \
---set=resources.catalog-svc.kanister-sidecar.requests.memory=800Mi \
---set=resources.catalog-svc.kanister-sidecar.requests.cpu=250m \
---set=resources.catalog-svc.kanister-sidecar.limits.memory=950Mi \
---set=resources.catalog-svc.kanister-sidecar.limits.cpu=900m
-Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-See Resource units in Kubernetes
-for details on how to specify valid memory and CPU values.
-For example, this file will modify the settings for the
-catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
-which runs in the pod created by the catalog-svc deployment:
-Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
-For the equivalent behavior of the example above, the following values
-can be provided:
-When adjusting a container's resource limits or requests, if any setting
-is left empty, the Helm chart will assume it should be unspecified. Likewise,
-providing empty settings for a container will result in no limits/requests
-being applied.
-For example, the following Helm values file will yield no specified resource
-requests or limits for the kanister-sidecar container and only a CPU
-limit for the jobs-svc container, which runs in the pod
-created by the jobs-svc deployment:
-### Prometheus Pod's Resourcesï
-Resource requests and limits can be added to the Prometheus
-pod through Prometheus child Helm charts values.
-Custom resource usage can be set through Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-prometheus:
-  server:
-    resources:
-      requests:
-        memory: <value>
-        cpu: <value>
-      limits:
-        memory: <value>
-        cpu: <value>
-  configmapReload:
-    prometheus:
-      resources:
-        requests:
-          memory: <value>
-          cpu: <value>
-        limits:
-          memory: <value>
-          cpu: <value>
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=prometheus.server.resources.[requests|limits].[memory|cpu]=<value> \
---set=prometheus.configmapReload.prometheus.resources.[requests|limits].[memory|cpu]=<value>
-### Configuring Veeam Kasten Resource Usage for Worker Podsï
-By default, Veeam Kasten does not assign resource requests or limits
-to temporary worker Pods. This allows Pods responsible for data
-movement during backup or restore operations to scale up as needed
-to ensure timely completion. If explicit resource settings are required
-in the environment, see the available methods below.
-### Configuring Cluster-Wide Worker Pod Resource Usageï
-Using Helm values, resource requests and limits can be set for the
-temporary worker Pods created by Veeam Kasten to perform operations.
-This method will set the same requests and limits for all injected
-Kanister sidecar containers used for Generic Volume Backup,
-as well as all other temporary worker Pods provisioned by Veeam Kasten.
-As it may be undesirable to configure the same requests and limits for
-all temporary worker Pods across all applications, a granular alternative is
-described in the following section.
-Veeam Kasten affinity-pvc-group- Pods have fixed
-resource requests and limits that cannot be modified. These Pods
-are used only for PVC/node placement prior to data restore and
-do not require customization based on workload.
-If namespace level resource limitations have been configured
-using LimitRange or ResourceQuota, the values below may be prevented
-from being applied or result in failure of the operation. Make sure
-resources are specified taking those restrictions into consideration.
-Cluster-wide resource requests and limits for Veeam Kasten worker Pods
-can be applied through Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-genericVolumeSnapshot:
-  resources:
-    requests:
-      memory: <value>
-      cpu: <value>
-    limits:
-      memory: <value>
-      cpu: <value>
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=genericVolumeSnapshot.resources.[requests|limits].[memory|cpu]=<value>
-### Configuring Granular Worker Pod Resource Usageï
-The following approach allows for specifying granular resource requests
-and limits for different types of Veeam Kasten worker Pods, as well as
-allowing configuration on a per application basis. The purpose is to
-accommodate "right-sizing" across different application profiles within
-a single cluster, rather than sizing all worker Pods based on the
-data mover requirements of the largest applications.
-Granular resource configuration uses the Veeam Kasten-specific custom
-resources, ActionPodSpec and ActionPodSpecBinding. An ActionPodSpec
-specifies the Pod categories and their associated request and limit values.
-An ActionPodSpec resource may be applied to a specific namespace using
-an ActionPodSpecBinding, or may be applied via reference within a policy.
-An ActionPodSpec can be created in any namespace and
-may be cross referenced from other namespaces.
-An ActionPodSpecBinding must be created in application namespace to
-which the referenced ActionPodSpec is being applied.
-To enable granular resource control,
-set the Helm flag workerPodCRDs.enabled to true.
-You can also define a default ActionPodSpec during installation.
-This will have the lowest priority and will be used if there
-is no ActionPodSpec defined for the namespace or action.
-### Examplesï
-An ActionPodSpec with an explicit resource configuration
-for the export-volume-to-repository Pod type and a default
-configuration for all other temporary worker Pods:
-An ActionPodSpecBinding applying an ActionPodSpec to
-the temporary worker Pods within a specific namespace:
-Alternatively, a Policy referencing an ActionPodSpec to
-affect temporary worker Pod resources provisioned as part of the
-backup action:
-### Action Pod Typesï
-This list contains Pod types that are affected by the specified settings.
-Typically, Pod types are associated with specific operations;
-however, on rare occasions,
-a single Pod type may be used for several similar operations.
-Pod type can also be found in the k10.kasten.io/actionPodType
-annotation on worker Pods.
-Pod Type Value
-Pod Type Description
-*
-Wildcard value to configure any worker Pods types not explicitly specified
-check-repository
-Performs checks on a repository during the export process
-create-repository
-Initializes a backup repository in an export location
-delete-block-data-from-repository
-Deletes backup data exported using block mode
-delete-collection
-Deletes the application manifest data associated with a backup
-delete-data-from-repository
-Deletes backup data exported using the default filesystem mode
-export-block-volume-to-repository
-Exports a snapshot using block mode
-export-volume-to-repository
-Exports a snapshot using the default filesystem mode
-image-copy
-Exports and restores container images from ImageStreams
-kanister-job
-Created by Blueprint actions to perform custom operations
-list-data-from-repository
-Lists data in the repository when retiring backups
-repository-operations
-Performs background operations such as repository scans and maintenance
-repository-server
-API server used for multiple operations including export, restore, and import
-restore-block-volume-from-repository
-Restores a volume exported using block mode
-restore-data-dr
-Restores Veeam Kasten from a Disaster Recovery backup
-restore-data-from-repository
-Restores a volume exported using the default filesystem mode
-upgrade-repository
-Upgrades the repository
-validate-repository
-Validates a remote repository when restoring a Disaster Recovery backup
-### Worker Pod Resource Usage Configuration Priorityï
-The cluster-wide genericVolumeSnapshot Helm setting holds the
-lowest priority and will be overridden by any applied ActionPodSpec.
-ActionPodSpec resources that are bound to a namespace using an
-ActionPodSpecBinding hold a lower priority than an ActionPodSpec
-explicitly specified as part of a policy. ActionPodSpec
-configurations from multiple sources are not merged;
-therefore, it is not possible to apply namespace-bound
-resources to one type of Pod and policy-specific resources to another.
-It is possible to override resources of worker pods globally through the
-Kanister Pod Overrideï,
-but this approach is not recommended.
-### Configuring Metric Sidecar Resource Usage for Worker Podsï
-By default, Veeam Kasten provisions a sidecar container on temporary
-worker Pods used to collect metrics to monitor resource utilization.
-Using Helm, resource requests and limits can be added to the metric sidecar
-container added to worker Pods. This setting is independent of either
-method previously detailed for configuring worker Pod resources.
-Custom resource requests and limits can be set through Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-workerPodMetricSidecar:
-  resources:
-    requests:
-      memory: <value>
-      cpu: <value>
-    limits:
-      memory: <value>
-      cpu: <value>
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=workerPodMetricSidecar.resources.[requests|limits].[memory|cpu]=<value>
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_support.md
-## Support and Troubleshootingï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-Supported Kubernetes Versions
-Gathering Debugging Information
-Application Debug Information
-Veeam Kasten Tools
-Storage Class Validation
-Security Disclosures
-- Supported Kubernetes Versions
-- Gathering Debugging Information
-Application Debug Information
-- Application Debug Information
-- Veeam Kasten Tools
-- Storage Class Validation
-- Security Disclosures
-- Uninstalling Veeam Kasten
--
-- Operating Veeam Kasten
-- Support and Troubleshooting
-If you have questions or need support, please refer to
-Veeam Kasten Community Support
-or open a case via https://my.veeam.com.
-### Supported Kubernetes Versionsï
-Veeam Kasten currently supports deployments running on the following certified
-Kubernetes distributions and respective OpenShift versions:
-Note: Veeam Kasten also does not support distributions/versions that have
-been declared 'End of Life' status as defined by their respective
-entity/community/vendor (in other words, distributions/versions for which
-maintenance is not provided anymore by their supporting
-entity/community/vendor).
-Kubernetes
-RedHat Openshift
-Notes
-1.31
-Respective OpenShift version is not supported yet
-1.30
-4.17
-1.29
-4.16
-1.28
-4.15
-1.27
-4.14
-Kubernetes version only supported when deployed as an OpenShift cluster
-1.26
-4.13
-1.25
-4.12
-### Gathering Debugging Informationï
-Admin users running 4.5.7 or later can get support logs from the
-System Information page under the Settings menu in the
-navigation sidebar.
-Alternatively, if you run into problems with Veeam Kasten, please run
-these commands on your cluster as a first step to get information to
-support. The script assumes that your default kubectl context is
-pointed to the cluster you have installed Veeam Kasten on and that
-Veeam Kasten is installed in the kasten-io namespace.
-By default, the debug script will generate a compressed archive file
-k10_debug_logs.tar.gz which will have separate log files
-for Veeam Kasten services.
-If you installed Veeam Kasten in a different namespace or want to log to
-a different file you can specify additional option flags to the script:
-See the script usage message for additional help.
-The debug script can optionally gather metrics from the Prometheus
-server installed by Veeam Kasten,
-by specifying the --prom-duration flag with a value indicating
-the desired duration (e.g. "1d", "3h25m").
-The start time of the metric collection is implicitly assumed to
-be the current time less the specified duration, but can be adjusted
-with the --prom-start-time flag to specify a time in the past.
-The format is either the simple duration string that is accepted by
-the duration flag,
-or a string that is parsable with the date command, which could
-be a timestamp or a free form relative or absolute time specification.
-For example:
-would collect 270 minutes of metrics starting from 51 hours in the past.
-Note
-Metrics capture only works with the Prometheus instance installed
-by Veeam Kasten.
-The specified duration directly impacts the size of the captured
-metrics data so constrain the duration accordingly.
-One can also consider using the --prom-metrics-only flag to
-separate the collection of metrics from the collection of the logs.
-### Application Debug Informationï
-If you are having issues with a particular application, please also
-gather the following information.
-Please also get the Helm status:
-### Veeam Kasten Toolsï
-The k10tools binary has commands that can help with validating if a cluster
-is setup correctly before installing Veeam Kasten and for debugging Veeam
-Kasten's micro services.
-To learn more about this, see Veeam Kasten Tools.
-### Storage Class Validationï
-k10tools provides an option to validate
-storage classes via CSI Capabilities Check or
-Generic Volume Snapshot Capabilities Check commands.
-It is also possible for admin users to validate storage classes from the
-Veeam Kasten dashboard, under the System Information page of the
-Settings menu in the navigation sidebar. The state "Unknown" is shown
-until validation is run.
-### Security Disclosuresï
-We value the critical role that the security community plays in helping
-us protect the confidentiality, integrity, and availability of our software,
-services, and information. If you have information about security
-vulnerabilities that affect Kasten software, services, or information, please
-report it via our vulnerability disclosure program.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_k10tools.md
-## Veeam Kasten Toolsï
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
-Authentication Service
-Catalog Service
-Backup Actions
-Kubernetes Nodes
-Application Information
-Veeam Kasten Primer for Pre-Flight Checks
-Veeam Kasten Primer for Upgrades
-Veeam Kasten Primer for Storage Connectivity Checks
-Veeam Kasten Primer for Storage Integration Checks
-CSI Capabilities Check
-Direct Cloud Provider Integration Checks
-vSphere First Class Disk Integration Check
-Veeam Kasten Primer Block Mount Check
-Veeam Kasten Primer for Authentication Service Checks
-Generic Volume Snapshot Capabilities Check
-Veeam Kasten Generic Storage Backup Sidecar Injection
-CA Certificate Check
-Installation of Veeam Kasten in OpenShift clusters
-Extracting OpenShift CA Certificates
-Listing vSphere snapshots created by Veeam Kasten
-- Authentication Service
-- Catalog Service
-- Backup Actions
-- Kubernetes Nodes
-- Application Information
-- Veeam Kasten Primer for Pre-Flight Checks
-- Veeam Kasten Primer for Upgrades
-- Veeam Kasten Primer for Storage Connectivity Checks
-- Veeam Kasten Primer for Storage Integration Checks
-CSI Capabilities Check
-Direct Cloud Provider Integration Checks
-vSphere First Class Disk Integration Check
-- CSI Capabilities Check
-- Direct Cloud Provider Integration Checks
-- vSphere First Class Disk Integration Check
-- Veeam Kasten Primer Block Mount Check
-- Veeam Kasten Primer for Authentication Service Checks
-- Generic Volume Snapshot Capabilities Check
-- Veeam Kasten Generic Storage Backup Sidecar Injection
-- CA Certificate Check
-- Installation of Veeam Kasten in OpenShift clusters
-- Extracting OpenShift CA Certificates
-- Listing vSphere snapshots created by Veeam Kasten
--
-- Operating Veeam Kasten
-- Veeam Kasten Tools
-The k10tools binary has commands that can help with validating if a cluster
-is setup correctly before installing Veeam Kasten and for debugging Veeam
-Kasten's micro services. The latest version of k10tools can be found here.
-Binaries are available for the following operating systems and architectures:
-Operating System
-x86_84 (amd64)
-Arm (arm64/v8)
-Power (ppc64le)
-Linux
-Yes
-MacOS
-No
-Windows
-### Authentication Serviceï
-The k10tools debug auth sub command can be used to debug
-Veeam Kasten's Authentication service when it is setup with Active
-Directory or OpenShift based authentication. Provide -d openshift
-flag for OpenShift based authentication. It verifies connection to the
-OpenShift OAuth server and the OpenShift Service Account token. It
-also searches for any error events in Service Account.
-### Catalog Serviceï
-The k10tools debug catalog size sub command can be used to obtain
-the size of K10's catalog and the disk usage of the volume
-where the catalog is stored.
-### Backup Actionsï
-The k10tools debug backupactions sub command can be used to obtain
-the backupactions created in the respective cluster. Use the -o json
-flag to obtain more information in the JSON format.
-### Kubernetes Nodesï
-The k10tools debug node sub command can be used to obtain information
-about the Kubernetes nodes. Use the -o json flag to obtain more
-information in the JSON format.
-### Application Informationï
-The k10tools debug applications sub command can be used
-to obtain information
-about the applications running in given namespace.
-Use the -o json flag to obtain more
-information in the JSON format
-(Note: Right now, JSON format support is only provided for PVCs).
-Use -n to provide the namespace.
-In case the namespace is not provided, application information
-will be
-fetched from the default namespace.
-e.g. -n kasten-io
-### Veeam Kasten Primer for Pre-Flight Checksï
-The k10tools primer sub command can be used to run pre-flight checks
-before installing Veeam Kasten. Refer to the section about
-Pre-Flight Checks for more details.
-The code block below shows an example of the output when executed on a
-Kubernetes cluster deployed in Digital Ocean.
-### Veeam Kasten Primer for Upgradesï
-The k10tools primer upgrade sub command can be used to find the recommended
-upgrade path of your Veeam Kasten version and to check there is adequate space to
-perform the upgrades. It only provides commands for Helm deployments.
-See Upgrading Veeam Kasten for additional details.
-This tool requires Internet access to http://gcr.io
-### Veeam Kasten Primer for Storage Connectivity Checksï
-Note
-Run k10tools primer storage connect --help command to observe
-all supported sub-commands.
-The k10tools primer storage connect command family can be used
-to check a given storage provider accessibility.
-Currently the following storage providers are supported for this
-group of checks:
-- Azure
-- Google Cloud Storage (GCS)
-- Portworx (PWX)
-- S3 Compatible Storage
-- Veeam Backup Server (VBR)
-- vSphere
-Each sub-command corresponding to a particular storage provider accepts
-a configuration file with parameters required for making connection. The
-configuration file format can be observed by issuing config-yaml
-sub-command in the following way (example is for GCS):
-The output below is an example of running GCS connectivity checker:
-### Veeam Kasten Primer for Storage Integration Checksï
-Run k10tools primer storage check --help command to observe
-all supported sub-commands.
-### CSI Capabilities Checkï
-The k10tools primer storage check csi sub-command can be used to check
-a specified CSI storage class is able to carry out snapshot and restoration
-activities or report configuration issues if not. It creates a temporary
-application to test this.
-The command accepts a configuration file in the following format:
-The output below is an example of running CSI checker:
-### Direct Cloud Provider Integration Checksï
-The k10tools primer storage check sub-command family allows
-checking snapshot/restore capabilities through native API integration
-of capable cloud storage providers via direct storage API invocations.
-For now the following cloud providers are supported:
-- Amazon Elastic Block Store (AWS EBS)
-- Azure Persistent Disk
-- Google Compute Engine Persistent Disk (GCE PD)
-To run a desired check the k10tools primer storage check command
-should be appended with either awsebs, or azure, or gcepd
-suffix. Each of these sub-commands accepts parameters passed via
-configuration files to create a test application performing
-snapshot/restore via vendor specific storage APIs. The format of which
-sub-command can be observed by executing
-k10tools primer storage check <awsebs|azure|gcepd> config-yaml.
-Example configuration file format for GCE PD checker:
-The output below is an example of running GCE PD provider check:
-### vSphere First Class Disk Integration Checkï
-Due to limited functionality provided by vSphere CSI driver Veeam
-Kasten has to use both volume provisioning via CSI interface and
-manual calling vSphere API for doing snapshots and restores of volumes.
-The k10tools primer storage check vsphere sub-command provisions
-a First Class Disk (FCD) volume using a CSI storage class and performs
-snapshot/restore via vSphere API.
-The command accepts a configuration file in the following format
-(can be observed by running config-yaml command):
-The output below is an example of running vSphere CSI checker:
-### Veeam Kasten Primer Block Mount Checkï
-The k10tools primer storage check blockmount sub-command is
-provided to test if the PersistentVolumes provisioned by
-a StorageClass can be supported in block mode
-by Veeam Kasten.
-If a StorageClass passes this test then see
-Block Mode Exports for how to indicate
-this fact to Veeam Kasten.
-The checker performs two tests:
-1. The kubestr block mount test is used to
-verify that the StorageClass volumes can be used with Block
-VolumeMounts.
-2. If first test succeeds, then a second test is
-run to verify that Veeam Kasten can restore block data to such volumes.
-This step is performed only if Veeam Kasten does not use provisioner
-specific direct network APIs to restore data to a block volume
-during import.
-Both tests independently allocate and release the Kubernetes resources
-they need, and it takes a few minutes for the test to complete.
-The checker can be invoked by the k10primer.sh script in a
-manner similar to that described in the
-Pre-flight Checks:
-Alternatively, for more control over the invocation of the checker,
-use a local copy of the k10tools program to obtain a
-YAML configuration file as follows:
-The YAML output should be saved to a file and edited to set the
-desired StorageClass. Only the storage_class property is
-required; other properties will default to the values displayed
-in the output if not explicitly set.
-Then run the checker as follows:
-The test emits multiple messages as it progresses.
-On success, you will see a summary message like this at the end:
-On failure, the summary message would look like this:
-The checker may produce spurious errors if the StorageClass specifies
-the Immediate VolumeBindingMode and the PersistentVolumes
-provisioned by the test have different node affinities.
-In such a case use a variant of the StorageClass that specifies
-the WaitForFirstConsumer VolumeBindingMode instead.
-Use the -h flag to get all command usage options.
-### Veeam Kasten Primer for Authentication Service Checksï
-Run k10tools primer auth check --help command
-to observe all supported sub-commands.
-The k10tools primer auth check sub-command family allows doing
-basic sanity checks for 3rd-party authentication services. Currently
-it supports checkers for ActiveDirectory/LDAP and OIDC.
-Each service specific command accepts required parameters via
-a configuration file, format of which can be observed by running
-config-yaml sub-command (example is for OIDC checker):
-The output below is an example of running OIDC checker:
-### Generic Volume Snapshot Capabilities Checkï
-The k10tools primer gvs-cluster-check command can be used to check
-if the cluster is compatible for Veeam Kasten Generic Volume Snapshot.
-Veeam Kasten Generic backup commands are executed on a pod running
-kanister-tools image and checked for appropriate output.
-Use -n flag to provide namespace.
-By default, kasten-io namespace will be used.
-Use -s flag to provide a storageclass for the checks to be run against.
-By default, no storage class will be used and the checks will be done using
-temporary storage from the node the pod runs on.
-Use --service-account flag to specify the service account to be used
-by pods during GVS checks. By default, default service
-account will be used.
-By default, the k10tools command will use the publicly available
-kanister-tools image at gcr.io/kasten-images/kanister-tools:<K10 version>.
-Since this image is not available in air-gapped environments, to
-override the default image, set the KANISTER_TOOLS environment variable
-to the kanister-tools image that is available in the air-gapped
-environment's local registry.
-export KANISTER_TOOLS=<your local registry>/<your local repository name>/kanister-tools:k10-<K10 version>
-### Veeam Kasten Generic Storage Backup Sidecar Injectionï
-The k10tools k10genericbackup can be used to make Kubernetes
-workloads compatible for K10 Generic Storage Backup by injecting a
-Kanister sidecar and setting the forcegenericbackup=true annotation
-on the workloads.
-### CA Certificate Checkï
-The k10tools debug ca-certificate command can be used to check
-if the CA certificate is installed properly in Veeam Kasten.
-The -n flag can be used to provide namespace and it
-defaults to kasten-io.
-More information on
-installation
-process.
-### Installation of Veeam Kasten in OpenShift clustersï
-The k10tools openshift prepare-install command can be used to
-prepare an OpenShift cluster for installation of Veeam Kasten.
-It extracts a CA Certificate from the cluster, installs it in
-the namespace where Veeam Kasten will be installed, and generates
-the helm command to be used for installing Veeam Kasten.
-The -n flag can be used to provide the namespace where Veeam
-Kasten will be installed. The default namespace is kasten-io.
---recreate-resources flag recreates resources that
-may have been created by previous execution of this command.
-Set --insecure-ca flag to true if Certificate Issuing
-Authority is not trusted.
-### Extracting OpenShift CA Certificatesï
-The k10tools openshift extract-certificates command is used to extract
-CA certificates from OpenShift clusters to the Veeam Kasten namespace.
-The following flags can be used to configure the command:
-- --ca-cert-configmap-name. The name of the Kubernetes ConfigMap that
-contains all certificates required for Veeam Kasten. If no name is provided,
-the default name custom-ca-bundle-store will be used.
-If the ConfigMap with the used name does not exist, the command will
-generate a new ConfigMap.
-If the ConfigMap with the used name exists, the command will merge
-newly extracted certificates with the existing certificates
-in the ConfigMap without creating duplicates.
-- If the ConfigMap with the used name does not exist, the command will
-generate a new ConfigMap.
-- If the ConfigMap with the used name exists, the command will merge
-newly extracted certificates with the existing certificates
-in the ConfigMap without creating duplicates.
-- --k10-namespace or -n. The Kubernetes namespace where Veeam Kasten
-is expected to be installed. The default value is kasten-io.
-- --release-name. The K10 Release Name. The default value is k10.
---ca-cert-configmap-name. The name of the Kubernetes ConfigMap that
-contains all certificates required for Veeam Kasten. If no name is provided,
-the default name custom-ca-bundle-store will be used.
-### Listing vSphere snapshots created by Veeam Kastenï
-Veeam Kasten integrates with the vSphere clusters using direct integration.
-Veeam Kasten snapshots can be listed using k10tools.
-Only snapshots created starting with version 5.0.7 will be listed
-by the current version of the tool.
-Earlier snapshots might be listed if they had been created
-using a vSphere infrastructure profile with the tagging option enabled
-(Deprecated since then).
-To list earlier snapshots, k10tools v6.5.0
-should be used with an additional environment variable:
-## category name can be found from the vSphere infrastructure profile, in the form of "k10:<UUID>"
-export VSPHERE_SNAPSHOT_TAGGING_CATEGORY=$(kubectl -n kasten-io get profiles $(kubectl -n kasten-io get profiles -o=jsonpath='{.items[?(@.spec.infra.type=="VSphere")].metadata.name}') -o jsonpath='{.spec.infra.vsphere.categoryName}')
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_external_tools_datadog.md
 ## Exporting Metrics to Datadogï

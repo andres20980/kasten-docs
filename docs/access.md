@@ -18,42 +18,6 @@ existing installation.
 The platform can be accessed through the Veeam Kasten Dashboard, through
 the Veeam Kasten API, or the kubectl CLI.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_access_authorization.md
-## Authorizationï
-- Dashboard Access
-- API and Command Line
-- Authentication
-- Authorization
-Administrative Access
-Limited Access
-Additional RBAC Access
-- Administrative Access
-- Limited Access
-- Additional RBAC Access
-- Veeam Kasten RBAC
-- Veeam Kasten RBAC Dashboard
--
-- Accessing Veeam Kasten
-- Authorization
-### Administrative Accessï
-For admin access, make sure that when using kubectl or trying
-to access the Veeam Kasten dashboard
-with Token Authentication you authenticate with
-a user that has a ClusterRoleBinding to the predefined k10-admin
-role.
-### Limited Accessï
-Non-admin users may be granted limited permissions to Veeam Kasten.
-Read-only access to the dashboard config is granted by creating a
-ClusterRoleBinding between the user and the predefined
-k10-config-view role. In addition, users may be granted operational
-access to their applications by creating a RoleBinding to the
-k10-basic role in their application's namespace.
-### Additional RBAC Accessï
-Veeam Kasten now supports a more flexible permissions model
-which allows scoping of user permissions to perform Veeam Kasten
-actions only within the context of specified applications.
-Check out Veeam Kasten RBAC for more information.
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_access_rbac_ui.md
 ## Veeam Kasten RBAC Dashboardï
 - Dashboard Access
@@ -436,6 +400,42 @@ to grant themselves administrative privileges.
 Please refer to Kubernetes documentation for more details.
 The corresponding Cluster Role Binding is needed to bind the Cluster Role
 to users and groups.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_access_authorization.md
+## Authorizationï
+- Dashboard Access
+- API and Command Line
+- Authentication
+- Authorization
+Administrative Access
+Limited Access
+Additional RBAC Access
+- Administrative Access
+- Limited Access
+- Additional RBAC Access
+- Veeam Kasten RBAC
+- Veeam Kasten RBAC Dashboard
+-
+- Accessing Veeam Kasten
+- Authorization
+### Administrative Accessï
+For admin access, make sure that when using kubectl or trying
+to access the Veeam Kasten dashboard
+with Token Authentication you authenticate with
+a user that has a ClusterRoleBinding to the predefined k10-admin
+role.
+### Limited Accessï
+Non-admin users may be granted limited permissions to Veeam Kasten.
+Read-only access to the dashboard config is granted by creating a
+ClusterRoleBinding between the user and the predefined
+k10-config-view role. In addition, users may be granted operational
+access to their applications by creating a RoleBinding to the
+k10-basic role in their application's namespace.
+### Additional RBAC Accessï
+Veeam Kasten now supports a more flexible permissions model
+which allows scoping of user permissions to perform Veeam Kasten
+actions only within the context of specified applications.
+Check out Veeam Kasten RBAC for more information.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_access_authentication.md
 ## Authenticationï
