@@ -11,15 +11,10 @@ from tqdm import tqdm
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-# Directorio y archivo de log
-current_dir = os.path.dirname(os.path.abspath(__file__))
-log_file = os.path.join(current_dir, "scraper.log")
-
-# Configuración del logging
+# Configuración del logging para consola únicamente
 logging.basicConfig(
     level=logging.INFO,
     handlers=[
-        logging.FileHandler(log_file, mode='a'),  # Modo 'a' para asegurar que los logs se acumulen
         logging.StreamHandler(),
     ],
     format='%(asctime)s - %(levelname)s - %(message)s'
@@ -241,8 +236,20 @@ def clean_all_documents(directory):
             file_path = os.path.join(directory, filename)
             clean_documentation(file_path)
 
+def reset_directory(directory):
+    """Elimina el directorio especificado y lo recrea para asegurar que esté vacío."""
+    if os.path.exists(directory):
+        shutil.rmtree(directory)
+    os.makedirs(directory)
+    print(f"Directorio '{directory}' reiniciado.")
+
 def main():
     print("\n🚀 Iniciando scraping del manual de Kasten K10\n")
+    
+    # Reinicia el directorio docs/ y asegura la creación de subdirectorios necesarios antes de comenzar el scraping
+    reset_directory(DOCS_DIR)
+    os.makedirs(TMP_DIR, exist_ok=True)  # Asegúrate de que el directorio temporal existe
+
     scraped_files, total_pages = scrape_all()
 
     if scraped_files:
@@ -258,4 +265,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
