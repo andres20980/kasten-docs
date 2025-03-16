@@ -6,6 +6,9 @@ on:
       - main
       - develop
   workflow_dispatch:  # Permite lanzarlo manualmente desde GitHub Actions
+  schedule:
+    # Se ejecuta a las 08:00 cada lunes (UTC)
+    - cron: '0 8 * * 1'
 
 jobs:
   scrape:
