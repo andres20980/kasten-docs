@@ -139,8 +139,9 @@ def scrape_page(url):
         return None, None, []
 
 ### 🔹 Función para scrapear todas las páginas en paralelo con UNA barra de progreso
+from tqdm import tqdm
+
 def scrape_all():
-    """ Scrapear todas las páginas principales y sus enlaces internos """
     main_links = get_main_links()
     if not main_links:
         return {}
@@ -149,18 +150,22 @@ def scrape_all():
 
     scraped_files = {}
     visited_urls = set(main_links)
-    urls_to_scrape = main_links
+    urls_to_scrape = list(main_links)  # Lista de URLs iniciales a scrapear
 
+    # Preparar una sola barra de progreso para todos los enlaces a scrapear
+    pbar = tqdm(total=len(urls_to_scrape), desc="Scraping pages", unit="page")
     total_pages = 0
     all_urls = []
 
     with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         while urls_to_scrape:
             futures = {executor.submit(scrape_page, url): url for url in urls_to_scrape}
-            urls_to_scrape = []
+            urls_to_scrape = []  # Limpiar la lista para la siguiente ronda de scraping
 
-            for future in tqdm(as_completed(futures), total=len(futures), desc="Scraping pages"):
+            # Procesar resultados de futures
+            for future in as_completed(futures):
                 file, category, internal_links = future.result()
+                pbar.update(1)  # Actualizar la barra de progreso por cada página procesada
                 if file:
                     scraped_files.setdefault(category, []).append(file)
                     total_pages += 1
@@ -168,8 +173,9 @@ def scrape_all():
                     if link not in visited_urls:
                         visited_urls.add(link)
                         urls_to_scrape.append(link)
-                        all_urls.append(link)
+                        pbar.total += 1  # Aumentar el total de la barra de progreso con nuevos enlaces
 
+    pbar.close()  # Cerrar la barra de progreso al final del proceso
     logger.info(f"\n🔗 Se detectaron {len(all_urls)} enlaces internos adicionales.\n")
 
     return scraped_files, total_pages
