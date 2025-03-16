@@ -26,7 +26,7 @@ jobs:
           pip install -r requirements.txt || true
 
       - name: 🚀 Ejecutar scraper
-        run: python scraper/scraper.py
+        run: python scraper.py
 
       - name: 📂 Guardar archivos en la misma rama
         run: |
