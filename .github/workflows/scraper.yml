@@ -23,16 +23,20 @@ jobs:
       - name: 📦 Instalar dependencias
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt || true
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: 🚀 Ejecutar scraper
         run: python scraper.py
 
-      - name: 📂 Guardar archivos en la misma rama
+      - name: 🔧 Configurar Git
         run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "andres20980"
+          git config --global user.email "andres.20980@gmail.com"
 
+      - name: 📤 Subir cambios a GitHub
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
           git add docs/
-          git commit -m "🔄 Actualización automática del scraper [$(date)]" || echo "No hay cambios nuevos"
-          git push origin HEAD:${{ github.ref_name }}
+          git commit -m "🔄 Actualización automática del scraper [$(date)]" || exit 0
+          git push origin main
