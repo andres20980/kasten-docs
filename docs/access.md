@@ -147,6 +147,145 @@ which allows scoping of user permissions to perform Veeam Kasten
 actions only within the context of specified applications.
 Check out Veeam Kasten RBAC for more information.
 © Copyright 2017-2024, Kasten, Inc.
+### latest_access_dashboard.md
+## Dashboard Access
+- Dashboard Access
+Access via kubectl
+Veeam Kasten Dashboard Directly From the Google Cloud Console
+Accessing via a LoadBalancer
+Configuring DNS
+Adding Custom Annotations
+Existing Ingress Controller
+Access via OpenShift Routes
+- Access via kubectl
+Veeam Kasten Dashboard Directly From the Google Cloud Console
+- Veeam Kasten Dashboard Directly From the Google Cloud Console
+- Accessing via a LoadBalancer
+Configuring DNS
+Adding Custom Annotations
+- Configuring DNS
+- Adding Custom Annotations
+- Existing Ingress Controller
+- Access via OpenShift Routes
+- API and Command Line
+- Authentication
+- Authorization
+- Veeam Kasten RBAC
+- Veeam Kasten RBAC Dashboard
+-
+- Accessing Veeam Kasten
+- Dashboard Access
+There are several options for accessing the Veeam Kasten dashboard.
+### Access via kubectl
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it use the following kubectl commands.
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/
+Note
+If you installed Veeam Kasten with a different release name than
+k10 (specified via the --name option in the install
+command), the above URL should be modified to replace the last
+occurrence of k10 with the specified release name. The revised
+URL would look like
+http://127.0.0.1:8080/<release-name>/##/
+If you are running on GKE and want to access the dashboard without local
+kubectl access, you can use the following advanced GKE console
+instructions:
+### Accessing via a LoadBalancer
+If you would like to expose the Veeam Kasten dashboard via an external
+load balancer, you will need to configure an authentication method. The
+currently supported options are Basic Authentication,
+Token Authentication, or
+OpenID Connect Authentication.
+To configure the Veeam Kasten dashboard to be exposed through the default
+LoadBalancer and potentially a DNS entry, please use the following helm
+options. If you have not yet installed Veeam Kasten, add the options to the
+install command for your environment. Alternatively, you can upgrade the
+installation as follows:
+### Configuring DNS
+The Veeam Kasten dashboard will be available at the /k10/ URL path of the
+DNS or IP address setup using the below options.
+If you installed Veeam Kasten with a different release name than
+k10 (specified via the --name option in the install
+command), the dashboard will be available at the /<release-name>/
+URL path.
+### Using ExternalDNS
+If your Kubernetes cluster is already using ExternalDNS and has it
+properly configured, you should add the following options to
+automatically configure a DNS entry for the load balancer.
+### Manually adding a DNS entry
+If your environment does not support ExternalDNS, first find the
+LoadBalancer's public DNS/IP address:
+You can then optionally setup a DNS record that points from a desired
+FQDN to the LoadBalancer DNS or IP address from above.
+### Adding Custom Annotations
+In certain scenarios, custom annotations on the LoadBalancer be
+required. These can be added as a part of the install process too. For
+example, if an annotation of the form
+service.beta.kubernetes.io/aws-loadbalancer-internal: 0.0.0.0/0
+was needed, add it to a values file as follows:
+and then use --values in the helm install command:
+### Existing Ingress Controller
+If there is already an Ingress controller installed and the goal is to
+expose the Veeam Kasten dashboard through it, the following option must be
+specified with the helm install command:
+By default, the Ingress object is created with the name
+{release-name}-ingress. To use a different name, specify the following
+option:
+It is necessary to follow the specific Ingress controller guidelines to
+expose an external endpoint for the k10-ingress Kubernetes Ingress
+object that will be installed in the kasten-io namespace as part of
+the Helm installation.
+Additionally, an Ingress class can be chosen for the Ingress object
+by specifying the following option to the helm command:
+In some environments, additional Ingress annotations might be required.
+Required annotations can be added during install via the
+ingress.annotations
+option. For example, the below option will add
+nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+to the Veeam Kasten Ingress resource.
+By default, the Ingress is configured with the default path
+/<release-name>/. A custom path can be specified for the Ingress using
+the following option:
+If you want to expose pre-installed Veeam Kasten with ingress, the
+path in the ingress specs must be set to the release-name used while
+installing Veeam Kasten.
+To redirect the traffic that does not match the default path, a
+defaultBackend can be optionally configured for the Ingress.
+There are two possible options for configuring the defaultBackend:
+1. Using a backing service:
+1. Using a resource backend:
+### Access via OpenShift Routes
+To access the Veeam Kasten dashboard via an OpenShift Route,
+an authentication method needs to be configured.
+The currently supported authentication options are
+Basic Authentication,
+Token Authentication,
+Active Directory,
+Openshift Authentication,or
+OpenID Connect Authentication.
+The following Helm options can be used to configure the
+Veeam Kasten dashboard to be exposed through an OpenShift Route and
+potentially a DNS entry. If Veeam Kasten is not yet installed, add the
+options to the helm install command for the environment.
+Alternatively, the installation can be upgraded as follows:
+The following option will auto-generate a route hostname as
+a subdomain to the existing FQDN. A host name can be explicitly
+with the route with the following option:
+The ability to use the kubectl proxy method described above or
+an externally accessible endpoint is still there but their configuration
+depends on the specific cluster configuration.
+Additionally, the path for the Route object can be specified by using
+the following option:
+If you want to expose pre-installed Veeam Kasten with route,
+the path in the route specs must be set to the release-name used
+while installing Veeam Kasten.
+SSL/TLS with the Route can enabled by specifying the
+following option:
+Additionally, to specify the TLS insecureEdgeTerminationPolicy or
+termination Route parameters, the following option needs
+to be specified:
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_access_rbac.md
 ## Veeam Kasten RBAC
 - Dashboard Access
@@ -297,145 +436,6 @@ to grant themselves administrative privileges.
 Please refer to Kubernetes documentation for more details.
 The corresponding Cluster Role Binding is needed to bind the Cluster Role
 to users and groups.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_access_dashboard.md
-## Dashboard Access
-- Dashboard Access
-Access via kubectl
-Veeam Kasten Dashboard Directly From the Google Cloud Console
-Accessing via a LoadBalancer
-Configuring DNS
-Adding Custom Annotations
-Existing Ingress Controller
-Access via OpenShift Routes
-- Access via kubectl
-Veeam Kasten Dashboard Directly From the Google Cloud Console
-- Veeam Kasten Dashboard Directly From the Google Cloud Console
-- Accessing via a LoadBalancer
-Configuring DNS
-Adding Custom Annotations
-- Configuring DNS
-- Adding Custom Annotations
-- Existing Ingress Controller
-- Access via OpenShift Routes
-- API and Command Line
-- Authentication
-- Authorization
-- Veeam Kasten RBAC
-- Veeam Kasten RBAC Dashboard
--
-- Accessing Veeam Kasten
-- Dashboard Access
-There are several options for accessing the Veeam Kasten dashboard.
-### Access via kubectl
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it use the following kubectl commands.
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/
-Note
-If you installed Veeam Kasten with a different release name than
-k10 (specified via the --name option in the install
-command), the above URL should be modified to replace the last
-occurrence of k10 with the specified release name. The revised
-URL would look like
-http://127.0.0.1:8080/<release-name>/##/
-If you are running on GKE and want to access the dashboard without local
-kubectl access, you can use the following advanced GKE console
-instructions:
-### Accessing via a LoadBalancer
-If you would like to expose the Veeam Kasten dashboard via an external
-load balancer, you will need to configure an authentication method. The
-currently supported options are Basic Authentication,
-Token Authentication, or
-OpenID Connect Authentication.
-To configure the Veeam Kasten dashboard to be exposed through the default
-LoadBalancer and potentially a DNS entry, please use the following helm
-options. If you have not yet installed Veeam Kasten, add the options to the
-install command for your environment. Alternatively, you can upgrade the
-installation as follows:
-### Configuring DNS
-The Veeam Kasten dashboard will be available at the /k10/ URL path of the
-DNS or IP address setup using the below options.
-If you installed Veeam Kasten with a different release name than
-k10 (specified via the --name option in the install
-command), the dashboard will be available at the /<release-name>/
-URL path.
-### Using ExternalDNS
-If your Kubernetes cluster is already using ExternalDNS and has it
-properly configured, you should add the following options to
-automatically configure a DNS entry for the load balancer.
-### Manually adding a DNS entry
-If your environment does not support ExternalDNS, first find the
-LoadBalancer's public DNS/IP address:
-You can then optionally setup a DNS record that points from a desired
-FQDN to the LoadBalancer DNS or IP address from above.
-### Adding Custom Annotations
-In certain scenarios, custom annotations on the LoadBalancer be
-required. These can be added as a part of the install process too. For
-example, if an annotation of the form
-service.beta.kubernetes.io/aws-loadbalancer-internal: 0.0.0.0/0
-was needed, add it to a values file as follows:
-and then use --values in the helm install command:
-### Existing Ingress Controller
-If there is already an Ingress controller installed and the goal is to
-expose the Veeam Kasten dashboard through it, the following option must be
-specified with the helm install command:
-By default, the Ingress object is created with the name
-{release-name}-ingress. To use a different name, specify the following
-option:
-It is necessary to follow the specific Ingress controller guidelines to
-expose an external endpoint for the k10-ingress Kubernetes Ingress
-object that will be installed in the kasten-io namespace as part of
-the Helm installation.
-Additionally, an Ingress class can be chosen for the Ingress object
-by specifying the following option to the helm command:
-In some environments, additional Ingress annotations might be required.
-Required annotations can be added during install via the
-ingress.annotations
-option. For example, the below option will add
-nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-to the Veeam Kasten Ingress resource.
-By default, the Ingress is configured with the default path
-/<release-name>/. A custom path can be specified for the Ingress using
-the following option:
-If you want to expose pre-installed Veeam Kasten with ingress, the
-path in the ingress specs must be set to the release-name used while
-installing Veeam Kasten.
-To redirect the traffic that does not match the default path, a
-defaultBackend can be optionally configured for the Ingress.
-There are two possible options for configuring the defaultBackend:
-1. Using a backing service:
-1. Using a resource backend:
-### Access via OpenShift Routes
-To access the Veeam Kasten dashboard via an OpenShift Route,
-an authentication method needs to be configured.
-The currently supported authentication options are
-Basic Authentication,
-Token Authentication,
-Active Directory,
-Openshift Authentication,or
-OpenID Connect Authentication.
-The following Helm options can be used to configure the
-Veeam Kasten dashboard to be exposed through an OpenShift Route and
-potentially a DNS entry. If Veeam Kasten is not yet installed, add the
-options to the helm install command for the environment.
-Alternatively, the installation can be upgraded as follows:
-The following option will auto-generate a route hostname as
-a subdomain to the existing FQDN. A host name can be explicitly
-with the route with the following option:
-The ability to use the kubectl proxy method described above or
-an externally accessible endpoint is still there but their configuration
-depends on the specific cluster configuration.
-Additionally, the path for the Route object can be specified by using
-the following option:
-If you want to expose pre-installed Veeam Kasten with route,
-the path in the route specs must be set to the release-name used
-while installing Veeam Kasten.
-SSL/TLS with the Route can enabled by specifying the
-following option:
-Additionally, to specify the TLS insecureEdgeTerminationPolicy or
-termination Route parameters, the following option needs
-to be specified:
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_access_authentication.md
 ## Authentication
