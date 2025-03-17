@@ -10,14 +10,22 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from tqdm import tqdm
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+from datetime import datetime
 
-# Configuración del logging para consola únicamente
+# 🔹 Asegurarse de que el archivo de log existe en el directorio raíz del proyecto
+log_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "scraper.log")
+if not os.path.exists(log_file):
+    with open(log_file, 'w') as f:
+        pass
+
+# 🔹 Configuración del LOG
 logging.basicConfig(
     level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(),
-    ],
-    format='%(asctime)s - %(levelname)s - %(message)s'
+        logging.FileHandler(log_file, mode='w'),
+        logging.StreamHandler()
+    ]
 )
 logger = logging.getLogger()
 
@@ -41,7 +49,7 @@ MAX_WORKERS = int(os.getenv('MAX_WORKERS', multiprocessing.cpu_count() * 2))
 # 🔹 Configuración de reintentos y pool de conexiones
 session = requests.Session()
 retries = Retry(total=5, backoff_factor=1, status_forcelist=[502, 503, 504])
-adapter = HTTPAdapter(max_retries=retries, pool_connections=20, pool_maxsize=100)  # Aumenta el pool de conexiones y el tamaño máximo
+adapter = HTTPAdapter(max_retries=retries, pool_connections=20, pool_maxsize=100)
 session.mount('http://', adapter)
 session.mount('https://', adapter)
 
@@ -139,8 +147,6 @@ def scrape_page(url):
         return None, None, []
 
 ### 🔹 Función para scrapear todas las páginas en paralelo con UNA barra de progreso
-from tqdm import tqdm
-
 def scrape_all():
     main_links = get_main_links()
     if not main_links:
@@ -195,23 +201,7 @@ def unify_files(scraped_files):
 
     shutil.rmtree(TMP_DIR, ignore_errors=True)
 
-### 🔹 Función principal
-def main():
-    print("\n🚀 Iniciando scraping del manual de Kasten K10\n")
-    scraped_files, total_pages = scrape_all()
-
-    if scraped_files:
-        unify_files(scraped_files)
-        print("\n📜 Resumen:")
-        print(f"✅ Total de archivos procesados: {total_pages}")
-        print(f"📂 Archivos unificados en la carpeta: {DOCS_DIR}")
-        print("🟢 Proceso finalizado con éxito.\n")
-    else:
-        print("⚠️ No se encontraron archivos para procesar.")
-
-import os
-import re
-
+### 🔹 Función para limpiar la documentación
 def clean_documentation(file_path):
     with open(file_path, 'r', encoding='utf-8') as file:
         lines = file.readlines()
@@ -224,6 +214,9 @@ def clean_documentation(file_path):
         # Corregir encabezados para asegurar consistencia, por ejemplo:
         clean_line = re.sub(r'#+', lambda match: '#' * (len(match.group(0)) + 1), clean_line)
 
+        # Eliminar caracteres no deseados
+        clean_line = clean_line.replace('ï', '')
+
         # Agregar más reglas de limpieza según sea necesario
         # Ejemplo: eliminar líneas completamente vacías
         if clean_line.strip():
@@ -235,13 +228,14 @@ def clean_documentation(file_path):
 
     print(f"Archivo limpiado: {file_path}")
 
-
+### 🔹 Función para limpiar todos los documentos en un directorio
 def clean_all_documents(directory):
     for filename in os.listdir(directory):
         if filename.endswith('.md'):  # Asegurarse de que sólo se procesan archivos Markdown
             file_path = os.path.join(directory, filename)
             clean_documentation(file_path)
 
+### 🔹 Función para reiniciar un directorio
 def reset_directory(directory):
     """Elimina el directorio especificado y lo recrea para asegurar que esté vacío."""
     if os.path.exists(directory):
@@ -249,8 +243,9 @@ def reset_directory(directory):
     os.makedirs(directory)
     print(f"Directorio '{directory}' reiniciado.")
 
+### 🔹 Función principal
 def main():
-    print("\n🚀 Iniciando scraping del manual de Kasten K10\n")
+    print("\n🚀 Iniciando scraping del Manual de Kasten K10\n")
     
     # Reinicia el directorio docs/ y asegura la creación de subdirectorios necesarios antes de comenzar el scraping
     reset_directory(DOCS_DIR)
@@ -266,6 +261,10 @@ def main():
         # Llamar a la función de limpieza después de unificar los archivos
         clean_all_documents(DOCS_DIR)
         print("🟢 Proceso finalizado con éxito.\n")
+        
+        # Registrar la fecha y hora de actualización en el archivo de log
+        with open(log_file, 'a') as f:
+            f.write(f"Documentos actualizados el día {datetime.now().strftime('%d/%m/%Y')} a las {datetime.now().strftime('%H:%M:%S')}h\n")
     else:
         print("⚠️ No se encontraron archivos para procesar.")
 
