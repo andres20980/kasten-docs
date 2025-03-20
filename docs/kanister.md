@@ -34,6 +34,21 @@ Configuring Security Context for Kanister Execution Hooks
 Configuring custom labels and annotations
 - Configuring custom labels and annotations
 © Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_resources.md
+## Kanister Project Resources
+- Kanister-Enabled Applications
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+The Kanister project is completely open and developed under the Apache
+License, Version 2.0. We encourage you to check out the following
+useful resources.
+- The Kanister Website
+- Kanister Documentation
+- The source code on GitHub
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_testing.md
 ## Kanister-Enabled Applications
 - Kanister-Enabled Applications
@@ -208,77 +223,6 @@ You can find more detailed instructions in the
 Protecting Applications and
 Restoring Applications sections of this documentation.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_resources.md
-## Kanister Project Resources
-- Kanister-Enabled Applications
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-The Kanister project is completely open and developed under the Apache
-License, Version 2.0. We encourage you to check out the following
-useful resources.
-- The Kanister Website
-- Kanister Documentation
-- The source code on GitHub
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_override.md
-## Kanister Pod Override
-- Kanister-Enabled Applications
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
-Configuring custom labels and annotations
-- Configuring custom labels and annotations
--
-- Extending Veeam Kasten with Kanister
-- Kanister Pod Override
-In some cases, there can be a requirement to override Kanister
-jobs pods specifications with custom values, such as tolerations for
-taints, nodeSelector, or serviceAccountName. This can serve a
-use-case when the pods need to be scheduled on a particular node, or use a
-ServiceAccount which provides limited access. Changing these values
-manually for Kanister Job pods will not be feasible.
-To handle specifying the custom pod override for all Kanister Pods,
-a ConfigMap named pod-spec-override must be created in the kasten-io
-namespace. Veeam Kasten will merge the specifications configured in
-pod-spec-override with other specifications set through Helm (such as
-Root CA) and apply the merged configuration to all Kanister Job Pods.
-Note
-imagePullSecrets and securityContext should not be set via
-pod-spec-override. If these configurations are set in this manner,
-Veeam Kasten will ignore them.
-When the helm option for providing a Root CA to Veeam Kasten
-(i.e., cacertconfigmap.name) is enabled, the Kanister Backup/Restore workflow will
-create a new ConfigMap, in the application namespace to
-provide the Root CA to the sidecar. This ConfigMap in the application
-namespace would be a copy of the Root CA ConfigMap residing in the Veeam Kasten
-namespace, which would be deleted at the end of the workflow. To override this,
-the Root CA ConfigMap can be created in the application namespace and the
-respective Volume and VolumeMounts in the pod-spec-override in
-kasten-io namespace.
-For example, the following ConfigMap defines a Pod Specification, which
-contains tolerations to node taints, and a nodeSelector.
-This ConfigMap now would be merged with all Kanister job Pod
-specifications. The Kanister restore job Pods would look like:
-### Configuring custom labels and annotations
-Kanister pods launched during Veeam Kasten operations can be configured with
-additional custom labels and annotations through Helm Values.
-Custom labels can be configured through Helm in following ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-kanisterPodCustomLabels: "key1=value1,key2=value2"
-kanisterPodCustomAnnotations: "key1=value1,key2=value2"
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=kanisterPodCustomLabels="key1=value1,key2=value2"
---set=kanisterPodCustomAnnotations="key1=value1,key2=value2"
-Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_hooks.md
 ## Kanister Execution Hooks
 - Kanister-Enabled Applications
@@ -360,193 +304,61 @@ for a complete list of functions that support args.podOverride.
 For example, the following section should be added to the phase's
 args section to make it run as the user 1000:
 © Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_postgresql_install_logical.md
-## Logical PostgreSQL Backup
+### latest_kanister_override.md
+## Kanister Pod Override
 - Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
 - Kanister Project Resources
 - Kanister Execution Hooks
 - Kanister Pod Override
+Configuring custom labels and annotations
+- Configuring custom labels and annotations
 -
 - Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical PostgreSQL Backup
-If it hasn't been done already, the bitnami Helm repository
-needs to be added to your local configuration:
-Install the PostgreSQL chart from the bitnami Helm repository:
-The following command can be used to create the PostgreSQL Blueprint in the
-Veeam Kasten namespace:
-For PostgreSQL App Versions 14.x or older, Kanister tools version 0.85.0 is
-required.
-Note
-The PostgreSQL backup example provided above serve as a blueprint
-template for logical backups. Please note that these examples may need
-to be modified for specific production environments and setups. As a
-result, it is highly recommended to carefully review and modify the
-blueprints as needed before deploying them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint is created, add an annotation on the PostgreSQL Deployment
-to instruct Veeam Kasten to use the Blueprint when performing operations on
-this PostgreSQL instance.
-Finally, use Veeam Kasten to backup and restore the application.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_mssql_install.md
-## Logical Microsoft SQL Server Backup
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
 - Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical Microsoft SQL Server Backup
-MS SQL Server is a relational database developed by Microsoft.
-The example below covers SQL Server instances running natively
-on Kubernetes. Use the following commands to deploy the SQL Server
-using Kubernetes manifests.
-The following command can be used to create the MS SQL Server Blueprint in the
-Veeam Kasten namespace.
+In some cases, there can be a requirement to override Kanister
+jobs pods specifications with custom values, such as tolerations for
+taints, nodeSelector, or serviceAccountName. This can serve a
+use-case when the pods need to be scheduled on a particular node, or use a
+ServiceAccount which provides limited access. Changing these values
+manually for Kanister Job pods will not be feasible.
+To handle specifying the custom pod override for all Kanister Pods,
+a ConfigMap named pod-spec-override must be created in the kasten-io
+namespace. Veeam Kasten will merge the specifications configured in
+pod-spec-override with other specifications set through Helm (such as
+Root CA) and apply the merged configuration to all Kanister Job Pods.
 Note
-The provided Microsoft SQL Server backup example serves as a blueprint
-template for logical backups on Kubernetes. Please note that these
-examples may need to be modified for specific production environments
-and setups. As a result, it is highly recommended to carefully review and
-modify the blueprints as needed before deploying them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint is created, add an annotation to the SQL Server Deployment
-to instruct Veeam Kasten to use the Blueprint when performing operations on
-this instance.
-Finally, use Veeam Kasten to backup and restore the application.
-### Known Limitations
-Currently, the backup process in the Kanister Blueprint creates
-the temporary database backup files in the same volume as the
-database. Due to this, it is necessary to use a PVC at least
-twice the size of the database.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_mysql_install_logical_os.md
-## Logical MySQL Backup for OpenShift
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical MySQL Backup for OpenShift
-To demonstrate data protection for MySQL provided and deployed
-with OpenShift, the install should be performed according to the
-documentation provided here.
-A Blueprint resource should be created via the following command:
-Note
-The MySQL backup example provided above serves as a blueprint
-template for logical backups in an OpenShift environment. Please note
-that these examples may need to be modified for specific production
-environments and setups. As a result, it is highly recommended to
-carefully review and modify the blueprints as needed before deploying
-them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint is created, annotate the DeploymentConfig with
-the below annotations to instruct Veeam Kasten to use this Blueprint while
-performing data management operations on the MySQL instance.
-Finally, use Veeam Kasten to backup and restore the application.
+imagePullSecrets and securityContext should not be set via
+pod-spec-override. If these configurations are set in this manner,
+Veeam Kasten will ignore them.
+When the helm option for providing a Root CA to Veeam Kasten
+(i.e., cacertconfigmap.name) is enabled, the Kanister Backup/Restore workflow will
+create a new ConfigMap, in the application namespace to
+provide the Root CA to the sidecar. This ConfigMap in the application
+namespace would be a copy of the Root CA ConfigMap residing in the Veeam Kasten
+namespace, which would be deleted at the end of the workflow. To override this,
+the Root CA ConfigMap can be created in the application namespace and the
+respective Volume and VolumeMounts in the pod-spec-override in
+kasten-io namespace.
+For example, the following ConfigMap defines a Pod Specification, which
+contains tolerations to node taints, and a nodeSelector.
+This ConfigMap now would be merged with all Kanister job Pod
+specifications. The Kanister restore job Pods would look like:
+### Configuring custom labels and annotations
+Kanister pods launched during Veeam Kasten operations can be configured with
+additional custom labels and annotations through Helm Values.
+Custom labels can be configured through Helm in following ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+kanisterPodCustomLabels: "key1=value1,key2=value2"
+kanisterPodCustomAnnotations: "key1=value1,key2=value2"
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=kanisterPodCustomLabels="key1=value1,key2=value2"
+--set=kanisterPodCustomAnnotations="key1=value1,key2=value2"
+Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_pgo_logical.md
 ## Crunchy Data Postgres Operator Logical Backup and Restore
@@ -654,8 +466,8 @@ with the functioning of the operator.
 postgresclusters.
 4. Click Restore to perform the restore of PostgresCluster and data.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_postgresql_install_app_cons.md
-## Application Consistent PostgreSQL Backup
+### latest_kanister_elasticsearch_install_logical.md
+## Logical Elasticsearch Backup
 - Kanister-Enabled Applications
 Configuring a Profile
 Installing Applications and Blueprints
@@ -695,23 +507,28 @@ Logical Backups to NFS File Storage Location
 -
 - Extending Veeam Kasten with Kanister
 - Kanister-Enabled Applications
-- Application Consistent PostgreSQL Backup
-If it hasn't been done already, the bitnami Helm repository
-needs to be added to your local configuration:
-Install the PostgreSQL chart from the bitnami Helm repository:
+- Logical Elasticsearch Backup
+If it hasn't been done already, the elastic Helm repository needs
+to be added to your local configuration:
+Install the Elasticsearch chart from the elastic Helm repository:
+Once Elasticsearch is installed, create an index and
+insert some documents in the Elasticsearch cluster by following
+the commands mentioned
+here.
+To create a Blueprint resource, please run the command below:
 Note
-This is an example workflow that has been validated with PostgreSQL chart version 11.9.13.
-For different versions of PostgreSQL and other requirements, modify the postgresql-hooks.yaml blueprint below as required.
-Next create a file postgresql-hooks.yaml with the following contents
-And then apply the file using:
-Finally add the following annotation to the PostgreSQL StatefulSets to
-instruct Veeam Kasten to use the above hooks when performing operations
-on this PostgreSQL instance.
-The PostgreSQL backup example provided above serves as a blueprint
-template for achieving application-consistent backups. Please note that
-these examples may need to be modified for specific production environments
-and setups. As a result, it is highly recommended to carefully review and
-modify the blueprints as needed before deploying them for production use.
+The Elasticsearch backup example provided above serves as a
+blueprint template for logical backups. Please note that these examples
+may need to be modified for specific production environments and setups.
+As a result, it is highly recommended to carefully review and modify
+the blueprints as needed before deploying them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, the StatefulSets will need to be
+annotated to instruct Veeam Kasten to use the Blueprint while performing
+backup operations on this Elasticsearch instance. The following example
+demonstrates how to annotate the Elasticsearch StatefulSet with the
+elasticsearch-blueprint.
 Finally, use Veeam Kasten to backup and restore the application.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_k8ssandra_policy.md
@@ -793,635 +610,6 @@ performing restores
 - Only in-place restores are possible
 - The MedusaRestoreJob custom resource must be present
 in the same namespace during restore operations
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_rds_postgres_install.md
-## RDS PostgreSQL Backup
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- RDS PostgreSQL Backup
-RDS PostgreSQL backup can be performed by taking RDS snapshot of the running DB
-instance.
-### Prerequisites
-The access credentials associated with the location profile should have
-these permissions to perform RDS operations.
-### Create Secret and ConfigMap
-To facilitate Veeam Kasten to connect to the RDS instance, Veeam Kasten
-needs RDS instance details and the username, password
-to login to the database created in RDS.
-This information is provided by creating ConfigMap and Secret
-Kubernetes resources.
-Create a Kubernetes secret to store PostgreSQL credentials into
-rds-app namespace. If there are other RDS instances,
-multiple ConfigMap/Secret pairs can be created to have the details
-of those RDS instances.
-Create a ConfigMap in rds-app namespace which contains
-information to connect to the RDS DB instance
-### Annotate the ConfigMap
-The ConfigMap containing connection info will need to be annotated with
-an annotation of form kanister.kasten.io/rds: rds-postgres to instruct
-Veeam Kasten to perform backup and restore operations on this RDS PostgreSQL
-DB instance. The following example demonstrates how to annotate
-the dbconfig ConfigMap with the RDS Annotation.
-Finally, use Veeam Kasten to backup and restore the RDS instance.
-Warning
-Here, RDS snapshots are created to
-perform backups. These operations are prone to fail if Manual snapshots quota
-is reached (which is 100 by default).
-Make sure that correct retention policies are set to
-avoid getting into this issue.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_kafka_k8s_install.md
-## Kafka Backup and restore
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Kafka Backup and restore
-To backup and restore Kafka topic data, Adobe S3 Kafka connector is used which periodically
-polls data from Kafka and in turn, uploads it to S3. Each chunk of data is
-represented as an S3 object. More details about the connector
-can be found here.
-During Restore, topic messages are purged before the restore
-operation is performed. This is done to make sure that topic
-configuration remains the same after restoration.
-### Assumptions
-- A ConfigMap containing the parameters for the connector is
-present in the cluster.
-- Topics should be present in the Kafka cluster before taking the backup.
-- No consumer should be consuming messages from the topic during restore.
-### Setup Kafka Cluster
-If it hasn't been done already, the strimzi Helm repository needs
-to be added to your local configuration:
-Install the Strimzi Cluster Operator from the strimzi Helm repository:
-Setup Kafka Cluster with one ZooKeeper and one Kafka broker instance:
-Add some data to the Kafka topic blogs using Kafka image
-strimzi/kafka:0.20.0-kafka-2.6.0 provided by strimzi:
-Note
-To take backup of multiple topics, add comma separated
-topic names in adobe-s3-sink.properties
-### Create ConfigMap
-A config map with the following configuration should be provided
-to the Kafka Connector:
-- Details of the S3 bucket and Kafka broker address
-- adobe-s3-sink.properties file containing properties related
-to s3 sink Connector
-- adobe-s3-source.properties file containing properties related
-to s3 source Connector
-- kafkaConfiguration.properties containing properties related to
-Kafka server
-### Create Blueprint
-To create the Blueprint resource that will be used by Veeam Kasten to
-backup Kafka, run the command below:
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint gets created, annotate the ConfigMap with
-the below annotations to instruct Veeam Kasten to use this Blueprint while
-performing backup and restore operations on the Kafka instance.
-Finally, use Veeam Kasten to backup and restore the application.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_elasticsearch_install_logical.md
-## Logical Elasticsearch Backup
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical Elasticsearch Backup
-If it hasn't been done already, the elastic Helm repository needs
-to be added to your local configuration:
-Install the Elasticsearch chart from the elastic Helm repository:
-Once Elasticsearch is installed, create an index and
-insert some documents in the Elasticsearch cluster by following
-the commands mentioned
-here.
-To create a Blueprint resource, please run the command below:
-Note
-The Elasticsearch backup example provided above serves as a
-blueprint template for logical backups. Please note that these examples
-may need to be modified for specific production environments and setups.
-As a result, it is highly recommended to carefully review and modify
-the blueprints as needed before deploying them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint is created, the StatefulSets will need to be
-annotated to instruct Veeam Kasten to use the Blueprint while performing
-backup operations on this Elasticsearch instance. The following example
-demonstrates how to annotate the Elasticsearch StatefulSet with the
-elasticsearch-blueprint.
-Finally, use Veeam Kasten to backup and restore the application.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_mongodb_install_logical.md
-## Logical MongoDB Backup
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical MongoDB Backup
-If it hasn't been done already, the bitnami Helm repository needs
-to be added to your local configuration:
-Install the MongoDB chart from the bitnami Helm repository:
-To create a Blueprint resource, please run the command below:
-Note
-The MongoDB backup example above serves as a blueprint template
-for logical backups. Please note that these examples may need to be
-modified for specific production environments and setups. As a result,
-it is highly recommended to carefully review and modify the blueprints
-as needed before deploying them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-If MongoDB chart is installed specifying existing secret by setting
-parameter --set auth.existingSecret=<mongo-secret-name>, secret name in the
-blueprint mongo-blueprint.yaml needs to be modified at
-following places:
-actions.backup.phases[0].objects.mongosecret.name:
-<mongo-secret-name>
-actions.restore.phases[0].objects.mongosecret.name:
-<mongo-secret-name>
-Once the Blueprint is created, we will have to annotate the StatefulSet with
-the correct annotation to instruct Veeam Kasten to use the Blueprint while
-performing operations on this MongoDB instance.
-The following example demonstrates how to annotate the MongoDB StatefulSet with
-the mongodb-logical Blueprint.
-Finally, use Veeam Kasten to backup and restore the application.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_mongodb_install_logical_os.md
-## Logical MongoDB Backup on OpenShift clusters
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical MongoDB Backup on OpenShift clusters
-To demonstrate data protection for MongoDB provided and deployed
-with OpenShift, the install should be performed according to the
-documentation provided here.
-A Blueprint resource should be created via the following command:
-Note
-The MongoDB backup example provided above serves as a blueprint
-for logical backups on OpenShift clusters. Please note that these
-examples may need to be modified for specific production environments
-and setups on OpenShift. As a result, it is highly recommended to
-carefully review and modify the blueprints as needed before deploying
-them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-If MongoDB chart is installed specifying existing secret by setting
-parameter --set auth.existingSecret=<mongo-secret-name>, secret name in the
-blueprint mongo-dep-config-blueprint.yaml needs to be modified at
-following places:
-actions.backup.phases[0].objects.mongosecret.name:
-<mongo-secret-name>
-actions.restore.phases[0].objects.mongosecret.name:
-<mongo-secret-name>
-Once the Blueprint is created, annotate the DeploymentConfig with
-the below annotations to instruct Veeam Kasten to use this Blueprint while
-performing data management operations on the MongoDB instance.
-Finally, use Veeam Kasten to backup and restore the application.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_mongodb_install_app_cons.md
-## Application-Consistent MongoDB Backup
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Application-Consistent MongoDB Backup
-To obtain an application-consistent MongoDB backup where MongoDB is
-first quiesced and then a snapshot of the underlying volume belong to
-only the primary replica is performed, start by installing the
-MongoDB chart from the bitnami Helm repository:
-Note
-Due to certain quirks in the MongoDB chart, you must use
-mongodb, the name of the chart, in the Helm release name
-below. Otherwise, the below test blueprint will be unable to find
-the right MongoDB secret required for authentication.
-The example workflow has been validated with the latest version of the MongoDB
-helm chart. For other versions, modify the mongodb_hooks.yaml blueprint below
-as required.
-If it hasn't been done already, the bitnami Helm repository needs
-to be added to your local configuration:
-Next, create a file mongodb_hooks.yaml with the following contents:
-And then apply the file using:
-If MongoDB chart is installed specifying existing secret by setting
-parameter --set auth.existingSecret=<mongo-secret-name>, secret name in the
-blueprint mongodb_hooks.yaml needs to be modified at
-following places:
-actions.backupPrehook.phases[0].objects.mongoDbSecret.name:
-<mongo-secret-name>
-actions.backupPosthook.phases[0].objects.mongoDbSecret.name:
-<mongo-secret-name>
-Finally add the following annotation to the MongoDB Deployments to instruct
-Veeam Kasten to use the above hooks when performing operations on this MongoDB
-instance.
-The MongoDB backup example provided above serves as a blueprint
-template for achieving application-consistent backups. Please note that
-these examples may need to be modified for specific production environments
-and setups. As a result, it is highly recommended to carefully review and
-modify the blueprints as needed before deploying them for production use.
-Note that certain quirks in the MongoDB chart are addressed in the provided
-instructions, but additional modifications may be required for different
-MongoDB versions or custom setups.
-Finally, use Veeam Kasten to backup and restore the application.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_etcd_k8s_install.md
-## etcd Backup (Kubeadm)
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- etcd Backup (Kubeadm)
-Assuming the Kubernetes cluster is set up through Kubeadm,
-the etcd pods will be running in the kube-system namespace.
-Before taking a backup of the etcd cluster, a Secret needs to
-be created in a temporary new or an existing namespace,
-containing details about the authentication mechanism used by
-etcd. In the case of kubeadm, it is likely that etcd will
-have been deployed using TLS-based authentication. A temporary
-namespace and a Secret to access etcd can be created by running
-the following command:
-Note
-If the correct path of the server keys and certificate is not provided,
-backups will fail. These paths can be discovered from the command that
-gets run inside the etcd pod, by describing the pod or looking into the
-static pod manifests. The value for the flags etcdns and labels
-should be the namespace where etcd pods are running and etcd pods' labels
-respectively.
-To avoid any other workloads from etcd-backup namespace being backed
-up, Secret etcd-details can be labeled to make sure only this Secret
-is included in the backup. The below command can be executed to label the
-Secret:
-### Backup
-To create the Blueprint resource that will be used by Veeam Kasten to backup
-etcd, run the below command:
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint is created, the Secret that was created
-above needs to be annotated to instruct Veeam Kasten to use the Blueprint
-to perform backups on the etcd pod.
-The following command demonstrates how to annotate the Secret with
-the name of the Blueprint that was created earlier.
-Once the Secret is annotated, use Veeam Kasten to backup etcd using the
-new namespace. If the Secret is labeled, as mentioned in one of the previous
-steps, while creating the policy just that Secret can be included in the
-backup by adding resource filters like below:
-The backup location of etcd can be found by looking at the Kanister artifact
-of the created restore point.
-### Restore
-To restore the etcd backup, log in to the host (most likely the Kubernetes
-control plane nodes) where the etcd pod is running. Obtain the restore path
-by looking into the artifact details of the backup action on the Veeam Kasten
-dashboard, and download the snapshot to a specific location on the etcd pod
-host machine (e.g., /tmp/etcd-snapshot.db). Downloading the snapshot is
-going to be dependent on the backup storage target in use. For example, if
-AWS S3 was used as object storage, the AWS CLI will be needed to obtain
-the backup.
-Once the snapshot is downloaded from the backup target, use the etcdctl CLI
-tool to restore that snapshot to a specific location, for example
-/var/lib/etcd-from-backup on the host. The below command can be used to
-restore the etcd backup:
-All the values that are provided for the above flags can be discovered from the
-etcd pod manifest (static pod). The two important flags are
---data-dir and --initial-cluster-token. --data-dir is the
-directory where etcd stores its data into and --initial-cluster-token
-is the flag that defines the token for new members to join this etcd cluster.
-Once the backup is restored into a new directory
-(e.g., /var/lib/etcd-from-backup), the etcd manifest (static pod)
-needs to be updated to point its data directory to this new directory
-and the --initial-cluster-token=etcd-cluster-1 needs to be
-specified in the etcd command argument. Apart from that the volumes
-and volumeMounts fields should also be changed to point to new data-dir
-that we restored the backup to.
-### Multi-Member etcd Cluster
-In the cases when the cluster is running a multi-member etcd cluster, the same
-steps that we followed earlier can be followed to restore the cluster with some
-minor changes. As mentioned in the official etcd documentation
-all the members of etcd can be restored from the same snapshot.
-Among the leader nodes, choose one that will be used as a restore node and stop
-the static pods on all other leader nodes. After making sure that the static
-pods have been stopped on the other leader nodes, the previous step should be
-followed on those nodes sequentially.
-The below command, used to restore the etcd backup, needs to be changed from
-the previous example before running it on other leader nodes:
-The name of the host for the flags --initial-cluster and --name
-should be changed based on the host (leader) on which the command is being run.
-To explore more about how etcd backup and restore work, this
-Kubernetes documentation
-can be followed.
-In reaction to the change in the static pod manifest, the kubelet will
-automatically recreate the etcd pod with the cluster state that was backed up
-when the etcd backup was performed.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_postgresql_install_logical_os.md
-## Logical PostgreSQL Backup on OpenShift Clusters
-- Kanister-Enabled Applications
-Configuring a Profile
-Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-Specifying a Kanister Blueprint for Your Application
-Use Case Testing
-- Configuring a Profile
-- Installing Applications and Blueprints
-Logical Backups
-Managed Services Backups
-Application-Consistent Backups
-etcd Backup and Restore
-Kafka Backup and Restore
-K8ssandra Backup and Restore
-Crunchy Data Postgres Operator Backup and Restore
-Logical Backups to NFS File Storage Location
-- Logical Backups
-- Managed Services Backups
-- Application-Consistent Backups
-- etcd Backup and Restore
-- Kafka Backup and Restore
-- K8ssandra Backup and Restore
-- Crunchy Data Postgres Operator Backup and Restore
-- Logical Backups to NFS File Storage Location
-- Specifying a Kanister Blueprint for Your Application
-- Use Case Testing
-- Kanister Project Resources
-- Kanister Execution Hooks
-- Kanister Pod Override
--
-- Extending Veeam Kasten with Kanister
-- Kanister-Enabled Applications
-- Logical PostgreSQL Backup on OpenShift Clusters
-To demonstrate data protection for PostgreSQL provided and deployed
-with OpenShift, the install should be performed according to the
-documentation provided here.
-Note
-The secret that gets created after installation of PostgreSQL doesn't
-have the ADMIN password that we have just specified and this password
-is used by the Blueprint to connect to the PostgreSQL instance and
-perform the data management operations.
-To address the above issue, a secret should be created that will have this
-ADMIN password with the key postgresql_admin_password.
-A Blueprint resource should be created via the following command:
-For PostgreSQL App Versions 14.x or older, Kanister tools version 0.85.0 is
-required.
-The PostgreSQL backup example provided above serves as a blueprint
-template for logical backups on OpenShift clusters. Please note that these
-examples may need to be modified for specific production environments
-and setups on OpenShift. As a result, it is highly recommended to
-carefully review and modify the blueprints as needed before deploying
-them for production use.
-Alternatively, use the Blueprints page on Veeam Kasten
-Dashboard to create the Blueprint resource.
-Once the Blueprint is created, annotate the DeploymentConfig with
-the below annotations to instruct Veeam Kasten to use this Blueprint while
-performing data management operations on the PostgreSQL instance.
-Finally, use Veeam Kasten to backup and restore the application.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_etcd_ocp_install.md
 ## etcd Backup (OpenShift Container Platform)
@@ -1674,8 +862,8 @@ Wait for all Scheduler pods to get to the latest revision:
 Verify that all the etcd pods are in the running state. If successful,
 the etcd cluster has been restored successfully
 © Copyright 2017-2024, Kasten, Inc.
-### latest_kanister_rds_aurora_install.md
-## RDS Aurora Backup
+### latest_kanister_mongodb_install_logical_os.md
+## Logical MongoDB Backup on OpenShift clusters
 - Kanister-Enabled Applications
 Configuring a Profile
 Installing Applications and Blueprints
@@ -1715,26 +903,235 @@ Logical Backups to NFS File Storage Location
 -
 - Extending Veeam Kasten with Kanister
 - Kanister-Enabled Applications
-- RDS Aurora Backup
-Aurora DB cluster backup can be performed by taking RDS snapshot of
-the running DB cluster.
-### Prerequisites
-The access credentials associated with the location profile should have
-these permissions to perform RDS operations.
-### Create ConfigMap
-To facilitate Veeam Kasten to connect to the Aurora DB cluster, a ConfigMap
-Kubernetes resource can be created with the details of the DB cluster.
-Create aurora-app namespace, if required.
-Create a ConfigMap in aurora-app namespace to store the Aurora DB cluster
-details.
-### Create Blueprint
+- Logical MongoDB Backup on OpenShift clusters
+To demonstrate data protection for MongoDB provided and deployed
+with OpenShift, the install should be performed according to the
+documentation provided here.
 A Blueprint resource should be created via the following command:
-Alternatively, use the Blueprints page on the Veeam Kasten
+Note
+The MongoDB backup example provided above serves as a blueprint
+for logical backups on OpenShift clusters. Please note that these
+examples may need to be modified for specific production environments
+and setups on OpenShift. As a result, it is highly recommended to
+carefully review and modify the blueprints as needed before deploying
+them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
 Dashboard to create the Blueprint resource.
-Once the Blueprint is created, annotate the ConfigMap with
+If MongoDB chart is installed specifying existing secret by setting
+parameter --set auth.existingSecret=<mongo-secret-name>, secret name in the
+blueprint mongo-dep-config-blueprint.yaml needs to be modified at
+following places:
+actions.backup.phases[0].objects.mongosecret.name:
+<mongo-secret-name>
+actions.restore.phases[0].objects.mongosecret.name:
+<mongo-secret-name>
+Once the Blueprint is created, annotate the DeploymentConfig with
 the below annotations to instruct Veeam Kasten to use this Blueprint while
-performing data management operations on the RDS Aurora DB cluster.
-Finally, use Veeam Kasten to backup and restore the RDS Aurora DB cluster.
+performing data management operations on the MongoDB instance.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_postgresql_install_logical_os.md
+## Logical PostgreSQL Backup on OpenShift Clusters
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Logical PostgreSQL Backup on OpenShift Clusters
+To demonstrate data protection for PostgreSQL provided and deployed
+with OpenShift, the install should be performed according to the
+documentation provided here.
+Note
+The secret that gets created after installation of PostgreSQL doesn't
+have the ADMIN password that we have just specified and this password
+is used by the Blueprint to connect to the PostgreSQL instance and
+perform the data management operations.
+To address the above issue, a secret should be created that will have this
+ADMIN password with the key postgresql_admin_password.
+A Blueprint resource should be created via the following command:
+For PostgreSQL App Versions 14.x or older, Kanister tools version 0.85.0 is
+required.
+The PostgreSQL backup example provided above serves as a blueprint
+template for logical backups on OpenShift clusters. Please note that these
+examples may need to be modified for specific production environments
+and setups on OpenShift. As a result, it is highly recommended to
+carefully review and modify the blueprints as needed before deploying
+them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, annotate the DeploymentConfig with
+the below annotations to instruct Veeam Kasten to use this Blueprint while
+performing data management operations on the PostgreSQL instance.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_mssql_install.md
+## Logical Microsoft SQL Server Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Logical Microsoft SQL Server Backup
+MS SQL Server is a relational database developed by Microsoft.
+The example below covers SQL Server instances running natively
+on Kubernetes. Use the following commands to deploy the SQL Server
+using Kubernetes manifests.
+The following command can be used to create the MS SQL Server Blueprint in the
+Veeam Kasten namespace.
+Note
+The provided Microsoft SQL Server backup example serves as a blueprint
+template for logical backups on Kubernetes. Please note that these
+examples may need to be modified for specific production environments
+and setups. As a result, it is highly recommended to carefully review and
+modify the blueprints as needed before deploying them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, add an annotation to the SQL Server Deployment
+to instruct Veeam Kasten to use the Blueprint when performing operations on
+this instance.
+Finally, use Veeam Kasten to backup and restore the application.
+### Known Limitations
+Currently, the backup process in the Kanister Blueprint creates
+the temporary database backup files in the same volume as the
+database. Due to this, it is necessary to use a PVC at least
+twice the size of the database.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_mongodb_install_logical.md
+## Logical MongoDB Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Logical MongoDB Backup
+If it hasn't been done already, the bitnami Helm repository needs
+to be added to your local configuration:
+Install the MongoDB chart from the bitnami Helm repository:
+To create a Blueprint resource, please run the command below:
+Note
+The MongoDB backup example above serves as a blueprint template
+for logical backups. Please note that these examples may need to be
+modified for specific production environments and setups. As a result,
+it is highly recommended to carefully review and modify the blueprints
+as needed before deploying them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+If MongoDB chart is installed specifying existing secret by setting
+parameter --set auth.existingSecret=<mongo-secret-name>, secret name in the
+blueprint mongo-blueprint.yaml needs to be modified at
+following places:
+actions.backup.phases[0].objects.mongosecret.name:
+<mongo-secret-name>
+actions.restore.phases[0].objects.mongosecret.name:
+<mongo-secret-name>
+Once the Blueprint is created, we will have to annotate the StatefulSet with
+the correct annotation to instruct Veeam Kasten to use the Blueprint while
+performing operations on this MongoDB instance.
+The following example demonstrates how to annotate the MongoDB StatefulSet with
+the mongodb-logical Blueprint.
+Finally, use Veeam Kasten to backup and restore the application.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_postgresql-ha_install_app_cons.md
 ## Application Consistent PostgreSQL HA Backup and Restore
@@ -1805,6 +1202,273 @@ check box After - On Success and select the blueprint created
 in step 2 as the action hook with action as postRestoreHook.
 Select the checkbox Don't wait for workloads to be ready
 © Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_etcd_k8s_install.md
+## etcd Backup (Kubeadm)
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- etcd Backup (Kubeadm)
+Assuming the Kubernetes cluster is set up through Kubeadm,
+the etcd pods will be running in the kube-system namespace.
+Before taking a backup of the etcd cluster, a Secret needs to
+be created in a temporary new or an existing namespace,
+containing details about the authentication mechanism used by
+etcd. In the case of kubeadm, it is likely that etcd will
+have been deployed using TLS-based authentication. A temporary
+namespace and a Secret to access etcd can be created by running
+the following command:
+Note
+If the correct path of the server keys and certificate is not provided,
+backups will fail. These paths can be discovered from the command that
+gets run inside the etcd pod, by describing the pod or looking into the
+static pod manifests. The value for the flags etcdns and labels
+should be the namespace where etcd pods are running and etcd pods' labels
+respectively.
+To avoid any other workloads from etcd-backup namespace being backed
+up, Secret etcd-details can be labeled to make sure only this Secret
+is included in the backup. The below command can be executed to label the
+Secret:
+### Backup
+To create the Blueprint resource that will be used by Veeam Kasten to backup
+etcd, run the below command:
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, the Secret that was created
+above needs to be annotated to instruct Veeam Kasten to use the Blueprint
+to perform backups on the etcd pod.
+The following command demonstrates how to annotate the Secret with
+the name of the Blueprint that was created earlier.
+Once the Secret is annotated, use Veeam Kasten to backup etcd using the
+new namespace. If the Secret is labeled, as mentioned in one of the previous
+steps, while creating the policy just that Secret can be included in the
+backup by adding resource filters like below:
+The backup location of etcd can be found by looking at the Kanister artifact
+of the created restore point.
+### Restore
+To restore the etcd backup, log in to the host (most likely the Kubernetes
+control plane nodes) where the etcd pod is running. Obtain the restore path
+by looking into the artifact details of the backup action on the Veeam Kasten
+dashboard, and download the snapshot to a specific location on the etcd pod
+host machine (e.g., /tmp/etcd-snapshot.db). Downloading the snapshot is
+going to be dependent on the backup storage target in use. For example, if
+AWS S3 was used as object storage, the AWS CLI will be needed to obtain
+the backup.
+Once the snapshot is downloaded from the backup target, use the etcdctl CLI
+tool to restore that snapshot to a specific location, for example
+/var/lib/etcd-from-backup on the host. The below command can be used to
+restore the etcd backup:
+All the values that are provided for the above flags can be discovered from the
+etcd pod manifest (static pod). The two important flags are
+--data-dir and --initial-cluster-token. --data-dir is the
+directory where etcd stores its data into and --initial-cluster-token
+is the flag that defines the token for new members to join this etcd cluster.
+Once the backup is restored into a new directory
+(e.g., /var/lib/etcd-from-backup), the etcd manifest (static pod)
+needs to be updated to point its data directory to this new directory
+and the --initial-cluster-token=etcd-cluster-1 needs to be
+specified in the etcd command argument. Apart from that the volumes
+and volumeMounts fields should also be changed to point to new data-dir
+that we restored the backup to.
+### Multi-Member etcd Cluster
+In the cases when the cluster is running a multi-member etcd cluster, the same
+steps that we followed earlier can be followed to restore the cluster with some
+minor changes. As mentioned in the official etcd documentation
+all the members of etcd can be restored from the same snapshot.
+Among the leader nodes, choose one that will be used as a restore node and stop
+the static pods on all other leader nodes. After making sure that the static
+pods have been stopped on the other leader nodes, the previous step should be
+followed on those nodes sequentially.
+The below command, used to restore the etcd backup, needs to be changed from
+the previous example before running it on other leader nodes:
+The name of the host for the flags --initial-cluster and --name
+should be changed based on the host (leader) on which the command is being run.
+To explore more about how etcd backup and restore work, this
+Kubernetes documentation
+can be followed.
+In reaction to the change in the static pod manifest, the kubelet will
+automatically recreate the etcd pod with the cluster state that was backed up
+when the etcd backup was performed.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_postgresql_install_app_cons.md
+## Application Consistent PostgreSQL Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Application Consistent PostgreSQL Backup
+If it hasn't been done already, the bitnami Helm repository
+needs to be added to your local configuration:
+Install the PostgreSQL chart from the bitnami Helm repository:
+Note
+This is an example workflow that has been validated with PostgreSQL chart version 11.9.13.
+For different versions of PostgreSQL and other requirements, modify the postgresql-hooks.yaml blueprint below as required.
+Next create a file postgresql-hooks.yaml with the following contents
+And then apply the file using:
+Finally add the following annotation to the PostgreSQL StatefulSets to
+instruct Veeam Kasten to use the above hooks when performing operations
+on this PostgreSQL instance.
+The PostgreSQL backup example provided above serves as a blueprint
+template for achieving application-consistent backups. Please note that
+these examples may need to be modified for specific production environments
+and setups. As a result, it is highly recommended to carefully review and
+modify the blueprints as needed before deploying them for production use.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_kafka_k8s_install.md
+## Kafka Backup and restore
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Kafka Backup and restore
+To backup and restore Kafka topic data, Adobe S3 Kafka connector is used which periodically
+polls data from Kafka and in turn, uploads it to S3. Each chunk of data is
+represented as an S3 object. More details about the connector
+can be found here.
+During Restore, topic messages are purged before the restore
+operation is performed. This is done to make sure that topic
+configuration remains the same after restoration.
+### Assumptions
+- A ConfigMap containing the parameters for the connector is
+present in the cluster.
+- Topics should be present in the Kafka cluster before taking the backup.
+- No consumer should be consuming messages from the topic during restore.
+### Setup Kafka Cluster
+If it hasn't been done already, the strimzi Helm repository needs
+to be added to your local configuration:
+Install the Strimzi Cluster Operator from the strimzi Helm repository:
+Setup Kafka Cluster with one ZooKeeper and one Kafka broker instance:
+Add some data to the Kafka topic blogs using Kafka image
+strimzi/kafka:0.20.0-kafka-2.6.0 provided by strimzi:
+Note
+To take backup of multiple topics, add comma separated
+topic names in adobe-s3-sink.properties
+### Create ConfigMap
+A config map with the following configuration should be provided
+to the Kafka Connector:
+- Details of the S3 bucket and Kafka broker address
+- adobe-s3-sink.properties file containing properties related
+to s3 sink Connector
+- adobe-s3-source.properties file containing properties related
+to s3 source Connector
+- kafkaConfiguration.properties containing properties related to
+Kafka server
+### Create Blueprint
+To create the Blueprint resource that will be used by Veeam Kasten to
+backup Kafka, run the command below:
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint gets created, annotate the ConfigMap with
+the below annotations to instruct Veeam Kasten to use this Blueprint while
+performing backup and restore operations on the Kafka instance.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_kanister_mysql_install.md
 ## Logical MySQL Backup
 - Kanister-Enabled Applications
@@ -1864,4 +1528,340 @@ Once the Blueprint is created, add an annotation on the MySQL Deployment
 to instruct Veeam Kasten to use the Blueprint when performing operations on
 this MySQL instance.
 Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_mongodb_install_app_cons.md
+## Application-Consistent MongoDB Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Application-Consistent MongoDB Backup
+To obtain an application-consistent MongoDB backup where MongoDB is
+first quiesced and then a snapshot of the underlying volume belong to
+only the primary replica is performed, start by installing the
+MongoDB chart from the bitnami Helm repository:
+Note
+Due to certain quirks in the MongoDB chart, you must use
+mongodb, the name of the chart, in the Helm release name
+below. Otherwise, the below test blueprint will be unable to find
+the right MongoDB secret required for authentication.
+The example workflow has been validated with the latest version of the MongoDB
+helm chart. For other versions, modify the mongodb_hooks.yaml blueprint below
+as required.
+If it hasn't been done already, the bitnami Helm repository needs
+to be added to your local configuration:
+Next, create a file mongodb_hooks.yaml with the following contents:
+And then apply the file using:
+If MongoDB chart is installed specifying existing secret by setting
+parameter --set auth.existingSecret=<mongo-secret-name>, secret name in the
+blueprint mongodb_hooks.yaml needs to be modified at
+following places:
+actions.backupPrehook.phases[0].objects.mongoDbSecret.name:
+<mongo-secret-name>
+actions.backupPosthook.phases[0].objects.mongoDbSecret.name:
+<mongo-secret-name>
+Finally add the following annotation to the MongoDB Deployments to instruct
+Veeam Kasten to use the above hooks when performing operations on this MongoDB
+instance.
+The MongoDB backup example provided above serves as a blueprint
+template for achieving application-consistent backups. Please note that
+these examples may need to be modified for specific production environments
+and setups. As a result, it is highly recommended to carefully review and
+modify the blueprints as needed before deploying them for production use.
+Note that certain quirks in the MongoDB chart are addressed in the provided
+instructions, but additional modifications may be required for different
+MongoDB versions or custom setups.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_mysql_install_logical_os.md
+## Logical MySQL Backup for OpenShift
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Logical MySQL Backup for OpenShift
+To demonstrate data protection for MySQL provided and deployed
+with OpenShift, the install should be performed according to the
+documentation provided here.
+A Blueprint resource should be created via the following command:
+Note
+The MySQL backup example provided above serves as a blueprint
+template for logical backups in an OpenShift environment. Please note
+that these examples may need to be modified for specific production
+environments and setups. As a result, it is highly recommended to
+carefully review and modify the blueprints as needed before deploying
+them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, annotate the DeploymentConfig with
+the below annotations to instruct Veeam Kasten to use this Blueprint while
+performing data management operations on the MySQL instance.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_rds_postgres_install.md
+## RDS PostgreSQL Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- RDS PostgreSQL Backup
+RDS PostgreSQL backup can be performed by taking RDS snapshot of the running DB
+instance.
+### Prerequisites
+The access credentials associated with the location profile should have
+these permissions to perform RDS operations.
+### Create Secret and ConfigMap
+To facilitate Veeam Kasten to connect to the RDS instance, Veeam Kasten
+needs RDS instance details and the username, password
+to login to the database created in RDS.
+This information is provided by creating ConfigMap and Secret
+Kubernetes resources.
+Create a Kubernetes secret to store PostgreSQL credentials into
+rds-app namespace. If there are other RDS instances,
+multiple ConfigMap/Secret pairs can be created to have the details
+of those RDS instances.
+Create a ConfigMap in rds-app namespace which contains
+information to connect to the RDS DB instance
+### Annotate the ConfigMap
+The ConfigMap containing connection info will need to be annotated with
+an annotation of form kanister.kasten.io/rds: rds-postgres to instruct
+Veeam Kasten to perform backup and restore operations on this RDS PostgreSQL
+DB instance. The following example demonstrates how to annotate
+the dbconfig ConfigMap with the RDS Annotation.
+Finally, use Veeam Kasten to backup and restore the RDS instance.
+Warning
+Here, RDS snapshots are created to
+perform backups. These operations are prone to fail if Manual snapshots quota
+is reached (which is 100 by default).
+Make sure that correct retention policies are set to
+avoid getting into this issue.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_postgresql_install_logical.md
+## Logical PostgreSQL Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- Logical PostgreSQL Backup
+If it hasn't been done already, the bitnami Helm repository
+needs to be added to your local configuration:
+Install the PostgreSQL chart from the bitnami Helm repository:
+The following command can be used to create the PostgreSQL Blueprint in the
+Veeam Kasten namespace:
+For PostgreSQL App Versions 14.x or older, Kanister tools version 0.85.0 is
+required.
+Note
+The PostgreSQL backup example provided above serve as a blueprint
+template for logical backups. Please note that these examples may need
+to be modified for specific production environments and setups. As a
+result, it is highly recommended to carefully review and modify the
+blueprints as needed before deploying them for production use.
+Alternatively, use the Blueprints page on Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, add an annotation on the PostgreSQL Deployment
+to instruct Veeam Kasten to use the Blueprint when performing operations on
+this PostgreSQL instance.
+Finally, use Veeam Kasten to backup and restore the application.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_kanister_rds_aurora_install.md
+## RDS Aurora Backup
+- Kanister-Enabled Applications
+Configuring a Profile
+Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+Specifying a Kanister Blueprint for Your Application
+Use Case Testing
+- Configuring a Profile
+- Installing Applications and Blueprints
+Logical Backups
+Managed Services Backups
+Application-Consistent Backups
+etcd Backup and Restore
+Kafka Backup and Restore
+K8ssandra Backup and Restore
+Crunchy Data Postgres Operator Backup and Restore
+Logical Backups to NFS File Storage Location
+- Logical Backups
+- Managed Services Backups
+- Application-Consistent Backups
+- etcd Backup and Restore
+- Kafka Backup and Restore
+- K8ssandra Backup and Restore
+- Crunchy Data Postgres Operator Backup and Restore
+- Logical Backups to NFS File Storage Location
+- Specifying a Kanister Blueprint for Your Application
+- Use Case Testing
+- Kanister Project Resources
+- Kanister Execution Hooks
+- Kanister Pod Override
+-
+- Extending Veeam Kasten with Kanister
+- Kanister-Enabled Applications
+- RDS Aurora Backup
+Aurora DB cluster backup can be performed by taking RDS snapshot of
+the running DB cluster.
+### Prerequisites
+The access credentials associated with the location profile should have
+these permissions to perform RDS operations.
+### Create ConfigMap
+To facilitate Veeam Kasten to connect to the Aurora DB cluster, a ConfigMap
+Kubernetes resource can be created with the details of the DB cluster.
+Create aurora-app namespace, if required.
+Create a ConfigMap in aurora-app namespace to store the Aurora DB cluster
+details.
+### Create Blueprint
+A Blueprint resource should be created via the following command:
+Alternatively, use the Blueprints page on the Veeam Kasten
+Dashboard to create the Blueprint resource.
+Once the Blueprint is created, annotate the ConfigMap with
+the below annotations to instruct Veeam Kasten to use this Blueprint while
+performing data management operations on the RDS Aurora DB cluster.
+Finally, use Veeam Kasten to backup and restore the RDS Aurora DB cluster.
 © Copyright 2017-2024, Kasten, Inc.
