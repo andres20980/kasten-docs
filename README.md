@@ -9,6 +9,11 @@ Este es un script en Python para scrapear la documentación de Kasten K10 y alma
 - Organiza los archivos por categorías.
 - Ejecuta el scraping en paralelo utilizando `ThreadPoolExecutor` para mejorar la eficiencia.
 
+## Requisitos previos
+
+- Python 3.7 o superior
+- `pip` (gestor de paquetes de Python)
+
 ## Instalación y uso
 
 1. **Clonar el repositorio**
@@ -63,6 +68,10 @@ kasten-k10-scraper/
 - Puedes definir el número de hilos para el scraping con la variable de entorno `MAX_WORKERS`.
 - El contenido se guarda en la carpeta `docs/`.
 
+## Ejemplo de salida
+
+Puedes ver un ejemplo de los archivos generados [aquí](enlace-a-ejemplo).
+
 ## Licencia
 
 Este proyecto se distribuye bajo la licencia GNU General Public License v3.0.
@@ -76,3 +85,7 @@ Este proyecto es de código abierto y las contribuciones son bienvenidas. Si des
 3. Realiza tus cambios y confirma tus cambios (`git commit -m 'Add some AmazingFeature'`).
 4. Sube tus cambios a la rama (`git push origin feature/AmazingFeature`).
 5. Abre una Pull Request.
+
+## Soporte
+
+Si tienes algún problema o pregunta, por favor abre un issue en el repositorio o contacta al mantenedor del proyecto.
