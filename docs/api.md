@@ -51,6 +51,102 @@ and Kubernetes API Aggregation.
 The simplest way to use the API is through kubectl.
 To understand the API better refer to the following:
 © Copyright 2017-2024, Kasten, Inc.
+### latest_api_concepts.md
+## API Concepts
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+Veeam Kasten exposes an API based on Kubernetes Custom Resource Definitions (CRDs).
+This section helps you learn about the Veeam Kasten platform and the
+abstractions that that are available through the API.
+Currently the following Veeam Kasten objects are supported:
+- Profile - abstracts a location (e.g. object store,
+NFS file store) and a set of credentials for accessing it. The Profile
+location is used to store and transfer application meta-data and, in
+some cases, actual persistent data during Veeam Kasten data management
+operations.
+- Policy - represents a collection of data
+management actions that are configured to occur on a periodic or event
+driven basis. Policies would typically encode a set of business rules
+and translate them to specific actions that Veeam Kasten will apply on the
+applications it has discovered.
+- PolicyPreset - is a predefined set of settings
+that can easily be applied to a Policy. A PolicyPreset can represent
+organizational SLAs requiring a user to specify only the application
+details to be used in a Policy.
+- Applications - abstracts an application
+that has been automatically discovered on the cluster where Veeam Kasten
+is running. The application object encapsulates information about all
+stateful and stateless resources that comprise the application.
+- Action - represents a data management operation
+that Veeam Kasten perform. Actions can be initiated on demand or as part
+of a policy. A number of different types of actions are supported.
+- RestorePoint - created as a result of a backup
+or import action, a RestorePoint represents a version-in-time of an
+application that has been captured by Veeam Kasten and that can be restored
+using a restore action.
+- StorageRepository - a representation of
+where and how Veeam Kasten stores its exported backup data. These objects
+provide a mechanism of more precisely managing and monitoring low-level
+data layout.
+- KastenDR - Veeam Kasten Disaster Recovery (KDR)
+enables the recovery of a Veeam Kasten instance in the event of
+various disasters, including accidental deletion of Veeam Kasten resources,
+failure of underlying cluster infrastructure, or malicious acts.
+Its representation includes resources that fetch the list of available
+KDR restore points and restore an instance from a KDR restore point.
+- TransformSet - store a set of
+Transforms as a custom resource. It provides more granular RBAC control,
+and the possibility of repeated use for Transforms.
+- BlueprintBinding - represents a selection of
+resources in a cluster and a blueprint that Veeam Kasten will use for such
+resources.
+- StorageSecurityContext -
+represents pod security context settings to access
+target storage to execute backup and restore operations.
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_api_auditconfigs.md
 ## AuditConfigs
 - Veeam Kasten Disaster Recovery
@@ -140,6 +236,274 @@ to the updated Location Profile.
 You can delete an AuditConfig using the following command:
 This action will trigger the extended audit mechanism to stop sending logs to
 this Location Profile.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_transformsets.md
+## Transform Sets
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Example TransformSet Operations
+TransformSet API Type
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+Example TransformSet Operations
+TransformSet API Type
+- Example TransformSet Operations
+- TransformSet API Type
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Transform Sets
+A TransformSet custom resource (CR) is used to save and reuse the set of
+Transforms to be used in
+Restore Actions,
+Restore Cluster Actions and
+Policies.
+### Example TransformSet Operations
+- Create a TransformSet
+- Update a TransformSet
+- Using a TransformSet
+- Delete a TransformSet
+### Create a TransformSet
+The following example illustrates how to create a transform set that contains
+two transforms, one of which changes the deadline parameter value to 300
+seconds and another one scales deployments to 3 replicas.
+### Update a TransformSet
+To update a TransformSet, edit the spec portion of a TransformSet CR
+using your preferred method of submitting resource changes with kubectl.
+Once the change is submitted, Veeam Kasten will re-validate the TransformSet
+and update .status.validation accordingly.
+Since Veeam Kasten processes API object changes asynchronously, to avoid
+confusion with a previous TransformSet status, it is recommended as
+convention that the status portion of the TransformSet is omitted
+when submitting changes.
+Warning
+### Using a TransformSet
+The following example illustrates how to use a TransformSet
+in a RestoreAction.
+The TransformSet will be applied to the restored application.
+### Delete a TransformSet
+A TransformSet can be deleted using the following command.
+### TransformSet API Type
+The following is a complete specification of a TransformSet CR.
+To learn more about the transforms structure,
+see Transforms.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_repositories.md
+## Repositories
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+StorageRepository
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+StorageRepository
+- StorageRepository
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Repositories
+### StorageRepository
+A StorageRepository API resource is used to represent how Veeam
+Kasten backup data is stored at a particular location
+(represented by a Profile<api_profile>).
+Veeam Kasten will distribute backup data generated by a
+Policy<api_policy> run into one or more repositories,
+based on data type and deduplication domain.
+The API gives the user an insight into the status of these
+repositories, and provides a means of performing
+maintenance and management actions on them.
+### List StorageRepositories Example
+The following example illustrates listing all StorageRepositories
+created by a policy backing up two applications, each
+with PVCs.
+### Get StorageRepositories Details Example
+In addition to getting a StorageRepository, you can also query the details
+associated with the restore point. You would use the details
+sub-resource for that purpose.
+### Modify StorageRepository Background Maintenance Behavior
+Veeam Kasten will periodically run maintenance on the
+StorageRepositories it creates. Among other tasks, the maintenance
+process tidies up unused data, detects inconsistent states, and
+measures the overall storage usage over time. This behavior can be
+disabled on a per-repository basis by modifying the spec.disableMaintenance
+field. Additionally, the background operations performed on the
+repository will, by default, have a 10-hour timeout. The timeout
+can be customized as needed by setting the
+spec.backgroundProcessTimeout field.
+### Delete StorageRepository Example
+StorageRepository API resources can be deleted. Functionally, this only
+serves to clean up the API representation; no backup data will be deleted,
+and Veeam Kasten still tracks the associated repository data internally.
+After deletion, if the repository is used again (e.g., by creating a new backup),
+the StorageRepository API representation will be recreated.
+### StorageRepository API Type
+The following is a complete specification of the StorageRepository
+resource.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_policypresets.md
+## Policy Presets
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Example PolicyPreset Operations
+PolicyPreset API Type
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+Example PolicyPreset Operations
+PolicyPreset API Type
+- Example PolicyPreset Operations
+- PolicyPreset API Type
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Policy Presets
+A PolicyPreset custom resource (CR) is used to save and reuse
+configuration of Veeam Kasten Policies. Follow this
+page to learn more about using Veeam Kasten Policy Presets.
+A PolicyPreset specifies schedule, retention, location and
+infrastructure information, while Policy that uses a preset
+is supposed to specify application specific information.
+A detailed description of the schedule settings can be found
+in the Policy Scheduling section.
+For complete documentation of the PolicyPreset CR,
+refer to PolicyPreset API Type.
+### Example PolicyPreset Operations
+- Create a PolicyPreset
+- Update a PolicyPreset
+- Delete a PolicyPreset
+### Create a PolicyPreset
+The following example illustrates how to create a preset for policies
+which execute hourly, retain 24 hourly and 7 daily snapshots and
+export every daily snapshot with the same retention schedule
+as for snapshots (i.e. retain 7 daily exported snapshots).
+### Update a PolicyPreset
+To update a PolicyPreset, edit the spec portion of a PolicyPreset CR
+using your preferred method of submitting resource changes with kubectl.
+Once the change is submitted, Veeam Kasten will re-validate the PolicyPreset
+and update .status.validation accordingly.
+Since Veeam Kasten processes API object changes asynchronously, to avoid
+confusion with a previous PolicyPreset status, it is recommended as
+convention that the status portion of the PolicyPreset is omitted
+when submitting changes.
+Warning
+### Delete a PolicyPreset
+You can delete a PolicyPreset using the following command.
+All the policies that use the deleted preset will be
+automatically marked as invalid.
+### PolicyPreset API Type
+The following is a complete specification of the PolicyPreset CR.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_api_storagesecuritycontexts.md
 ## StorageSecurityContext
@@ -251,8 +615,8 @@ please refer to StorageSecurityContextBinding API Type.
 ### StorageSecurityContext API Type
 ### StorageSecurityContextBinding API Type
 © Copyright 2017-2024, Kasten, Inc.
-### latest_api_dr.md
-## KastenDR
+### latest_api_reports.md
+## Reports
 - Veeam Kasten Disaster Recovery
 - API and Command Line
 API Concepts
@@ -267,10 +631,9 @@ Blueprint Bindings
 Applications
 Restore Points
 Reports
+Report
 Repositories
 KastenDR
-KastenDRReview
-KastenDRRestore
 StorageSecurityContext
 - API Concepts
 - AuditConfigs
@@ -284,12 +647,10 @@ StorageSecurityContext
 - Applications
 - Restore Points
 - Reports
+Report
+- Report
 - Repositories
 - KastenDR
-KastenDRReview
-KastenDRRestore
-- KastenDRReview
-- KastenDRRestore
 - StorageSecurityContext
 - Monitoring
 - Auditing Veeam Kasten
@@ -304,392 +665,27 @@ KastenDRRestore
 -
 - Accessing Veeam Kasten
 - API and Command Line
-- KastenDR
-The DR API group consists of two resources used to initiate a
-Veeam Kasten Disaster Recovery (KDR) restore operation:
-### KastenDRReview
-KastenDRReview is an API resource used to fetch a list of available
-Veeam Kasten Disaster Recovery (KDR) restore points for a provided source
-cluster, from a provided location profile.
-This resource provides the ability to track the progress of the operation,
-report on any errors encountered, and provide details regarding
-each available KDR restore point. The output is used to determine the id
-of a specific KDR restore point to be used in defining a KastenDRRestore
+- Reports
+Note
+The Report resource is in developer preview and
+a number of breaking changes to the resource API schema may happen
+in subsequent releases.
+### Report
+A Report API resource captures information about the state
+of the system at the time the report was generated as well
+as select metrics collected from the Veeam Kasten Prometheus service.
+A Report is produced by a
+ReportAction when Veeam Kasten Reports are
+enabled.
+Enabling and viewing Reports in the Veeam Kasten dashboard or with
+the API are discussed more fully in
+Reporting.
+### Report API Type
+The following is a complete specification of the Report
 resource.
-### Create a KastenDRReview Example
-The following example illustrates how to create a KastenDRReview resource.
-This resource connects to the specified Veeam Kasten location profile and
-fetches KDR restore point information for the specified source cluster UID.
-Creating a KastenDRReview resource assumes the following prerequisites:
-- The location profile containing KDR restore points has been configured
-- The k10-dr-secret secret
-has been configured in the install namespace
-Note
-To avoid accidental, concurrent requests, only a single instance
-of a KastenDRReview is allowed to exist.
-### List KastenDRReviews Example
-The following example illustrates listing all KastenDRReviews resources.
-The status field provides information about the available
-KDR restore points, operation progress and any errors.
-### Delete KastenDRReview Example
-KastenDRReview API resources can be deleted.
-Functionally, this only serves to clean up the
-API representation; no restore point data will be deleted.
-### KastenDRReview API Type
-The following is a complete specification of the KastenDRReview resource.
-### KastenDRRestore
-KastenDRRestore is an API resource used to manage and track
-Veeam Kasten Disaster Recovery (KDR) restore operations.
-This resource allows users to:
-- Initiate a KDR restore operation from the latest
-KDR restore point
-- Initiate a KDR restore operation from a specific
-restore point provided by the KastenDRReview process.
-- Specify which resources to skip during the
-restore process (e.g., secrets, profiles).
-- Monitor the status of the restore operation,
-including error information, cause and
-the phase of the operation.
-### Create a KastenDRRestore Example
-The following examples illustrate how to create a KastenDRRestore resource.
-Creating a KastenDRRestore resource assumes the following prerequisites:
-- The k10-dr-secret Secret
-has been configured in the install namespace
-To avoid accidental, concurrent requests, only a single instance
-of a KastenDRRestore is allowed to exist.
-### Use Latest KDR Restore Point
-The following example fetches all KDR restore points for the
-referenced source cluster and restores the latest available
-as of the specified point in time.
-This method can be used without first creating a KastenDRReview.
-The pointInTime parameter is optional and can only be used for
-review and restore operations from an immutable location profile.
-### Use Specific KDR Restore Point
-The following example restores using a specific KDR restore point (id),
-from an existing KastenDRReview resource (kastenDRReviewRef).
-### List KastenDRRestore Example
-The following example illustrates listing all KastenDRRestore resources
-in a namespace. The phase column indicates the various step through which
-restore operation is progressing.
-### Delete KastenDRRestore Example
-KastenDRRestore API resources can be deleted.
-Functionally, this only serves to clean up the
-API representation.
-### KastenDRRestore API Type
-The following is a complete specification of the KastenDRRestore resource.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_transformsets.md
-## Transform Sets
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Example TransformSet Operations
-TransformSet API Type
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-Example TransformSet Operations
-TransformSet API Type
-- Example TransformSet Operations
-- TransformSet API Type
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Transform Sets
-A TransformSet custom resource (CR) is used to save and reuse the set of
-Transforms to be used in
-Restore Actions,
-Restore Cluster Actions and
-Policies.
-### Example TransformSet Operations
-- Create a TransformSet
-- Update a TransformSet
-- Using a TransformSet
-- Delete a TransformSet
-### Create a TransformSet
-The following example illustrates how to create a transform set that contains
-two transforms, one of which changes the deadline parameter value to 300
-seconds and another one scales deployments to 3 replicas.
-### Update a TransformSet
-To update a TransformSet, edit the spec portion of a TransformSet CR
-using your preferred method of submitting resource changes with kubectl.
-Once the change is submitted, Veeam Kasten will re-validate the TransformSet
-and update .status.validation accordingly.
-Since Veeam Kasten processes API object changes asynchronously, to avoid
-confusion with a previous TransformSet status, it is recommended as
-convention that the status portion of the TransformSet is omitted
-when submitting changes.
-Warning
-### Using a TransformSet
-The following example illustrates how to use a TransformSet
-in a RestoreAction.
-The TransformSet will be applied to the restored application.
-### Delete a TransformSet
-A TransformSet can be deleted using the following command.
-### TransformSet API Type
-The following is a complete specification of a TransformSet CR.
-To learn more about the transforms structure,
-see Transforms.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_concepts.md
-## API Concepts
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-Veeam Kasten exposes an API based on Kubernetes Custom Resource Definitions (CRDs).
-This section helps you learn about the Veeam Kasten platform and the
-abstractions that that are available through the API.
-Currently the following Veeam Kasten objects are supported:
-- Profile - abstracts a location (e.g. object store,
-NFS file store) and a set of credentials for accessing it. The Profile
-location is used to store and transfer application meta-data and, in
-some cases, actual persistent data during Veeam Kasten data management
-operations.
-- Policy - represents a collection of data
-management actions that are configured to occur on a periodic or event
-driven basis. Policies would typically encode a set of business rules
-and translate them to specific actions that Veeam Kasten will apply on the
-applications it has discovered.
-- PolicyPreset - is a predefined set of settings
-that can easily be applied to a Policy. A PolicyPreset can represent
-organizational SLAs requiring a user to specify only the application
-details to be used in a Policy.
-- Applications - abstracts an application
-that has been automatically discovered on the cluster where Veeam Kasten
-is running. The application object encapsulates information about all
-stateful and stateless resources that comprise the application.
-- Action - represents a data management operation
-that Veeam Kasten perform. Actions can be initiated on demand or as part
-of a policy. A number of different types of actions are supported.
-- RestorePoint - created as a result of a backup
-or import action, a RestorePoint represents a version-in-time of an
-application that has been captured by Veeam Kasten and that can be restored
-using a restore action.
-- StorageRepository - a representation of
-where and how Veeam Kasten stores its exported backup data. These objects
-provide a mechanism of more precisely managing and monitoring low-level
-data layout.
-- KastenDR - Veeam Kasten Disaster Recovery (KDR)
-enables the recovery of a Veeam Kasten instance in the event of
-various disasters, including accidental deletion of Veeam Kasten resources,
-failure of underlying cluster infrastructure, or malicious acts.
-Its representation includes resources that fetch the list of available
-KDR restore points and restore an instance from a KDR restore point.
-- TransformSet - store a set of
-Transforms as a custom resource. It provides more granular RBAC control,
-and the possibility of repeated use for Transforms.
-- BlueprintBinding - represents a selection of
-resources in a cluster and a blueprint that Veeam Kasten will use for such
-resources.
-- StorageSecurityContext -
-represents pod security context settings to access
-target storage to execute backup and restore operations.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_k10apps.md
-## Applications
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Life Cycle and Namespaces
-Application Operations
-Veeam Kasten App API Type
-Veeam Kasten App Details API Type
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-Life Cycle and Namespaces
-Application Operations
-Veeam Kasten App API Type
-Veeam Kasten App Details API Type
-- Life Cycle and Namespaces
-- Application Operations
-- Veeam Kasten App API Type
-- Veeam Kasten App Details API Type
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Applications
-Note
-The Application resource is in developer
-preview and a number of breaking changes to the resource API
-schema may happen in subsequent releases.
-An Application resource represents an application that
-Veeam Kasten has been automatically discovered on the Kubernetes cluster.
-The application encapsulates all stateless and stateful resources
-that comprise it.
-### Life Cycle and Namespaces
-Application resources are read-only and are automatically
-instantiated by Veeam Kasten when it discovers applications that are
-running on the Kubernetes cluster.
-An Application resource is available in for each application
-that is currently running in the cluster. This resource resides in the same
-namespace as the application that it corresponds to.
-When an application, for which Veeam Kasten has at least one existing
-RestorePointContent from a previous backup,
-is deleted from the cluster, a Application resource
-representing the application is still available in the namespace where
-Veeam Kasten is installed. The resource will be marked as a deleted
-application, but it will be possible for an administrator to restore
-the application.
-Apps are also available to  track applications that have been
-deleted from the Kubernetes cluster, but are available to be restored
-based on an existing RestorePointContent
-captured by Veeam Kasten.
-### Application Operations
-### List of Applications
-The Application API allows you to discover all applications
-that are installed and currently present on the Kubernetes cluster.
-### List of Deleted Applications
-The Application API allows you to discover applications
-that Veeam Kasten can restore which have been previously deleted from
-the cluster.
-### Restore of Deleted Applications
-In addition to discovery of deleted applications, Veeam Kasten makes it
-possible to restore an application that has been deleted but was
-previously protected.
-The procedure, which requires Veeam Kasten administrative privileges,
-is as follows:
-- Step 1: Find the RestorePointContent that corresponds to the desired
-point-in-time.
-- Step 2: Re-create the namespace where you would like to restore the
-application.
-- Step 3: Create a RestorePoint in the new namespace that is backed
-by the RestorePointContent. See Creating RestorePoint from RestorePointContent Example for details.
-- Step 4: Initiate a RestoreAction to restore the application from
-the created RestorePoint. See RestoreAction for details.
-### Get Application Components
-In addition to discovering the applications on the cluster, Veeam Kasten
-also tracks all resources associated with the application. You can get a
-summary of all resources (stateful and stateless) discovered in the context
-of the application. This is done by querying a details sub-resource for the
-particular application you are interested in.
-### Initiate Backup for an Application
-Apps can be protected on a scheduled basis using a Policy or
-in an ad hoc manner using a BackupAction.
-For details see, Create a Backup Policy or
-BackupAction.
-### Veeam Kasten App API Type
-The following is a complete specification of the Application resource.
-The Application resource is read-only.
-### Veeam Kasten App Details API Type
-The following is a complete specification of the appDetails section
-of the Application API. These fields are only available in the
-Application API when the details sub-resource is used as shown in the
-example above.
+### Retiring Reports
+By default the reports are not retired. To set up a retention count,
+update the policy spec to include the desired value:
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_api_restorepoints.md
 ## Restore Points
@@ -970,8 +966,8 @@ You can delete a BlueprintBinding using the following command.
 ### BlueprintBinding API Type
 The following is a complete specification of the BlueprintBinding CR.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_api_reports.md
-## Reports
+### latest_api_k10apps.md
+## Applications
 - Veeam Kasten Disaster Recovery
 - API and Command Line
 API Concepts
@@ -984,9 +980,12 @@ Transforms
 Transform Sets
 Blueprint Bindings
 Applications
+Life Cycle and Namespaces
+Application Operations
+Veeam Kasten App API Type
+Veeam Kasten App Details API Type
 Restore Points
 Reports
-Report
 Repositories
 KastenDR
 StorageSecurityContext
@@ -1000,10 +999,16 @@ StorageSecurityContext
 - Transform Sets
 - Blueprint Bindings
 - Applications
+Life Cycle and Namespaces
+Application Operations
+Veeam Kasten App API Type
+Veeam Kasten App Details API Type
+- Life Cycle and Namespaces
+- Application Operations
+- Veeam Kasten App API Type
+- Veeam Kasten App Details API Type
 - Restore Points
 - Reports
-Report
-- Report
 - Repositories
 - KastenDR
 - StorageSecurityContext
@@ -1020,492 +1025,74 @@ Report
 -
 - Accessing Veeam Kasten
 - API and Command Line
-- Reports
+- Applications
 Note
-The Report resource is in developer preview and
-a number of breaking changes to the resource API schema may happen
-in subsequent releases.
-### Report
-A Report API resource captures information about the state
-of the system at the time the report was generated as well
-as select metrics collected from the Veeam Kasten Prometheus service.
-A Report is produced by a
-ReportAction when Veeam Kasten Reports are
-enabled.
-Enabling and viewing Reports in the Veeam Kasten dashboard or with
-the API are discussed more fully in
-Reporting.
-### Report API Type
-The following is a complete specification of the Report
-resource.
-### Retiring Reports
-By default the reports are not retired. To set up a retention count,
-update the policy spec to include the desired value:
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_repositories.md
-## Repositories
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-StorageRepository
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-StorageRepository
-- StorageRepository
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Repositories
-### StorageRepository
-A StorageRepository API resource is used to represent how Veeam
-Kasten backup data is stored at a particular location
-(represented by a Profile<api_profile>).
-Veeam Kasten will distribute backup data generated by a
-Policy<api_policy> run into one or more repositories,
-based on data type and deduplication domain.
-The API gives the user an insight into the status of these
-repositories, and provides a means of performing
-maintenance and management actions on them.
-### List StorageRepositories Example
-The following example illustrates listing all StorageRepositories
-created by a policy backing up two applications, each
-with PVCs.
-### Get StorageRepositories Details Example
-In addition to getting a StorageRepository, you can also query the details
-associated with the restore point. You would use the details
-sub-resource for that purpose.
-### Modify StorageRepository Background Maintenance Behavior
-Veeam Kasten will periodically run maintenance on the
-StorageRepositories it creates. Among other tasks, the maintenance
-process tidies up unused data, detects inconsistent states, and
-measures the overall storage usage over time. This behavior can be
-disabled on a per-repository basis by modifying the spec.disableMaintenance
-field. Additionally, the background operations performed on the
-repository will, by default, have a 10-hour timeout. The timeout
-can be customized as needed by setting the
-spec.backgroundProcessTimeout field.
-### Delete StorageRepository Example
-StorageRepository API resources can be deleted. Functionally, this only
-serves to clean up the API representation; no backup data will be deleted,
-and Veeam Kasten still tracks the associated repository data internally.
-After deletion, if the repository is used again (e.g., by creating a new backup),
-the StorageRepository API representation will be recreated.
-### StorageRepository API Type
-The following is a complete specification of the StorageRepository
-resource.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_policypresets.md
-## Policy Presets
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Policy Presets
-Example PolicyPreset Operations
-PolicyPreset API Type
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-- Policy Presets
-Example PolicyPreset Operations
-PolicyPreset API Type
-- Example PolicyPreset Operations
-- PolicyPreset API Type
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Policy Presets
-A PolicyPreset custom resource (CR) is used to save and reuse
-configuration of Veeam Kasten Policies. Follow this
-page to learn more about using Veeam Kasten Policy Presets.
-A PolicyPreset specifies schedule, retention, location and
-infrastructure information, while Policy that uses a preset
-is supposed to specify application specific information.
-A detailed description of the schedule settings can be found
-in the Policy Scheduling section.
-For complete documentation of the PolicyPreset CR,
-refer to PolicyPreset API Type.
-### Example PolicyPreset Operations
-- Create a PolicyPreset
-- Update a PolicyPreset
-- Delete a PolicyPreset
-### Create a PolicyPreset
-The following example illustrates how to create a preset for policies
-which execute hourly, retain 24 hourly and 7 daily snapshots and
-export every daily snapshot with the same retention schedule
-as for snapshots (i.e. retain 7 daily exported snapshots).
-### Update a PolicyPreset
-To update a PolicyPreset, edit the spec portion of a PolicyPreset CR
-using your preferred method of submitting resource changes with kubectl.
-Once the change is submitted, Veeam Kasten will re-validate the PolicyPreset
-and update .status.validation accordingly.
-Since Veeam Kasten processes API object changes asynchronously, to avoid
-confusion with a previous PolicyPreset status, it is recommended as
-convention that the status portion of the PolicyPreset is omitted
-when submitting changes.
-Warning
-### Delete a PolicyPreset
-You can delete a PolicyPreset using the following command.
-All the policies that use the deleted preset will be
-automatically marked as invalid.
-### PolicyPreset API Type
-The following is a complete specification of the PolicyPreset CR.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_api_policies.md
-## Policies
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-API Concepts
-AuditConfigs
-Profiles
-Policies
-Example Policy Operations
-Policy Scheduling
-Advanced Backup Policy Examples
-Policy API Type
-Policy Presets
-Actions
-Transforms
-Transform Sets
-Blueprint Bindings
-Applications
-Restore Points
-Reports
-Repositories
-KastenDR
-StorageSecurityContext
-- API Concepts
-- AuditConfigs
-- Profiles
-- Policies
-Example Policy Operations
-Policy Scheduling
-Advanced Backup Policy Examples
-Policy API Type
-- Example Policy Operations
-- Policy Scheduling
-- Advanced Backup Policy Examples
-- Policy API Type
-- Policy Presets
-- Actions
-- Transforms
-- Transform Sets
-- Blueprint Bindings
-- Applications
-- Restore Points
-- Reports
-- Repositories
-- KastenDR
-- StorageSecurityContext
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Accessing Veeam Kasten
-- API and Command Line
-- Policies
-A Policy custom resource (CR) is used to perform operations on Veeam
-Kasten Policies. Policies allow you to manage application
-protection and migration at scale. You can learn more about using Veeam
-Kasten Policies in the Veeam Kasten Protecting Applications
-section.
-### Example Policy Operations
-- Create a Backup Policy
-- Create a Backup Policy using a Policy Preset
-- Create an Import Policy
-- Update a Policy
-- Delete a Policy
-### Create a Backup Policy
-The following example illustrates how to create a backup policy which executes
-hourly and retains 24 hourly and 7 daily snapshots. The policy covers an
-application running in the namespace sampleApp.
-For complete documentation of the Policy CR, refer to Policy API Type.
-### Create a Backup Policy using a Policy Preset
-The following example illustrates how to create a backup policy which
-uses a predefined policy preset sample-policy-preset and covers
-an application running in the namespace sampleApp.
-For more information about PolicyPreset CR,
-refer to Policy Presets section.
-### Create an Import Policy
-The following example illustrates how to create a policy which executes
-hourly and imports an application that was previously exported to the
-application-imports Profile.
-### Update a Policy
-To update a Policy, edit the spec portion of a Policy CR using your
-preferred method of submitting resource changes with kubectl.
-Once the change is submitted, Veeam Kasten will re-validate the Policy and
-update .status.validation accordingly.
-Since Veeam Kasten processes API object changes asynchronously, to avoid
-confusion with a previous Policy status, it is recommended as convention
-that the status portion of the Policy is omitted when submitting changes.
-### Delete a Policy
-You can delete a Policy using the following command.
-### Policy Scheduling
-Within the Policy API Type, Veeam Kasten provides control of:
-- How often the primary snapshot or import action should be performed
-- How often snapshots should be exported into backups
-- Which and how many snapshots and backups to retain
-- When the primary snapshot or import action should be performed
-### Frequency
-The frequency portion of the policy spec indicates how often the primary
-policy action should be performed. On demand policies run only when the
-run once button is clicked or a RunAction is created.
-The optional frequency portion of exportParameters indicates how often
-snapshots should be exported into backups. If not specified, every snapshot is
-to be exported.
-### Retention
-The retention portion of the policy spec indicates which and how many
-snapshots to retain.
-The optional retention portion of the export action allows exported backups
-to be retained independently from snapshots. If not specified, exported backups
-are retained with the same schedule as snapshots.
-### BackupWindow
-The optional backupWindow portion of the policy spec indicates when in
-the day the backup policy can be scheduled to run and by when any snapshot
-action must complete.
-The start and end times of the backupWindow are specified by
-hour and minute. backupWindow length is limited to 24 hours.
-If the end time specified is earlier than the start time,
-this means backupWindow end time is in the next day.
-The policy is scheduled to run once at the backupWindow start time.
-If the policy has an hourly frequency and the duration of the
-backupWindow exceeds 1 hour, the policy is also scheduled to run
-every 60 minutes thereafter within the backupWindow.
-The snapshot action of the policy will be forcibly cancelled if it does
-not complete within the backup window. If the snapshot action completes
-within the backup window, no time restrictions are imposed on further
-actions such as snapshot export.
-### Staggering
-The optional enableStaggering portion of the policy spec indicates
-whether Veeam Kasten may choose when within the backupWindow to schedule
-the backup policy to run.
-This allows Veeam Kasten the flexibility to stagger runs of multiple
-policies and reduce the peak load on the overall system.
-The backupWindow is required when enableStaggering is set. The number
-of the scheduled policy runs within the backupWindow and the cancelling
-of in-progress snapshot actions at the end of the backupWindow are not
-affected by staggering.
-### SubFrequency
-By default:
-- Policies run once within the period of the frequency.
-- Hourly policies run at the top of the hour.
-- Daily policies run at midnight UTC.
-- Weekly policies run at midnight Sunday UTC.
-- Monthly policies run at midnight on the 1st of the month UTC.
-- Yearly policies run at midnight on the 1st of January UTC.
-- Snapshots and backups at those times are retained by the corresponding
-retention counts.
-The optional subFrequency portion of the policy spec provides fine-grained
-control of when to run a policy, how many times to run a policy within a
-frequency, and which snapshots and backups are retained.
-The frequency, subFrequency, backupWindow and retention
-interact as follows:
-- When backupWindow is set, the time of day setting from
-subFrequency is not allowed
-- backupWindow and subFrequency entries within the frequency indicate
-when the policy is to run
-e.g. the minutes and hours subFrequency entries indicate the minutes and
-hours at which a policy with a daily frequency runs
-e.g. backupWindow indicates the period of the day during which a policy
-with an hourly frequency runs
-e.g. backupWindow indicates the period of the day and subFrequency
-indicates the certain days of the week during which a policy with
-a weekly frequency runs
-- e.g. the minutes and hours subFrequency entries indicate the minutes and
-hours at which a policy with a daily frequency runs
-- e.g. backupWindow indicates the period of the day during which a policy
-with an hourly frequency runs
-- e.g. backupWindow indicates the period of the day and subFrequency
-indicates the certain days of the week during which a policy with
-a weekly frequency runs
-- subFrequency entries immediately within the frequency may have multiple
-values to run multiple times within the frequency
-e.g. multiple minutes may be specified for an hourly frequency
-(without backupWindow being set)
-e.g. multiple hours may be specified for a daily frequency
-(without backupWindow being set)
-e.g. multiple days may be specified for a monthly frequency
-(while backupWindow can indicate the common period of the day)
-- e.g. multiple minutes may be specified for an hourly frequency
-(without backupWindow being set)
-- e.g. multiple hours may be specified for a daily frequency
-(without backupWindow being set)
-- e.g. multiple days may be specified for a monthly frequency
-(while backupWindow can indicate the common period of the day)
-- subFrequency entries indicate which snapshots
-and backups graduate to higher retention tiers
-e.g. for a policy with an hourly frequency, the hours subFrequency entry
-indicates the hour of day that will graduate and be retained as a daily
-- e.g. for a policy with an hourly frequency, the hours subFrequency entry
-indicates the hour of day that will graduate and be retained as a daily
-- For subFrequency entries with multiple values, the first value
-indicates the time of the snapshot or backup to be retained by higher
-tiers
-e.g. an hourly frequency with subFrequency minutes entry of [45, 15] will
-run twice an hour at 15 and 45 minutes after the hour, will retain both
-according to the hourly retention
-count, and will graduate the hourly taken at 45 minutes after the
-hour designated by the subFrequency hour entry
-to the daily tier and higher
-- e.g. an hourly frequency with subFrequency minutes entry of [45, 15] will
-run twice an hour at 15 and 45 minutes after the hour, will retain both
-according to the hourly retention
-count, and will graduate the hourly taken at 45 minutes after the
-hour designated by the subFrequency hour entry
-to the daily tier and higher
-- When backupWindow is used, the start value indicates the time of the snapshot
-or backup to be retained by higher tiers
-e.g. for a policy with an hourly frequency, the start of backupWindow
-indicates the time of day that will graduate and be retained as a daily
-- e.g. for a policy with an hourly frequency, the start of backupWindow
-indicates the time of day that will graduate and be retained as a daily
-backupWindow and subFrequency entries within the frequency indicate
-when the policy is to run
-subFrequency entries immediately within the frequency may have multiple
-values to run multiple times within the frequency
-subFrequency entries indicate which snapshots
-and backups graduate to higher retention tiers
-For subFrequency entries with multiple values, the first value
-indicates the time of the snapshot or backup to be retained by higher
-tiers
-When backupWindow is used, the start value indicates the time of the snapshot
-or backup to be retained by higher tiers
-All time values in backupWindow and subFrequency entries
-in the API are in UTC.
-If a subFrequency entry is omitted, it defaults as above
-(taking backupWindow into account, if set).
-### Advanced Backup Policy Examples
-- Scheduling frequency and retention
-- Export snapshots to a Veeam Repository
-### Scheduling frequency and retention
-The following example illustrates how to use frequency, subFrequency,
-backupWindow and retention to create a backup policy that
-- creates snapshots every day between 22:30 and 07:00
-- exports the snapshot created on the fifteenth of the month
-including exporting snapshot data to create a durable and portable backup
-- including exporting snapshot data to create a durable and portable backup
-- retains 14 daily snapshots
-- retains 4 weekly snapshots from 22:30 each Friday
-- retains 6 monthly snapshots from 22:30 on the fifteenth of each month
-- retains 12 exported monthly backups from 22:30 on the fifteenth of each month
-- retains 5 exported yearly backups from 22:30 on the fifteenth of January each
-year
-exports the snapshot created on the fifteenth of the month
-This policy covers an application running in the namespace sampleApp.
-### Export snapshots to a Veeam Repository
-Snapshot data of vSphere CSI provisioned volumes
-in supported vSphere clusters
-can be exported to a
-Veeam Repository
-by adding a reference to a
-Veeam Repository Location Profile
-in the blockModeProfile field of the exportParameters.
-Only snapshot data is saved in the Veeam Repository.
-The remaining data associated with the restore point
-is saved in the location profile identified by the profile
-field of the exportParameters.
-A block level copy of the snapshot is backed up to the specified
-Veeam repository.
-Configuring Change Tracking on the
-vSphere cluster nodes
-is not mandatory, but if configured it does
-enable the use of more efficient incremental backups
-of just the changes between snapshots when possible,
-instead of full backups every time.
-All of the persistent volumes of an application are
-associated with a single restore point, per
-invocation of the policy.
-When an exported restore point is deleted, Veeam Kasten
-will also delete the corresponding restore point for the
-exported snapshots.
-Veeam Kasten always converts each backup into a synthetic
-full in order to support the policy retention functionality
-that permits the deletion of restore points in any order.
-The following YAML illustrates how to create a policy that exports
-to a Veeam Repository:
-The policy above maintains just 3 local restore points
-(and hence VMware snapshots)
-but uses a more sophisticated GFS retention policy for the exported
-restore points.
-### Policy API Type
-The following is a complete specification of the Policy CR.
+The Application resource is in developer
+preview and a number of breaking changes to the resource API
+schema may happen in subsequent releases.
+An Application resource represents an application that
+Veeam Kasten has been automatically discovered on the Kubernetes cluster.
+The application encapsulates all stateless and stateful resources
+that comprise it.
+### Life Cycle and Namespaces
+Application resources are read-only and are automatically
+instantiated by Veeam Kasten when it discovers applications that are
+running on the Kubernetes cluster.
+An Application resource is available in for each application
+that is currently running in the cluster. This resource resides in the same
+namespace as the application that it corresponds to.
+When an application, for which Veeam Kasten has at least one existing
+RestorePointContent from a previous backup,
+is deleted from the cluster, a Application resource
+representing the application is still available in the namespace where
+Veeam Kasten is installed. The resource will be marked as a deleted
+application, but it will be possible for an administrator to restore
+the application.
+Apps are also available to  track applications that have been
+deleted from the Kubernetes cluster, but are available to be restored
+based on an existing RestorePointContent
+captured by Veeam Kasten.
+### Application Operations
+### List of Applications
+The Application API allows you to discover all applications
+that are installed and currently present on the Kubernetes cluster.
+### List of Deleted Applications
+The Application API allows you to discover applications
+that Veeam Kasten can restore which have been previously deleted from
+the cluster.
+### Restore of Deleted Applications
+In addition to discovery of deleted applications, Veeam Kasten makes it
+possible to restore an application that has been deleted but was
+previously protected.
+The procedure, which requires Veeam Kasten administrative privileges,
+is as follows:
+- Step 1: Find the RestorePointContent that corresponds to the desired
+point-in-time.
+- Step 2: Re-create the namespace where you would like to restore the
+application.
+- Step 3: Create a RestorePoint in the new namespace that is backed
+by the RestorePointContent. See Creating RestorePoint from RestorePointContent Example for details.
+- Step 4: Initiate a RestoreAction to restore the application from
+the created RestorePoint. See RestoreAction for details.
+### Get Application Components
+In addition to discovering the applications on the cluster, Veeam Kasten
+also tracks all resources associated with the application. You can get a
+summary of all resources (stateful and stateless) discovered in the context
+of the application. This is done by querying a details sub-resource for the
+particular application you are interested in.
+### Initiate Backup for an Application
+Apps can be protected on a scheduled basis using a Policy or
+in an ad hoc manner using a BackupAction.
+For details see, Create a Backup Policy or
+BackupAction.
+### Veeam Kasten App API Type
+The following is a complete specification of the Application resource.
+The Application resource is read-only.
+### Veeam Kasten App Details API Type
+The following is a complete specification of the appDetails section
+of the Application API. These fields are only available in the
+Application API when the details sub-resource is used as shown in the
+example above.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_api_profiles.md
 ## Profiles
@@ -1970,6 +1557,133 @@ Transform to change the storage class on a persistent volume claim (pvc):
 Resource to operate on:
 Transformed resource:
 © Copyright 2017-2024, Kasten, Inc.
+### latest_api_dr.md
+## KastenDR
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+KastenDRReview
+KastenDRRestore
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+KastenDRReview
+KastenDRRestore
+- KastenDRReview
+- KastenDRRestore
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- KastenDR
+The DR API group consists of two resources used to initiate a
+Veeam Kasten Disaster Recovery (KDR) restore operation:
+### KastenDRReview
+KastenDRReview is an API resource used to fetch a list of available
+Veeam Kasten Disaster Recovery (KDR) restore points for a provided source
+cluster, from a provided location profile.
+This resource provides the ability to track the progress of the operation,
+report on any errors encountered, and provide details regarding
+each available KDR restore point. The output is used to determine the id
+of a specific KDR restore point to be used in defining a KastenDRRestore
+resource.
+### Create a KastenDRReview Example
+The following example illustrates how to create a KastenDRReview resource.
+This resource connects to the specified Veeam Kasten location profile and
+fetches KDR restore point information for the specified source cluster UID.
+Creating a KastenDRReview resource assumes the following prerequisites:
+- The location profile containing KDR restore points has been configured
+- The k10-dr-secret secret
+has been configured in the install namespace
+Note
+To avoid accidental, concurrent requests, only a single instance
+of a KastenDRReview is allowed to exist.
+### List KastenDRReviews Example
+The following example illustrates listing all KastenDRReviews resources.
+The status field provides information about the available
+KDR restore points, operation progress and any errors.
+### Delete KastenDRReview Example
+KastenDRReview API resources can be deleted.
+Functionally, this only serves to clean up the
+API representation; no restore point data will be deleted.
+### KastenDRReview API Type
+The following is a complete specification of the KastenDRReview resource.
+### KastenDRRestore
+KastenDRRestore is an API resource used to manage and track
+Veeam Kasten Disaster Recovery (KDR) restore operations.
+This resource allows users to:
+- Initiate a KDR restore operation from the latest
+KDR restore point
+- Initiate a KDR restore operation from a specific
+restore point provided by the KastenDRReview process.
+- Specify which resources to skip during the
+restore process (e.g., secrets, profiles).
+- Monitor the status of the restore operation,
+including error information, cause and
+the phase of the operation.
+### Create a KastenDRRestore Example
+The following examples illustrate how to create a KastenDRRestore resource.
+Creating a KastenDRRestore resource assumes the following prerequisites:
+- The k10-dr-secret Secret
+has been configured in the install namespace
+To avoid accidental, concurrent requests, only a single instance
+of a KastenDRRestore is allowed to exist.
+### Use Latest KDR Restore Point
+The following example fetches all KDR restore points for the
+referenced source cluster and restores the latest available
+as of the specified point in time.
+This method can be used without first creating a KastenDRReview.
+The pointInTime parameter is optional and can only be used for
+review and restore operations from an immutable location profile.
+### Use Specific KDR Restore Point
+The following example restores using a specific KDR restore point (id),
+from an existing KastenDRReview resource (kastenDRReviewRef).
+### List KastenDRRestore Example
+The following example illustrates listing all KastenDRRestore resources
+in a namespace. The phase column indicates the various step through which
+restore operation is progressing.
+### Delete KastenDRRestore Example
+KastenDRRestore API resources can be deleted.
+Functionally, this only serves to clean up the
+API representation.
+### KastenDRRestore API Type
+The following is a complete specification of the KastenDRRestore resource.
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_api_actions.md
 ## Actions
 - Veeam Kasten Disaster Recovery
@@ -2318,4 +2032,290 @@ associated with a given Export Policy or
 Repository.
 ### UpgradeAction API Type
 The following is a complete specification for the UpgradeAction API.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_api_policies.md
+## Policies
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+API Concepts
+AuditConfigs
+Profiles
+Policies
+Example Policy Operations
+Policy Scheduling
+Advanced Backup Policy Examples
+Policy API Type
+Policy Presets
+Actions
+Transforms
+Transform Sets
+Blueprint Bindings
+Applications
+Restore Points
+Reports
+Repositories
+KastenDR
+StorageSecurityContext
+- API Concepts
+- AuditConfigs
+- Profiles
+- Policies
+Example Policy Operations
+Policy Scheduling
+Advanced Backup Policy Examples
+Policy API Type
+- Example Policy Operations
+- Policy Scheduling
+- Advanced Backup Policy Examples
+- Policy API Type
+- Policy Presets
+- Actions
+- Transforms
+- Transform Sets
+- Blueprint Bindings
+- Applications
+- Restore Points
+- Reports
+- Repositories
+- KastenDR
+- StorageSecurityContext
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Accessing Veeam Kasten
+- API and Command Line
+- Policies
+A Policy custom resource (CR) is used to perform operations on Veeam
+Kasten Policies. Policies allow you to manage application
+protection and migration at scale. You can learn more about using Veeam
+Kasten Policies in the Veeam Kasten Protecting Applications
+section.
+### Example Policy Operations
+- Create a Backup Policy
+- Create a Backup Policy using a Policy Preset
+- Create an Import Policy
+- Update a Policy
+- Delete a Policy
+### Create a Backup Policy
+The following example illustrates how to create a backup policy which executes
+hourly and retains 24 hourly and 7 daily snapshots. The policy covers an
+application running in the namespace sampleApp.
+For complete documentation of the Policy CR, refer to Policy API Type.
+### Create a Backup Policy using a Policy Preset
+The following example illustrates how to create a backup policy which
+uses a predefined policy preset sample-policy-preset and covers
+an application running in the namespace sampleApp.
+For more information about PolicyPreset CR,
+refer to Policy Presets section.
+### Create an Import Policy
+The following example illustrates how to create a policy which executes
+hourly and imports an application that was previously exported to the
+application-imports Profile.
+### Update a Policy
+To update a Policy, edit the spec portion of a Policy CR using your
+preferred method of submitting resource changes with kubectl.
+Once the change is submitted, Veeam Kasten will re-validate the Policy and
+update .status.validation accordingly.
+Since Veeam Kasten processes API object changes asynchronously, to avoid
+confusion with a previous Policy status, it is recommended as convention
+that the status portion of the Policy is omitted when submitting changes.
+### Delete a Policy
+You can delete a Policy using the following command.
+### Policy Scheduling
+Within the Policy API Type, Veeam Kasten provides control of:
+- How often the primary snapshot or import action should be performed
+- How often snapshots should be exported into backups
+- Which and how many snapshots and backups to retain
+- When the primary snapshot or import action should be performed
+### Frequency
+The frequency portion of the policy spec indicates how often the primary
+policy action should be performed. On demand policies run only when the
+run once button is clicked or a RunAction is created.
+The optional frequency portion of exportParameters indicates how often
+snapshots should be exported into backups. If not specified, every snapshot is
+to be exported.
+### Retention
+The retention portion of the policy spec indicates which and how many
+snapshots to retain.
+The optional retention portion of the export action allows exported backups
+to be retained independently from snapshots. If not specified, exported backups
+are retained with the same schedule as snapshots.
+### BackupWindow
+The optional backupWindow portion of the policy spec indicates when in
+the day the backup policy can be scheduled to run and by when any snapshot
+action must complete.
+The start and end times of the backupWindow are specified by
+hour and minute. backupWindow length is limited to 24 hours.
+If the end time specified is earlier than the start time,
+this means backupWindow end time is in the next day.
+The policy is scheduled to run once at the backupWindow start time.
+If the policy has an hourly frequency and the duration of the
+backupWindow exceeds 1 hour, the policy is also scheduled to run
+every 60 minutes thereafter within the backupWindow.
+The snapshot action of the policy will be forcibly cancelled if it does
+not complete within the backup window. If the snapshot action completes
+within the backup window, no time restrictions are imposed on further
+actions such as snapshot export.
+### Staggering
+The optional enableStaggering portion of the policy spec indicates
+whether Veeam Kasten may choose when within the backupWindow to schedule
+the backup policy to run.
+This allows Veeam Kasten the flexibility to stagger runs of multiple
+policies and reduce the peak load on the overall system.
+The backupWindow is required when enableStaggering is set. The number
+of the scheduled policy runs within the backupWindow and the cancelling
+of in-progress snapshot actions at the end of the backupWindow are not
+affected by staggering.
+### SubFrequency
+By default:
+- Policies run once within the period of the frequency.
+- Hourly policies run at the top of the hour.
+- Daily policies run at midnight UTC.
+- Weekly policies run at midnight Sunday UTC.
+- Monthly policies run at midnight on the 1st of the month UTC.
+- Yearly policies run at midnight on the 1st of January UTC.
+- Snapshots and backups at those times are retained by the corresponding
+retention counts.
+The optional subFrequency portion of the policy spec provides fine-grained
+control of when to run a policy, how many times to run a policy within a
+frequency, and which snapshots and backups are retained.
+The frequency, subFrequency, backupWindow and retention
+interact as follows:
+- When backupWindow is set, the time of day setting from
+subFrequency is not allowed
+- backupWindow and subFrequency entries within the frequency indicate
+when the policy is to run
+e.g. the minutes and hours subFrequency entries indicate the minutes and
+hours at which a policy with a daily frequency runs
+e.g. backupWindow indicates the period of the day during which a policy
+with an hourly frequency runs
+e.g. backupWindow indicates the period of the day and subFrequency
+indicates the certain days of the week during which a policy with
+a weekly frequency runs
+- e.g. the minutes and hours subFrequency entries indicate the minutes and
+hours at which a policy with a daily frequency runs
+- e.g. backupWindow indicates the period of the day during which a policy
+with an hourly frequency runs
+- e.g. backupWindow indicates the period of the day and subFrequency
+indicates the certain days of the week during which a policy with
+a weekly frequency runs
+- subFrequency entries immediately within the frequency may have multiple
+values to run multiple times within the frequency
+e.g. multiple minutes may be specified for an hourly frequency
+(without backupWindow being set)
+e.g. multiple hours may be specified for a daily frequency
+(without backupWindow being set)
+e.g. multiple days may be specified for a monthly frequency
+(while backupWindow can indicate the common period of the day)
+- e.g. multiple minutes may be specified for an hourly frequency
+(without backupWindow being set)
+- e.g. multiple hours may be specified for a daily frequency
+(without backupWindow being set)
+- e.g. multiple days may be specified for a monthly frequency
+(while backupWindow can indicate the common period of the day)
+- subFrequency entries indicate which snapshots
+and backups graduate to higher retention tiers
+e.g. for a policy with an hourly frequency, the hours subFrequency entry
+indicates the hour of day that will graduate and be retained as a daily
+- e.g. for a policy with an hourly frequency, the hours subFrequency entry
+indicates the hour of day that will graduate and be retained as a daily
+- For subFrequency entries with multiple values, the first value
+indicates the time of the snapshot or backup to be retained by higher
+tiers
+e.g. an hourly frequency with subFrequency minutes entry of [45, 15] will
+run twice an hour at 15 and 45 minutes after the hour, will retain both
+according to the hourly retention
+count, and will graduate the hourly taken at 45 minutes after the
+hour designated by the subFrequency hour entry
+to the daily tier and higher
+- e.g. an hourly frequency with subFrequency minutes entry of [45, 15] will
+run twice an hour at 15 and 45 minutes after the hour, will retain both
+according to the hourly retention
+count, and will graduate the hourly taken at 45 minutes after the
+hour designated by the subFrequency hour entry
+to the daily tier and higher
+- When backupWindow is used, the start value indicates the time of the snapshot
+or backup to be retained by higher tiers
+e.g. for a policy with an hourly frequency, the start of backupWindow
+indicates the time of day that will graduate and be retained as a daily
+- e.g. for a policy with an hourly frequency, the start of backupWindow
+indicates the time of day that will graduate and be retained as a daily
+backupWindow and subFrequency entries within the frequency indicate
+when the policy is to run
+subFrequency entries immediately within the frequency may have multiple
+values to run multiple times within the frequency
+subFrequency entries indicate which snapshots
+and backups graduate to higher retention tiers
+For subFrequency entries with multiple values, the first value
+indicates the time of the snapshot or backup to be retained by higher
+tiers
+When backupWindow is used, the start value indicates the time of the snapshot
+or backup to be retained by higher tiers
+All time values in backupWindow and subFrequency entries
+in the API are in UTC.
+If a subFrequency entry is omitted, it defaults as above
+(taking backupWindow into account, if set).
+### Advanced Backup Policy Examples
+- Scheduling frequency and retention
+- Export snapshots to a Veeam Repository
+### Scheduling frequency and retention
+The following example illustrates how to use frequency, subFrequency,
+backupWindow and retention to create a backup policy that
+- creates snapshots every day between 22:30 and 07:00
+- exports the snapshot created on the fifteenth of the month
+including exporting snapshot data to create a durable and portable backup
+- including exporting snapshot data to create a durable and portable backup
+- retains 14 daily snapshots
+- retains 4 weekly snapshots from 22:30 each Friday
+- retains 6 monthly snapshots from 22:30 on the fifteenth of each month
+- retains 12 exported monthly backups from 22:30 on the fifteenth of each month
+- retains 5 exported yearly backups from 22:30 on the fifteenth of January each
+year
+exports the snapshot created on the fifteenth of the month
+This policy covers an application running in the namespace sampleApp.
+### Export snapshots to a Veeam Repository
+Snapshot data of vSphere CSI provisioned volumes
+in supported vSphere clusters
+can be exported to a
+Veeam Repository
+by adding a reference to a
+Veeam Repository Location Profile
+in the blockModeProfile field of the exportParameters.
+Only snapshot data is saved in the Veeam Repository.
+The remaining data associated with the restore point
+is saved in the location profile identified by the profile
+field of the exportParameters.
+A block level copy of the snapshot is backed up to the specified
+Veeam repository.
+Configuring Change Tracking on the
+vSphere cluster nodes
+is not mandatory, but if configured it does
+enable the use of more efficient incremental backups
+of just the changes between snapshots when possible,
+instead of full backups every time.
+All of the persistent volumes of an application are
+associated with a single restore point, per
+invocation of the policy.
+When an exported restore point is deleted, Veeam Kasten
+will also delete the corresponding restore point for the
+exported snapshots.
+Veeam Kasten always converts each backup into a synthetic
+full in order to support the policy retention functionality
+that permits the deletion of restore points in any order.
+The following YAML illustrates how to create a policy that exports
+to a Veeam Repository:
+The policy above maintains just 3 local restore points
+(and hence VMware snapshots)
+but uses a more sophisticated GFS retention policy for the exported
+restore points.
+### Policy API Type
+The following is a complete specification of the Policy CR.
 © Copyright 2017-2024, Kasten, Inc.

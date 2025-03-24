@@ -175,152 +175,8 @@ Post-Install
 - Pre-Install
 - Post-Install
 © Copyright 2017-2024, Kasten, Inc.
-### latest_install_google_google.md
-## Installing Veeam Kasten on Google Cloud
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-- Prerequisites
-- Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on Google Cloud
-Note
-With the 7.0 release in May 2024, "Kasten by Veeam" and
-"Kasten K10" have been replaced with "Veeam Kasten for Kubernetes."
-Throughout this documentation, references to "K10" will be modified
-to include both the new and simpler "Veeam Kasten" names. Both names
-will be used for a while, and then the documentation will be
-modified only to use the new names. The name K10 is still used for
-functional examples.
-### Prerequisites
-Before installing Veeam Kasten on Google Cloud's Google Kubernetes Engine
-(GKE), please ensure that the install
-prerequisites are met.
-### Installing Veeam Kasten
-Installing Veeam Kasten on Google requires two kinds of Service Accounts.
-The first, documented below, is a Google Cloud Platform (GCP) Service
-Account (SA)
-that grants access to underlying Google Cloud infrastructure resources such as
-storage. The second, as mentioned above in the Prerequisites section,
-is a Kubernetes Service Account that grants access to Kubernetes resources
-and will be auto-created during the helm install process or via
-Google Marketplace options.
-It is advised to make sure that the necessary permissions are available
-before proceeding with the installation of Veeam Kasten. The process of
-granting permissions may vary depending on the chosen installation mode.
-It is important to follow the instructions relevant to the desired
-installation mode to ensure a smooth and successful installation of
-Veeam Kasten.
-### GCP Service Account Configuration
-Veeam Kasten uses the Google Cloud Platform Service Account to manage volumesnapshot
-in the GCP account. Therefore, the service account needs to be assigned the
-compute.storageAdmin
-role.
-Service Account Key
-Veeam Kasten requires a Service Account key for the GCP Service Account
-and the GCP Project ID associated with it.
-### Using a Separate GCP Service Account
-The preferred option for a Veeam Kasten install is to create and use a
-separate Google service account with the appropriate permissions to
-operate on the underlying Google Cloud infrastructure and then use that.
-For more details on how to create and use a separate service account,
-refer to the following links:
-- Creating a New Service Account
-- Installing Veeam Kasten with the new Service Account
-Using a Custom Project ID
-Existing Secret Usage
-- Using a Custom Project ID
-- Existing Secret Usage
-For information on adding the compute.storageAdmin role to a Google
-Cloud Platform Service Account for the associated GCP project, refer to
-this link.
-### Service Accounts for a Marketplace Install
-If you are installing on Google via the Google Marketplace,
-first follow the below instructions on correctly configuring the
-cluster's default SA and then follow these
-instructions to install.
-### Using the Default GCP Service Account
-A GCP Service Account automatically gets created with every GKE
-cluster. This SA can be accessed within the GKE cluster to perform
-actions on GCP resources and, if set up correctly at cluster creation
-time, can be the simplest way to run the Kasten platform.
-This SA configuration needs to be done at cluster creation time. When
-using the Google Cloud Console to create a new Kubernetes cluster,
-please select More Options for every node pool you have
-added. Search for Security in the expanded list of options and,
-under Access Scopes, select Set access for each API. In the list
-of scopes that show up, please ensure that Compute Engine is set to
-Read Write.
-Once the Service Accounts are created and the node pools are running,
-Veeam Kasten can then be installed by running the following install command:
-To address any troubleshooting issues while installing Veeam
-Kasten on a Kubernetes platform using the Cilium Container Network
-Interface (CNI) setup, refer to this page.
-The page provides specific steps for resolving installation issues with
-Cilium CNI and Veeam Kasten compatibility.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_checklist.md
-## Production Deployment Checklist
+### latest_install_upgrade.md
+## Upgrading Veeam Kasten
 - Install Requirements
 - Installing Veeam Kasten on Kubernetes
 - Storage Integration
@@ -334,178 +190,70 @@ use the instructions here.
 - Advanced Install Options
 - Configuring Veeam Kasten Encryption
 - Upgrading Veeam Kasten
+Upgrade Assistant
+Upgrading Helm-Installed Veeam Kasten
+Upgrading on the Google Cloud Marketplace
+Upgrading on the AWS Marketplace
+Upgrading an Operator Installed Veeam Kasten
+- Upgrade Assistant
+- Upgrading Helm-Installed Veeam Kasten
+- Upgrading on the Google Cloud Marketplace
+- Upgrading on the AWS Marketplace
+- Upgrading an Operator Installed Veeam Kasten
 - Production Deployment Checklist
-Pre-Install
-Encryption Key
-Authentication Mode
-CSI-based Storage Providers
-FIPS Compliant Mode
-Post-Install
-Disaster Recovery
-Encryption Key
-Monitoring
-User Roles
-- Pre-Install
-Encryption Key
-Authentication Mode
-CSI-based Storage Providers
-FIPS Compliant Mode
-- Encryption Key
-- Authentication Mode
-- CSI-based Storage Providers
-- FIPS Compliant Mode
-- Post-Install
-Disaster Recovery
-Encryption Key
-Monitoring
-User Roles
-- Disaster Recovery
-- Monitoring
-- User Roles
 -
 - Installing Veeam Kasten
-- Production Deployment Checklist
-When you are deploying the Veeam Kasten platform in your production
-cluster, there are a few things you should consider.
-We have created a quick checklist for you to make sure your
-installation is easy.
-### Pre-Install
-Following are the items you need to check and configure before you
-install Veeam Kasten's platform.  The complete installation instructions
-can be found here.
-### Encryption Key
-Before you setup Kasten, you need to set and configure an encryption
-key. This key is needed for data and metadata encryption.
-More information can be found here.
-### Authentication Mode
-During installation, you have an option to choose an authentication mode.
-You can choose between Direct Access, Basic Authentication,
-Token-based Authentication or OpenID Connect.
-You can learn more about it here.
-### CSI-based Storage Providers
-If you are provisioning storage via the Container Storage Interface
-(CSI) and want to leverage CSI Volume Snapshots, please follow the
-documentation here to ensure that the
-VolumeSnapshotClass has the Veeam Kasten annotation.
-### FIPS Compliant Mode
-When installing, you have the option to enable FIPS mode, which enforces
-the use of FIPS approved algorithms. This ensures Kasten is compliant
-with FIPS requirements.
-However, in order to ensure success, this must be done on a new
-installation of Kasten. The underlying cluster should also be in
-running in FIPS mode.
-You can find more information on this topic here.
-### Post-Install
-Following are the items you need to check and configure after you
-have installed Veeam Kasten's platform. The complete installation instructions
-can be found here.
-### Disaster Recovery
-Kasten allows you to enable Disaster Recovery (DR) to protect Veeam Kasten
-from any infrastructure failures. Make sure to enable DR and save your
-cluster ID as well as the passphrase for recovery. More information about DR
-can be found here.
-### Encryption Key
-Once Veeam Kasten installation is complete, be sure to save the encryption key
-for future use. You can lose access to the data in case of loss of
-this encryption key.
-### Monitoring
-Once you have Veeam Kasten protecting your applications, you want to ensure
-that problems such as backup failures, infrastructure issues, and job
-failures due to license expiry are immediately noticed without having
-to constantly check the dashboard. We therefore highly recommend
-integrating your monitoring with our Prometheus
-endpoints and triggering alerts based on failure
-notifications.
-Note
-Veeam Kasten does not allow the disabling of Prometheus
-services. Attempting to disable these services may result in
-unsupported scenarios and potential issues with monitoring and logging
-functionalities, affecting Veeam Kasten's overall functionality. It
-is recommended to maintain these services enabled in order to ensure
-proper functionality and prevent unexpected behavior.
-### User Roles
-User roles are only available for certain authentication modes.
-Veeam Kasten is set up with different Cluster Roles
-that you can use to enable authorization in your cluster. You should not
-change these user roles but you can add on top of them to customize
-it to your needs.
-For more information about User Roles and Authorization, check
-here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_openshift_openshift.md
-## Installing Veeam Kasten on Red Hat OpenShift
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Helm based Installation
-OpenShift on Azure
-Operator based Installation
-Managed Red Hat OpenShift Offerings
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-Helm based Installation
-OpenShift on Azure
-Operator based Installation
-Managed Red Hat OpenShift Offerings
-- Helm based Installation
-- OpenShift on Azure
-- Operator based Installation
-- Managed Red Hat OpenShift Offerings
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
 - Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on Red Hat OpenShift
-There are two methods to install Veeam Kasten on Red Hat OpenShift:
-While the two installation methods have similarities, the details
-will differ. Please make sure to choose the method that most closely
-follows the requirements of your organization.
 Note
-When deploying Veeam Kasten on a Red Hat OpenShift managed
-Kubernetes cluster using Cilium as a Container Network Interface
-(CNI), it is important to consider the associated limitations,
-including potential compatibility issues or differences in
-configuration compared to the default CNIs. Refer to this page
-for instructions on addressing these issues and optimizing the
-deployment with Cilium.
-### Managed Red Hat OpenShift Offerings
-The two installation methods mentioned above are also
-applicable when installing Veeam Kasten on Managed Red Hat
-OpenShift offerings, including:
-- Red Hat OpenShift on AWS (ROSA)
-- Azure Red Hat OpenShift (ARO)
-No additional or platform-specific configurations are required
-for installation.
+Currently, upgrades are only supported across a maximum of
+four versions (e.g., 2.0.10 -> 2.0.14). If your Veeam Kasten version
+is further behind the latest, a step upgrade process is recommended
+where you can use the --version flag with helm upgrade to control
+the version jumps. At least 50% free space is required in catalog storage
+also.
+### Upgrade Assistant
+You can verify the available free space for the catalog and access your
+recommended upgrade path by navigating to the System Information page from
+the Settings menu in the navigation sidebar or by using
+Veeam Kasten Primer for Upgrades resource.
+### Upgrading Helm-Installed Veeam Kasten
+To upgrade to the latest Veeam Kasten release, unless you have installed
+Veeam Kasten via the a public cloud marketplace, you should run the
+following command assuming you installed in the kasten-io namespace
+with the release name k10. If you do not remember your release name,
+you can easily discover that via the use of
+helm list --namespace=kasten-io.
+Known Issues: Helm 3 has known bugs with upgrade (e.g., ##6850). If you run into errors along the lines of
+Please use the following as a workaround and then run the above upgrade
+commands.
+### Upgrading on the Google Cloud Marketplace
+If you have installed Veeam Kasten via the Google Cloud Marketplace, please
+follow the instructions here.
+### Upgrading on the AWS Marketplace
+If you have installed Veeam Kasten via the AWS Container Marketplace or AWS
+Marketplace for Containers Anywhere, please follow the marketplace upgrade
+instructions.
+### Upgrading an Operator Installed Veeam Kasten
+Upgrading a Veeam Kasten installation made by a Veeam Kasten Operator requires
+updating the Veeam Kasten Operator.
+Ref: Red Hat documentation for upgrading installed Operators.
+The process of upgrading the Veeam Kasten Operator depends on how update was
+configured during install - Automatic or Manual.
+The Operator update approval strategy can be changed anytime after install
+from the Subscription tab of the Operator.
+For an Automatic update, the Veeam Kasten Operator and Operand
+(which is the Veeam Kasten install) are both automatically updated
+any time a new Veeam Kasten Operator is published.
+For a Manual update, the cluster administrator must approve the update when it shows up
+for the installation to begin.
+Ref: Red Hat documentation for manually approving a pending Operator upgrade.
+The Veeam Kasten operators are published with a maximum supported OpenShift
+version. This will cause warnings to appear when trying to upgrade a cluster
+beyond the maximum supported version.
+Warning
+Upgrading the cluster beyond the Veeam Kasten maximum supported OpenShift version
+may cause unpredictable Veeam Kasten behavior and will result in losing Kasten support.
+Examples of warning messages for cluster upgrade:
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_install_other_other.md
 ## Installing Veeam Kasten on Other Kubernetes Distributions
@@ -592,14 +340,11 @@ For a complete list of options for accessing the Kasten Veeam Kasten
 dashboard through a LoadBalancer, Ingress or OpenShift Route you can
 use the instructions here.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_install_aws_aws.md
-## Installing Veeam Kasten on AWS
+### latest_install_suserancher_suserancher.md
+## SUSE Rancher Apps & Marketplace Based Installation
 - Install Requirements
 - Installing Veeam Kasten on Kubernetes
 Installing Veeam Kasten on AWS
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
 Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
 Installing Veeam Kasten on Azure
 Installing Veeam Kasten on Azure Marketplace
@@ -608,23 +353,23 @@ Installing Veeam Kasten on Google Cloud
 Installing Veeam Kasten on DigitalOcean
 Installing Veeam Kasten on VMware vSphere
 SUSE Rancher Apps & Marketplace Based Installation
+Prerequisites
+Veeam Kasten Installation
 Installing Veeam Kasten on K3S
 Installing Veeam Kasten on Other Kubernetes Distributions
 - Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
 Prerequisites
-Installing Veeam Kasten
-Validating the Install
+Veeam Kasten Installation
 - Prerequisites
-- Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
+- Veeam Kasten Installation
 - Installing Veeam Kasten on K3S
 - Installing Veeam Kasten on Other Kubernetes Distributions
 - Storage Integration
@@ -640,312 +385,9 @@ Validating the Install
 - Upgrading Veeam Kasten
 - Production Deployment Checklist
 -
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on AWS
-### Prerequisites
-Before installing Veeam Kasten on Amazon EKS, it is important to determine the
-preferred authentication mechanism: either Long-term access keys or IAM Roles
-for service accounts. The choice of authentication mechanism will affect the
-necessary steps and prerequisites for the installation process.
-AWS provides two types of authentication mechanisms for programmatic access:
-- Long-term access keys
-- IAM Roles for Service Accounts
-If you opt for long-term access keys, you will need to provide the Access
-Key ID and Secret Access Key during the setup. In addition, you may optionally
-provide an additional IAM Role.
-The additional IAM Role allows for extra permissions to be granted to the
-identity authenticated with the long-term access key.
-On the other hand, if you choose IAM Roles for service accounts, you would
-not need to provide the Access Key ID and Secret Access Key. Instead, you will
-need to ensure the presence of the required IAM role.
-Please consider the authentication mechanism that best suits your
-requirements and follow the appropriate steps and instructions provided to
-ensure a seamless authentication experience.
-These mechanisms are designed to authenticate and authorize the programmatic
-interactions between scripts or command line interfaces and AWS services.
-Both authentication mechanisms provide secure programmatic access to
-AWS resources.
-Let's dive into the details:
-1. Long-term access keys:
-These keys are commonly used when authenticating programmatic access
-to AWS resources. When creating long-term access keys, you receive
-an Access key ID and a Secret Access Key. The Access Key ID serves
-as the identifier for the access key, and the Secret Access Key is a
-unique secret value used for authentication.
-During the Helm installation process, you are given the choice to
-assign a role. This role will be used during authentication when Veeam
-Kasten initially authenticates using the provided Access Key ID and
-Secret Access Key, along with the additional assigned role.
-During the Helm installation process, you can choose to configure
-long-term access secret keys and key IDs by providing the necessary
-key pairs:
---set secrets.awsAccessKeyId and
---set secrets.awsSecretAccessKey.
-(Optional) In addition to the long-term access keys,
-you can choose to provide an additional IAM role. This additional
-role will be associated with the secrets.awsIamRole configuration
-parameter.
-2. During the Helm installation process, you can choose to configure
-long-term access secret keys and key IDs by providing the necessary
-key pairs:
---set secrets.awsAccessKeyId and
---set secrets.awsSecretAccessKey.
-3. (Optional) In addition to the long-term access keys,
-you can choose to provide an additional IAM role. This additional
-role will be associated with the secrets.awsIamRole configuration
-parameter.
-4. IAM Roles for Service Accounts:
-IAM roles are useful in scenarios where you want to provide access to
-AWS services without managing or exposing long-term access keys.
-To know more about it, refer to IAM Roles for Service Accounts.
-Long-term access keys:
-These keys are commonly used when authenticating programmatic access
-to AWS resources. When creating long-term access keys, you receive
-an Access key ID and a Secret Access Key. The Access Key ID serves
-as the identifier for the access key, and the Secret Access Key is a
-unique secret value used for authentication.
-During the Helm installation process, you are given the choice to
-assign a role. This role will be used during authentication when Veeam
-Kasten initially authenticates using the provided Access Key ID and
-Secret Access Key, along with the additional assigned role.
-AWS IAM roles grant access to AWS account resources to trusted entities.
-The following links contain information on how to create roles and other
-permission-related details:
-- Using AWS IAM Roles with Veeam Kasten
-Creating an IAM Policy
-Veeam Kasten Installs with IAM Roles
-Option I: Using IAM Role With a Kubernetes Service Account (EKS)
-Enabling OIDC on your EKS Cluster
-Creating an IAM Role for Veeam Kasten Install
-Option II: Using an IAM Role With an IAM User
-- Creating an IAM Policy
-- Veeam Kasten Installs with IAM Roles
-Option I: Using IAM Role With a Kubernetes Service Account (EKS)
-Enabling OIDC on your EKS Cluster
-Creating an IAM Role for Veeam Kasten Install
-Option II: Using an IAM Role With an IAM User
-- Option I: Using IAM Role With a Kubernetes Service Account (EKS)
-Enabling OIDC on your EKS Cluster
-Creating an IAM Role for Veeam Kasten Install
-- Enabling OIDC on your EKS Cluster
-- Creating an IAM Role for Veeam Kasten Install
-- Option II: Using an IAM Role With an IAM User
-### Installing Veeam Kasten
-To install on AWS, you need to define two environment variables that
-specify your access key id and secret access key.
-After doing so, just run the following command to install Veeam Kasten,
-the Kasten platform on either AWS EKS or any other Kubernetes
-distribution running on EC2.
-If you want Veeam Kasten to assume an IAM Role in AWS infrastructure
-operations, refer to Using AWS IAM Roles with Veeam Kasten
-on how to create and use the role.
-For IAM Roles for Service Accounts, once the setup is completed, you will need to
-provide a token file to assign the role to the k10-k10 service account.
-With the assigned role, there is no need for Access Key and Secret Access Key.
-During the Veeam Kasten installation, you can choose to manually configure
-the k10-k10 service account.
-For additional information, refer to Associate Service Account Role.
-In some scenarios, it is advantageous to avoid pre-configuring a service
-account manually, and instead, leverage Helm's capabilities to streamline
-the process. By providing a role through the Helm package manager using
-the --set secrets.awsIamRole flag, the service account can be
-dynamically created.
-AWS keys or IAM Roles need to have permissions that allow Veeam Kasten to
-perform operations on EBS and, if needed, EFS and S3. The minimal set
-of permissions needed by Veeam Kasten for integrating against different AWS
-services can be found here:
-- Using Veeam Kasten with AWS EBS
-- Using Veeam Kasten with AWS S3
-- Using Veeam Kasten with Amazon RDS
-- Using Veeam Kasten with AWS EFS
-- Using Veeam Kasten with AWS Secrets Manager
-- Optional KMS Permissions
-The above permissions can also be used in the context of IAM Policies
-and Roles. Refer to Using AWS IAM Roles with Veeam Kasten for more information
-regarding IAM Policies and Roles.
-Note
-To address any troubleshooting issues while installing Veeam Kasten
-on a Kubernetes platform using the Cilium Container Network Interface (CNI)
-setup, refer to this page.
-The page provides specific steps for resolving installation issues with
-Cilium CNI and Veeam Kasten compatibility.
-### Existing Secret Usage
-It is possible to use an existing secret
-to provide the following parameters for AWS configuration:
-- AWS Access Key ID
-Field name - aws_access_key_id
-- AWS Secret Access Key
-Field name - aws_secret_access_key
-- AWS IAM Role
-Field name - role
-To do so, the following Helm option can be used:
-Please ensure that the secret exists in the namespace where Veeam Kasten
-is installed.
-The default namespace assumed throughout this documentation is kasten-io.
-### EKS Authentication Setup
-Finally, for end-to-end instructions on how to set up token-based
-authentication for AWS EKS clusters, please follow the documentation
-here.
-### Elastic File System Limitation
-Currently, Veeam Kasten supports backup and recovery of AWS Elastic
-File System (EFS) volumes. However, due to EFS limitations, cross-cluster
-EFS restores within the same region and across regions require manual
-intervention using the AWS CLI or AWS console using the below
-instructions.
-- Using the Veeam Kasten dashboard and AWS CLI for EFS Snapshot Migration
-- Using the Veeam Kasten dashboard and AWS Console for EFS Snapshot Migration
-### EKS IPv6 Clusters
-To install Veeam Kasten on an IPv6 cluster, run the following command:
-This will enable IPv6 listeners for all required services.
-Same option can be used to enable IPv6 listeners for a dual-stack setup.
-Veeam Kasten was tested in IPv6-only setup only on AWS EKS platform.
-Although it is expected to work on other platforms as well.
-Warning
-Port-forwarding to Veeam Kasten services may not work in IPv6-only setup with Dockershim CRI.
-Containerd CRI supports IPv6 port-forwarding since 1.5.2 release.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_digitalocean_digitalocean.md
-## Installing Veeam Kasten on DigitalOcean
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-- Prerequisites
 - Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on VMware vSphere
+- Installing Veeam Kasten on Kubernetes
 - SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on DigitalOcean
-### Prerequisites
-Before installing Veeam Kasten on DigitalOcean, please ensure that the
-install prerequisites are met.
-### Installing Veeam Kasten
-To install Veeam Kasten on DigitalOcean, you also need to annotate the
-VolumeSnapshotClass as specified in our CSI documentation.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_aws-containers-anywhere_aws-containers-anywhere.md
-## Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten
-Validating the Install
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten
-Validating the Install
-- Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
 Note
 With the 7.0 release in May 2024, "Kasten by Veeam" and
 "Kasten K10" have been replaced with "Veeam Kasten for Kubernetes."
@@ -954,466 +396,34 @@ to include both the new and simpler "Veeam Kasten" names. Both names
 will be used for a while, and then the documentation will be
 modified only to use the new names. The name K10 is still used for
 functional examples.
-### Installing Veeam Kasten
-Follow the installation instructions here.
-### Attaching permissions for EKS installations
-Warning
-This is a required step. Veeam Kasten will not be able to
-backup any AWS resources unless these permissions are granted.
-IAM Role created during installation need to have permissions that allow
-Veeam Kasten to perform operations on EBS and, if needed, EFS and S3.
-The minimal set of permissions needed by Veeam Kasten for integrating
-against different AWS services can be found here:
-- Using Veeam Kasten with AWS EBS
-- Using Veeam Kasten with AWS S3
-- Using Veeam Kasten with Amazon RDS
-- Using Veeam Kasten with AWS EFS
-- Using Veeam Kasten with AWS Secrets Manager
-- Optional KMS Permissions
-Create a policy
-with the required permissions from the options above. To attach this policy to
-the IAM Role created during installation, follow the steps below.
-The steps above assume that the Veeam Kasten service account name is
-k10-k10 and the Veeam Kasten installation is in the kasten-io
-namespace. Please modify these as needed.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_generic.md
-## Generic Storage Backup and Restore
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-- Storage Integration
-- Generic Storage Backup and Restore
-Activating Generic Storage Backup
-Using Sidecars
-Enabling Kanister Sidecar Injection
-Updating the resource manifest
-End-to-End Example
-Prerequisites
-Deploy the application
-Create a Location Profile
-Insert Data
-Backup Data
-Destroy Data
-Restore Data
-Verify Data
-Generic Storage Backup and Restore on Unmounted PVCs
-- Activating Generic Storage Backup
-- Using Sidecars
-Enabling Kanister Sidecar Injection
-Updating the resource manifest
-- Enabling Kanister Sidecar Injection
-- Updating the resource manifest
-- End-to-End Example
-Prerequisites
-Deploy the application
-Create a Location Profile
-Insert Data
-Backup Data
-Destroy Data
-Restore Data
-Verify Data
-- Prerequisites
-- Deploy the application
-- Create a Location Profile
-- Insert Data
-- Backup Data
-- Destroy Data
-- Restore Data
-- Verify Data
-- Generic Storage Backup and Restore on Unmounted PVCs
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Generic Storage Backup and Restore
-Warning
-Generic Storage Backup must be used only in cases
-where migration to a CSI driver with snapshot support is not possible.
-For more details, refer to this page.
-Applications can often be deployed using non-shared storage (e.g.,
-local SSDs) or on systems where Veeam Kasten does not currently support
-the underlying storage provider. To protect data in these scenarios,
-Veeam Kasten with Kanister provides you with the ability
-to add functionality for backup, restore, and migration of application data
-with minimal modifications. This can be done in an efficient and
-transparent manner.
-While a complete example is provided below, the only changes needed are
-the activation of Generic Storage Backup (GSB) on Veeam Kasten (see below),
-addition of a sidecar to your application deployment that can mount the
-application data volume, and an annotation that requests GSB.
-### Activating Generic Storage Backup
-By default, the GSB feature is disabled. It can be activated by providing
-an activation token when installing Veeam Kasten via the Helm chart.
-Existing customers can contact Kasten by Veeam Support via MyVeeam,
-to open a support case and request the activation token for GSB.
-For all current prospects evaluating Veeam Kasten, we recommend reaching out to
-your local Kasten by Veeam Sales team through the local point of contact within
-the Veeam channel.
-Provide the cluster ID (UUID of the default namespace) when requesting
-an activation token. This ID will help Veeam Kasten identify a cluster where
-GSB is activated. Use the following kubectl command to get the UUID:
-Once the token is obtained, provide it to Veeam Kasten with the following Helm
-option:
-Note
-A separate activation token is required for every cluster
-where you want to activate GSB.
-### Using Sidecars
-The sidecar can be added either by leveraging Veeam Kasten's sidecar injection
-feature or by manually patching the resource as described below.
-### Enabling Kanister Sidecar Injection
-Veeam Kasten implements a Mutating Webhook Server which mutates workload
-objects by injecting a Kanister sidecar into the workload when the
-workload is created. The Mutating Webhook Server also adds the
-k10.kasten.io/forcegenericbackup annotation to the targeted
-workloads to enforce generic backup. By default, the sidecar injection
-feature is disabled. To enable this feature, the following options
-need to be used when installing Veeam Kasten via the Helm chart:
-Once enabled, Kanister sidecar injection will be enabled for all
-workloads in all namespaces. To perform sidecar injections on
-workloads only in specific namespaces, the namespaceSelector
-labels can be set using the following option:
-By setting namespaceSelector labels, the Kanister sidecar will be
-injected only in the workloads which will be created in the namespace
-matching labels with namespaceSelector labels.
-Similarly, to inject the sidecar for only specific workloads,
-the objectSelector option can be set as shown below:
-It is recommended to add at least one namespaceSelector or
-objectSelector when enabling the injectGenericVolumeBackupSidecar feature.
-Otherwise, Veeam Kasten will try to inject a sidecar into every new workload.
-In the common case, this will lead to undesirable results and potential
-performance issues.
-For example, to inject sidecars into workloads that match the label
-component: db and are in namespaces that are labeled with
-k10/injectGenericVolumeBackupSidecar: true, the following options should be
-added to the Veeam Kasten Helm install command:
-The labels set with namespaceSelector and objectSelector are
-mutually inclusive. This means that if both the options are set to
-perform sidecar injection, the workloads should have labels matching
-the objectSelector labels AND they have to be created in the
-namespace with labels that match the namespaceSelector
-labels. Similarly, if multiple labels are specified for either
-namespaceSelector or objectSelector, they will all needed to
-match for a sidecar injection to occur.
-For the sidecar to choose a security context that can
-read data from the volume, Veeam Kasten performs the following checks in order:
-1. If there are multiple primary containers, the list of containers will be
-iterated over, and the SecurityContext of the containers will be merged so
-that the final SecurityContext is the most restrictive one. If there is
-only one primary container, the final SecurityContext of the sidecar will
-be the SecurityContext of the primary container.
-2. If the workload PodSpec has a SecurityContext set, the sidecar
-does not need an explicit specification and will automatically use
-the context from the PodSpec.
-3. If the above criteria are not met, by default, no SecurityContext
-will be set.
-The SecurityContext of the sidecar will have some additional "add"
-capabilities, and while selecting the most restrictive security context,
-some operations will be restricted. See this
-Veeam Kasten knowledge base article for more details.
-When the helm option for providing a Root CA to Veeam Kasten,
-i.e cacertconfigmap.name, is enabled, the Mutating Webhook will create a
-new ConfigMap, if it does not already exist, in the application namespace to
-provide the Root CA to the sidecar. This ConfigMap in the application
-namespace would be a copy of the Root CA ConfigMap residing in the Veeam Kasten
-namespace.
-Sidecar injection for standalone Pods is not currently supported.
-Refer to the following section to manually add the the Kanister sidecar
-to standalone Pods.
-### Updating the resource manifest
-Alternatively, the Kanister sidecar can be added by updating the
-resource manifest with the Kanister sidecar. An example, where
-/data is used as an sample mount path, can be seen in the below
-specification. Note that the sidecar must be named
-kanister-sidecar and the sidecar image version should be pinned to
-the latest Kanister release.
-Alternatively, the below command can be run to add the sidecar into the
-workload. Make sure to specify correct values for the specified
-placeholders resource_type, namespace, resource_name,
-volume-name and volume-mount-path:
-After injecting the sidecar manually, workload pods
-will be recreated. If the deployment strategy used for the
-workload is RollingUpdate,
-the workload should be scaled down and scaled up
-so that the volumes are mounted into the
-newly created pods.
-Once the above changes are made, Veeam Kasten will be able to automatically
-extract data and, using its data engine, efficiently
-deduplicate data and transfer it into an object store or NFS file store.
-If you have multiple volumes used by your pod, you simply need to
-mount them all within this sidecar container. There is no naming
-requirement on the mount path as long as they are unique.
-Note that a backup operation can take up to 800 MB of memory for
-some larger workloads. To ensure the pod containing the kanister-sidecar
-is scheduled on a node with sufficient memory for a particularly intensive
-workload, you can add a resource request to the container definition.
-### Generic Backup Annotation
-Generic backups can be requested by adding the
-k10.kasten.io/forcegenericbackup annotation to the workload as shown in the
-example below.
-The following is a kubectl example to add the annotation to a running
-deployment:
-Finally, note that the Kanister sidecar and Location profile must both
-be present for generic backups to work.
-### Required Capabilities for Generic Storage Backup
-OpenShift Container Platform (OCP) introduced more restrictive default
-security context constraints (SCCs) in
-the 4.11 release - Pod Security Admission.
-The change affects the ability to perform rootless
-Generic Storage Backup.
-Since K10 5.5.8 rootless is a default behavior for
-Veeam Kasten.
-To use Generic Storage Backup with OCP 4.11 and above,
-the following capabilities must be allowed:
-- FOWNER
-- CHOWN
-- DAC_OVERRIDE
-Even if Veeam Kasten is installed on Kubernetes distributions other than OCP,
-the capabilities mentioned above are required for ensuring the proper
-functionality of Generic Storage Backup.
-Previous version of restricted SCC can be used as a template.
-Change the allowedCapabilities field as follows:
-### End-to-End Example
-The below section provides a complete end-to-end example of how to
-extend your application to support generic backup and restore. A dummy
-application is used below but it should be straightforward to extend
-this example.
 ### Prerequisites
-- Make sure you have obtained the activation token and have Veeam Kasten
-installed by providing the token using the genericStorageBackup.token
-option.
-- Make sure you have installed Veeam Kasten with
-injectGenericVolumeBackupSidecar enabled.
-- (Optional) namespaceSelector labels are set for
-injectGenericVolumeBackupSidecar.
-injectGenericVolumeBackupSidecar can be enabled by passing the following
-flags while installing Veeam Kasten helm chart
-### Deploy the application
-The following specification contains a complete example of how to
-exercise generic backup and restore functionality. It consists of a an
-application Deployment that use a Persistent Volume Claim (mounted
-internally at /data) for storing data.
-Saving the below specification as a file, deployment.yaml, is
-recommended for reuse later.
-- Create a namespace:
-$ kubectl create namespace <namespace>
-If injectGenericVolumeBackupSidecar.namespaceSelector labels are set while
-installing Veeam Kasten, add the labels to namespace to match with
-namespaceSelector
-$ kubectl label namespace <namespace> k10/injectGenericVolumeBackupSidecar=true
-- Deploy the above application as follows:
-## Deploying in a specific namespace
-$ kubectl apply --namespace=<namespace> -f deployment.yaml
-- Check status of deployed application:
-List pods in the namespace. The demo-app pods can be seen created with two
-containers.
-## List pods
-$ kubectl get pods --namespace=<namespace> | grep demo-app
-## demo-app-56667f58dc-pbqqb   2/2     Running   0          24s
-- Describe the pod and verify the kanister-sidecar container is injected
-with the same volumeMounts.
-volumeMounts:
-- name: data
-  mountPath: /data
-Create a namespace:
-If injectGenericVolumeBackupSidecar.namespaceSelector labels are set while
-installing Veeam Kasten, add the labels to namespace to match with
-namespaceSelector
-Deploy the above application as follows:
-Check status of deployed application:
-List pods in the namespace. The demo-app pods can be seen created with two
-containers.
-Describe the pod and verify the kanister-sidecar container is injected
-with the same volumeMounts.
-### Create a Location Profile
-If you haven't done so already, create a Location profile with
-the appropriate Location and Credentials information from the Veeam
-Kasten settings page. Instructions for creating location profiles can be
-found here
-Generic storage backup and restore workflows are not
-compatible with immutable backups location profiles.
-Immutable backups enabled location profiles can be used with these
-workflows, but will be treated as a non-immutability-enabled profile:
-the protection period will be ignored, and no point-in-time restore
-functionality will be provided. Please note that use of an object-locking
-bucket for such cases can amplify storage usage without any additional
-benefit.
-### Insert Data
-The easiest way to insert data into the demo application is to simply
-copy it in:
-### Backup Data
-Backup the application data either by creating a Policy or running a
-Manual Backup from Veeam Kasten. This assumes that the application is
-running on a system where Veeam kasten does not support the provisioned
-disks (e.g., local storage). Make sure to specify the location profile
-in the advanced settings for the policy. This is required to perform
-Kanister operations.
-This policy covers an application running in the namespace sampleApp.
-For complete documentation of the Policy CR, refer to Policy API Type.
-### Destroy Data
-To destroy the data manually, run the following command:
-Alternatively, the application and the PVC can be deleted and recreated.
-### Restore Data
-Restore the data using Veeam Kasten by selecting the appropriate restore point.
-### Verify Data
-After restore, you should verify that the data is intact. One way to
-verify this is to use MD5 checksum tool.
-The MD5 checksums should match.
-### Generic Storage Backup and Restore on Unmounted PVCs
-Generic Storage Backup and Restore on unmounted PVCs can be enabled by adding
-k10.kasten.io/forcegenericbackup annotation to the StorageClass with which
-the volumes have been provisioned.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_fips.md
-## Installing Kasten in FIPS mode
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-Cryptographic Modules
-FIPS Supported Kubernetes Distributions
-Limitations in FIPS mode
-Installation in FIPS mode
-- Cryptographic Modules
-- FIPS Supported Kubernetes Distributions
-- Limitations in FIPS mode
-- Installation in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Installing Kasten in FIPS mode
-Kasten, as of version 7.0, supports an installation option that complies with
-the Federal Information Processing Standards (FIPS) defined by the National
-Institute of Standards and Technology (NIST). This is especially important for
-organizations operating in highly regulated industries or government sectors.
-FIPS-compliant software ensures that cryptographic algorithms and security
-protocols meet strict government requirements, including those set by the
-United States Department of Defense (DoD). To learn more about FIPS, visit
-NIST's Compliance FAQs.
-Kasten in FIPS mode was designed to comply with the FIPS 140-3 standard.
-Activate this mode by using a set of Helm values specified below during the
-installation process, as explained in the accompanying document. To learn
-more about FIPS 140-3, please refer to
-NIST FIPS 140-3.
-### Cryptographic Modules
-Kasten uses OpenSSL for its implementation of cryptographic primitives and
-algorithms. OpenSSL is provided by Red Hat's Universal Base Images (UBI). This
-cryptographic module is currently listed as "review pending" by
-NIST's Cryptographic Module Validation Program.
-By incorporating OpenSSL, UBI, and aligning its implementation with Red Hat Compliance recommendations, Kasten ensures compliance of the FIPS 140-3 security requirements.
-### FIPS Supported Kubernetes Distributions
-Kasten has been extensively tested and verified with Red Hat OpenShift,
-ensuring seamless integration between the two platforms. By using Kasten
-with Red Hat OpenShift, customers can benefit from enhanced security and
-compliance features, which are necessary for protecting critical data in
-FIPS-compliant environments.
-While Kasten's FIPS mode can be activated in other environments, it may
-necessitate additional testing and configuration to ensure the cryptographic
-module's compliance. However, Kasten is continuously exploring opportunities
-to support additional Kubernetes distributions in the future.
-### Limitations in FIPS mode
-Some Kasten features are not currently supported when FIPS is enabled:
-- Prometheus
-- PDF Reports
-- Block mode exports and restores of supported Ceph CSI volumes do
-not use the Ceph API
-As a workaround for dashboards please install and configure a FIPS
-compliant version of Grafana and Prometheus with Kasten.
-### Installation in FIPS mode
-Warning
-During initialization, Kasten generates encryption keys using the configured
-encryption algorithms.
-This means FIPS algorithms must be enabled during the initial installation.
-However, some features will be unavailable (see above).
-To ensure that certified cryptographic modules are utilized and non-compliant
-features are disabled, you must install Kasten with additional Helm values that
-can be found here: FIPS values.
-To install the latest version of Kasten with the latest values use the
-command below:
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_install.md
-## Installing Veeam Kasten on Kubernetes
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Installing Veeam Kasten on Kubernetes
-While Veeam Kasten can be installed on any Linux system running a certified Kubernetes
-distribution, the resources below provide specific installation
-options for various public clouds, managed Kubernetes services,
-and other certified Kubernetes distributions:
-Following a successful installation, there are several options
-for setting up access to the Veeam Kasten dashboard. For more
-information, refer to Dashboard Access.
+Before installing Veeam Kasten on a SUSE Rancher managed
+Kubernetes cluster, please ensure that the
+install prerequisites are met.
+Prior to deploying Veeam Kasten, it is recommended that
+you need to create the namespace where Kasten will be
+installed. By default, the documentation uses kasten-io.
+In the SUSE Rancher user interface, navigate to Clusters
+-> Project/Namespaces and click "Create Namespace" and
+create a namespace called âkasten-ioâ.
+### Veeam Kasten Installation
+1. Find the Veeam Kasten chart of the SUSE Rancher Marketplace.
+Navigate to Apps & Marketplace -> Charts and search for âKastenâ.
+1. To begin the installation, simply click Install.
+3. Select the namespace 'kasten-io' from the Namespace dropdown menu.
+Optionally select "Customize Helm options before install" to
+customize the deployment.
+See this page
+for detailed descriptions of available options.
+1. To complete installation, click Next.
+When deploying Veeam Kasten on a SUSE Rancher managed
+Kubernetes cluster using Cilium as a Container Network
+Interface (CNI), it is important to consider the associated
+limitations, including potential compatibility issues or
+differences in configuration compared to the default CNIs.
+Refer to this Knowledge Base
+page for instructions on addressing these issues and optimizing
+the deployment with Cilium.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_install_ironbank.md
 ## Installing Veeam Kasten with Iron Bank Images
@@ -1529,12 +539,14 @@ environment by following the instructions found here.
 The Iron Bank hardened restorectl image can be used for Veeam Kasten
 disaster recovery by following the instructions found here.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_install_other_k3s.md
-## Installing Veeam Kasten on K3S
+### latest_install_aws-containers-anywhere_aws-containers-anywhere.md
+## Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
 - Install Requirements
 - Installing Veeam Kasten on Kubernetes
 Installing Veeam Kasten on AWS
 Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten
+Validating the Install
 Installing Veeam Kasten on Azure
 Installing Veeam Kasten on Azure Marketplace
 Installing Veeam Kasten on Red Hat OpenShift
@@ -1543,442 +555,13 @@ Installing Veeam Kasten on DigitalOcean
 Installing Veeam Kasten on VMware vSphere
 SUSE Rancher Apps & Marketplace Based Installation
 Installing Veeam Kasten on K3S
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
 Installing Veeam Kasten on Other Kubernetes Distributions
 - Installing Veeam Kasten on AWS
 - Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-Prerequisites
 Installing Veeam Kasten
 Validating the Install
-- Prerequisites
 - Installing Veeam Kasten
 - Validating the Install
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on K3S
-### Prerequisites
-Before installing Veeam Kasten on k3s, please ensure that the
-install prerequisites are met.
-### Installing Veeam Kasten
-To install Veeam Kasten on k3s, you also need to annotate the
-default VolumeSnapshotClass as specified in our CSI documentation.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_offline.md
-## Air-Gapped Install
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-Air-Gapped Veeam Kasten Installation
-Fetching the Helm Chart for Local Use
-Installing Veeam Kasten with Local Helm Chart and Container Images
-Installing Veeam Kasten with Disconnected OpenShift Operator
-Running Veeam Kasten Within a Local Network
-Providing Credentials if Local Container Repository is Private
-Preparing Veeam Kasten Container Images for Air-Gapped Use
-List Veeam Kasten Container Images
-Copy Kasten Images into a Private Repository
-Copy Kasten Images to/from a Filesystem Directory
-Using Iron Bank Veeam Kasten Container Images
-- Air-Gapped Veeam Kasten Installation
-Fetching the Helm Chart for Local Use
-Installing Veeam Kasten with Local Helm Chart and Container Images
-Installing Veeam Kasten with Disconnected OpenShift Operator
-Running Veeam Kasten Within a Local Network
-Providing Credentials if Local Container Repository is Private
-- Fetching the Helm Chart for Local Use
-- Installing Veeam Kasten with Local Helm Chart and Container Images
-- Installing Veeam Kasten with Disconnected OpenShift Operator
-- Running Veeam Kasten Within a Local Network
-- Providing Credentials if Local Container Repository is Private
-- Preparing Veeam Kasten Container Images for Air-Gapped Use
-List Veeam Kasten Container Images
-Copy Kasten Images into a Private Repository
-Copy Kasten Images to/from a Filesystem Directory
-Using Iron Bank Veeam Kasten Container Images
-- List Veeam Kasten Container Images
-- Copy Kasten Images into a Private Repository
-- Copy Kasten Images to/from a Filesystem Directory
-- Using Iron Bank Veeam Kasten Container Images
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Air-Gapped Install
-For environments that are connected to the Internet, one needs access
-to three repositories to install Veeam Kasten:
-- The Helm repository that contains the Veeam Kasten chart
-- The container registry that contains the Veeam Kasten container images
-- Upstream repositories to install Veeam Kasten dependencies (e.g., Prometheus)
-However, if an air-gapped installation is required, it is possible to
-use your own private container registry to install Veeam Kasten. While this can
-always be done manually, the k10tools image command makes it easier to
-automate the process.
-- Air-Gapped Veeam Kasten Installation
-Fetching the Helm Chart for Local Use
-Installing Veeam Kasten with Local Helm Chart and Container Images
-Installing Veeam Kasten with Disconnected OpenShift Operator
-Running Veeam Kasten Within a Local Network
-Providing Credentials if Local Container Repository is Private
-- Preparing Veeam Kasten Container Images for Air-Gapped Use
-List Veeam Kasten Container Images
-Copy Kasten Images into a Private Repository
-Copy Kasten Images to/from a Filesystem Directory
-Using Iron Bank Veeam Kasten Container Images
-Air-Gapped Veeam Kasten Installation
-Preparing Veeam Kasten Container Images for Air-Gapped Use
-### Air-Gapped Veeam Kasten Installation
-If the Veeam Kasten container images are already available in a private
-repository, the below instructions can be used to install in an
-air-gapped environment. If needed, support for uploading images to a
-private image registry is documented below.
-### Fetching the Helm Chart for Local Use
-To fetch the most recent Veeam Kasten Helm chart for local use, run
-the following command to pull the latest Veeam Kasten chart as a
-compressed tarball (.tgz) file into the working directory.
-If you need to fetch a specific version, please run the following command:
-### Installing Veeam Kasten with Local Helm Chart and Container Images
-If the Veeam Kasten container images were uploaded to a registry at
-repo.example.com, an air-gapped installation can be performed by
-setting global.airgapped.repository=repo.example.com as shown in
-the below command:
-### Installing Veeam Kasten with Disconnected OpenShift Operator
-To install Veeam Kasten with an OpenShift operator in an air-gapped
-cluster, follow the steps under
-offline operator install.
-### Running Veeam Kasten Within a Local Network
-To run Veeam Kasten in a network without the ability to connect to the
-internet, Veeam Kasten needs to be installed in an air-gapped mode with
-the helm value metering.mode=airgap as shown in the command below:
-Note
-If metering.mode=airgap is not set in an offline cluster, some functionality
-will be disabled. A message warning that Veeam Kasten is "Unable to validate license" will
-be displayed in the web based user interface. Errors containing messages
-"Could not get google bucket for metrics", "License check failed" and "Unable to validate license"
-will be logged.
-If the metering service is unable to connect to the internet for 24 hours,
-the metering service will restart.
-### Providing Credentials if Local Container Repository is Private
-If the local repository that has been provided as the value of
-global.airgapped.repository is private, credentials for that
-repository can be provided using secrets.dockerConfig and
-global.imagePullSecret flags, as below, with
-the helm install command.
-Our Helm chart creates a secret with the name k10-ecr
-with the value that has been provided for secrets.dockerConfig.
-That's why we are providing secret name k10-ecr as value of
-global.imagePullSecret.
-### Preparing Veeam Kasten Container Images for Air-Gapped Use
-There are multiple ways to use a private repository including setting
-up a caching or proxy image registry that points to the Veeam Kasten
-image repositories using tools such as JFrog Artifactory. However, if
-images need to be manually uploaded or an automated upload pipeline is
-required to add Veeam Kasten images into your private repository, the
-following documentation should help.
-To see all available commands and flags for running k10tools image please
-run the following:
-The following commands operate against the latest version of Veeam Kasten
-(7.5.8).
-Warning
-k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and
-must match the version you're installing.
-For older version, please refer to their documentation: https://docs.kasten.io/<version>/install/offline.html.
-### List Veeam Kasten Container Images
-The following command will list all images used by the current Veeam Kasten
-version (7.5.8). This can be helpful if there is a requirement to tag and
-push Veeam Kasten images into your private repository manually instead of using
-the Kasten provided tool documented below.
-### Copy Kasten Images into a Private Repository
-The following command will copy the Veeam Kasten container images into your
-specified registry. If the destination image tag should be different than the
-Veeam Kasten version, then the --dst-image-tag can be used to specify a new
-image tag.
-The following example uses a repository located at repo.example.com.
-This command will use your local docker config if the private registry
-requires authentication.
-The credsStore field in the $HOME/.docker/config.json is used to
-specify the credential store. This is typically an external credential
-store requiring an external helper and it may not be usable from within
-the docker container. Please refer to the docker documentation
-for more information.
-Alternatively, k10tools image provides authentication mechanisms such as
-passing a username and password (--dst-username and --dst-password
-flags) or a bearer token (--dst-token flag). Please refer to
-the help flag for more information.
-After running the previous command, use the
-instructions above to install Veeam Kasten via images
-uploaded to repo.example.com.
-### Copy Kasten Images to/from a Filesystem Directory
-Network limitations may limit the ability to directly copy images into a
-private repository. Alternatively, images can be copied to the local filesystem
-and then pushed to a repository separately. This requires downloading the
-k10tools binary.
-The following example copies the images to a directory images. This
-directory can then be used to upload to a private repository located at
-repo.example.com.
-### Using Iron Bank Veeam Kasten Container Images
-If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
-environment, execute the above commands but replace
-image with ironbank image:
-This ensures the images are pulled from Registry1.
-You must be logged in to the docker registry locally for this process
-to function correctly. Use docker login registry1.dso.mil --username
-"${REGISTRY1_USERNAME}" --password-stdin with your Registry1 CLI secret as
-the password to login.
-Alternatively, provide credentials using the methods
-described above.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_vmware_vsphere.md
-## Installing Veeam Kasten on VMware vSphere
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-- Prerequisites
-- Installing Veeam Kasten
-- Validating the Install
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on VMware vSphere
-### Prerequisites
-Before installing Veeam Kasten on VMware vSphere, please
-ensure that the install prerequisites are met.
-Persistent Volumes must be provisioned using the vSphere CSI provisioner
-or one of the other supported storage providers.
-### Installing Veeam Kasten
-To backup volumes provisioned by the vSphere
-CSI driver, credentials must be provided.
-These credentials can be supplied either via
-Helm parameters
-or using a vSphere Infrastructure Profile.
-### Providing the vSphere Credentials using Helm
-Setting up vSphere credentials requires configuring all of the
-following Helm flags during the execution of helm install or
-helm upgrade:
-Also, it is possible to use an existing secret
-instead of setting credentials through Helm parameters:
-Note
-Please ensure that the secret exists in the namespace where Veeam
-Kasten is installed.
-The default namespace assumed throughout this documentation is kasten-io.
-### Providing Credentials via the vSphere Infrastructure Profile
-Creation of a vSphere Infrastructure Profile is
-required to backup volumes provisioned by the vSphere CSI driver.
-Additional information related to the management of vSphere volumes
-is also found in the same section.
-If a Veeam Repository will be used
-to export snapshot data of vSphere CSI volumes, then
-configuring Change Tracking on the nodes
-would enable more efficient incremental backups.
-Refer to this
-or later Knowledge Base articles for details.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_upgrade.md
-## Upgrading Veeam Kasten
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-Upgrade Assistant
-Upgrading Helm-Installed Veeam Kasten
-Upgrading on the Google Cloud Marketplace
-Upgrading on the AWS Marketplace
-Upgrading an Operator Installed Veeam Kasten
-- Upgrade Assistant
-- Upgrading Helm-Installed Veeam Kasten
-- Upgrading on the Google Cloud Marketplace
-- Upgrading on the AWS Marketplace
-- Upgrading an Operator Installed Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Upgrading Veeam Kasten
-Note
-Currently, upgrades are only supported across a maximum of
-four versions (e.g., 2.0.10 -> 2.0.14). If your Veeam Kasten version
-is further behind the latest, a step upgrade process is recommended
-where you can use the --version flag with helm upgrade to control
-the version jumps. At least 50% free space is required in catalog storage
-also.
-### Upgrade Assistant
-You can verify the available free space for the catalog and access your
-recommended upgrade path by navigating to the System Information page from
-the Settings menu in the navigation sidebar or by using
-Veeam Kasten Primer for Upgrades resource.
-### Upgrading Helm-Installed Veeam Kasten
-To upgrade to the latest Veeam Kasten release, unless you have installed
-Veeam Kasten via the a public cloud marketplace, you should run the
-following command assuming you installed in the kasten-io namespace
-with the release name k10. If you do not remember your release name,
-you can easily discover that via the use of
-helm list --namespace=kasten-io.
-Known Issues: Helm 3 has known bugs with upgrade (e.g., ##6850). If you run into errors along the lines of
-Please use the following as a workaround and then run the above upgrade
-commands.
-### Upgrading on the Google Cloud Marketplace
-If you have installed Veeam Kasten via the Google Cloud Marketplace, please
-follow the instructions here.
-### Upgrading on the AWS Marketplace
-If you have installed Veeam Kasten via the AWS Container Marketplace or AWS
-Marketplace for Containers Anywhere, please follow the marketplace upgrade
-instructions.
-### Upgrading an Operator Installed Veeam Kasten
-Upgrading a Veeam Kasten installation made by a Veeam Kasten Operator requires
-updating the Veeam Kasten Operator.
-Ref: Red Hat documentation for upgrading installed Operators.
-The process of upgrading the Veeam Kasten Operator depends on how update was
-configured during install - Automatic or Manual.
-The Operator update approval strategy can be changed anytime after install
-from the Subscription tab of the Operator.
-For an Automatic update, the Veeam Kasten Operator and Operand
-(which is the Veeam Kasten install) are both automatically updated
-any time a new Veeam Kasten Operator is published.
-For a Manual update, the cluster administrator must approve the update when it shows up
-for the installation to begin.
-Ref: Red Hat documentation for manually approving a pending Operator upgrade.
-The Veeam Kasten operators are published with a maximum supported OpenShift
-version. This will cause warnings to appear when trying to upgrade a cluster
-beyond the maximum supported version.
-Warning
-Upgrading the cluster beyond the Veeam Kasten maximum supported OpenShift version
-may cause unpredictable Veeam Kasten behavior and will result in losing Kasten support.
-Examples of warning messages for cluster upgrade:
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_suserancher_suserancher.md
-## SUSE Rancher Apps & Marketplace Based Installation
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Prerequisites
-Veeam Kasten Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
 - Installing Veeam Kasten on Azure
 - Installing Veeam Kasten on Azure Marketplace
 - Installing Veeam Kasten on Red Hat OpenShift
@@ -1986,10 +569,6 @@ Installing Veeam Kasten on Other Kubernetes Distributions
 - Installing Veeam Kasten on DigitalOcean
 - Installing Veeam Kasten on VMware vSphere
 - SUSE Rancher Apps & Marketplace Based Installation
-Prerequisites
-Veeam Kasten Installation
-- Prerequisites
-- Veeam Kasten Installation
 - Installing Veeam Kasten on K3S
 - Installing Veeam Kasten on Other Kubernetes Distributions
 - Storage Integration
@@ -2005,9 +584,8 @@ Veeam Kasten Installation
 - Upgrading Veeam Kasten
 - Production Deployment Checklist
 -
-- Installing Veeam Kasten
 - Installing Veeam Kasten on Kubernetes
-- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
 Note
 With the 7.0 release in May 2024, "Kasten by Veeam" and
 "Kasten K10" have been replaced with "Veeam Kasten for Kubernetes."
@@ -2016,34 +594,96 @@ to include both the new and simpler "Veeam Kasten" names. Both names
 will be used for a while, and then the documentation will be
 modified only to use the new names. The name K10 is still used for
 functional examples.
-### Prerequisites
-Before installing Veeam Kasten on a SUSE Rancher managed
-Kubernetes cluster, please ensure that the
-install prerequisites are met.
-Prior to deploying Veeam Kasten, it is recommended that
-you need to create the namespace where Kasten will be
-installed. By default, the documentation uses kasten-io.
-In the SUSE Rancher user interface, navigate to Clusters
--> Project/Namespaces and click "Create Namespace" and
-create a namespace called âkasten-ioâ.
-### Veeam Kasten Installation
-1. Find the Veeam Kasten chart of the SUSE Rancher Marketplace.
-Navigate to Apps & Marketplace -> Charts and search for âKastenâ.
-1. To begin the installation, simply click Install.
-3. Select the namespace 'kasten-io' from the Namespace dropdown menu.
-Optionally select "Customize Helm options before install" to
-customize the deployment.
-See this page
-for detailed descriptions of available options.
-1. To complete installation, click Next.
-When deploying Veeam Kasten on a SUSE Rancher managed
-Kubernetes cluster using Cilium as a Container Network
-Interface (CNI), it is important to consider the associated
-limitations, including potential compatibility issues or
-differences in configuration compared to the default CNIs.
-Refer to this Knowledge Base
-page for instructions on addressing these issues and optimizing
-the deployment with Cilium.
+### Installing Veeam Kasten
+Follow the installation instructions here.
+### Attaching permissions for EKS installations
+Warning
+This is a required step. Veeam Kasten will not be able to
+backup any AWS resources unless these permissions are granted.
+IAM Role created during installation need to have permissions that allow
+Veeam Kasten to perform operations on EBS and, if needed, EFS and S3.
+The minimal set of permissions needed by Veeam Kasten for integrating
+against different AWS services can be found here:
+- Using Veeam Kasten with AWS EBS
+- Using Veeam Kasten with AWS S3
+- Using Veeam Kasten with Amazon RDS
+- Using Veeam Kasten with AWS EFS
+- Using Veeam Kasten with AWS Secrets Manager
+- Optional KMS Permissions
+Create a policy
+with the required permissions from the options above. To attach this policy to
+the IAM Role created during installation, follow the steps below.
+The steps above assume that the Veeam Kasten service account name is
+k10-k10 and the Veeam Kasten installation is in the kasten-io
+namespace. Please modify these as needed.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_install.md
+## Installing Veeam Kasten on Kubernetes
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+- Installing Veeam Kasten on Kubernetes
+While Veeam Kasten can be installed on any Linux system running a certified Kubernetes
+distribution, the resources below provide specific installation
+options for various public clouds, managed Kubernetes services,
+and other certified Kubernetes distributions:
+Following a successful installation, there are several options
+for setting up access to the Veeam Kasten dashboard. For more
+information, refer to Dashboard Access.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_install_requirements.md
 ## Install Requirements
@@ -2531,6 +1171,741 @@ Shareable volume backup and restore workflows are not
 compatible with NFS FileStore location profiles.
 The location profile must be present for shareable volume backups to work.
 © Copyright 2017-2024, Kasten, Inc.
+### latest_install_openshift_openshift.md
+## Installing Veeam Kasten on Red Hat OpenShift
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Helm based Installation
+OpenShift on Azure
+Operator based Installation
+Managed Red Hat OpenShift Offerings
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+Helm based Installation
+OpenShift on Azure
+Operator based Installation
+Managed Red Hat OpenShift Offerings
+- Helm based Installation
+- OpenShift on Azure
+- Operator based Installation
+- Managed Red Hat OpenShift Offerings
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on Red Hat OpenShift
+There are two methods to install Veeam Kasten on Red Hat OpenShift:
+While the two installation methods have similarities, the details
+will differ. Please make sure to choose the method that most closely
+follows the requirements of your organization.
+Note
+When deploying Veeam Kasten on a Red Hat OpenShift managed
+Kubernetes cluster using Cilium as a Container Network Interface
+(CNI), it is important to consider the associated limitations,
+including potential compatibility issues or differences in
+configuration compared to the default CNIs. Refer to this page
+for instructions on addressing these issues and optimizing the
+deployment with Cilium.
+### Managed Red Hat OpenShift Offerings
+The two installation methods mentioned above are also
+applicable when installing Veeam Kasten on Managed Red Hat
+OpenShift offerings, including:
+- Red Hat OpenShift on AWS (ROSA)
+- Azure Red Hat OpenShift (ARO)
+No additional or platform-specific configurations are required
+for installation.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_gvs_restricted.md
+## Restricted Use of Generic Storage Backup
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+Generic Storage Backup (GSB) is a feature developed by
+Kasten to provide backup capabilities for Kubernetes applications with
+persistent volumes using a storage provisioner that lacks snapshot
+capabilities. While this feature provided flexibility in the early stages of
+Kubernetes storage, it comes with certain limitations. GSB essentially copies
+the live filesystem of a persistent volume, and any changes occurring to that
+filesystem during the file copy operation can lead to inconsistent backup data.
+This inconsistency could potentially result in unexpected behavior when
+restoring applications using a GSB backup.
+Unlike GSB, storage snapshots allow for the creation of crash-consistent and
+data-consistent backups. The general availability of VolumeSnapshot APIs for
+Container Storage Interface (CSI) drivers allowed storage vendors to integrate
+their snapshot and cloning capabilities using a standardized interface.
+Since 2018, the list of production-ready CSI drivers
+has grown to over 100, with the majority now supporting VolumeSnapshots.
+Given the increasing availability and adoption of snapshot-capable CSI
+drivers, the utility of GSB has become limited.
+It is highly recommended for existing customers to migrate to a CSI driver with
+snapshot and clone capabilities based on their storage requirements. In rare
+cases where migration to a CSI driver is not possible, existing
+customers can contact Kasten by Veeam Support via MyVeeam,
+to open a support case and request the activation token for GSB.
+For all current prospects evaluating Veeam Kasten, we recommend reaching
+out to your local Kasten by Veeam Sales team through the local point of contact
+within the Veeam channel.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_digitalocean_digitalocean.md
+## Installing Veeam Kasten on DigitalOcean
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on DigitalOcean
+### Prerequisites
+Before installing Veeam Kasten on DigitalOcean, please ensure that the
+install prerequisites are met.
+### Installing Veeam Kasten
+To install Veeam Kasten on DigitalOcean, you also need to annotate the
+VolumeSnapshotClass as specified in our CSI documentation.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_vmware_vsphere.md
+## Installing Veeam Kasten on VMware vSphere
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on VMware vSphere
+### Prerequisites
+Before installing Veeam Kasten on VMware vSphere, please
+ensure that the install prerequisites are met.
+Persistent Volumes must be provisioned using the vSphere CSI provisioner
+or one of the other supported storage providers.
+### Installing Veeam Kasten
+To backup volumes provisioned by the vSphere
+CSI driver, credentials must be provided.
+These credentials can be supplied either via
+Helm parameters
+or using a vSphere Infrastructure Profile.
+### Providing the vSphere Credentials using Helm
+Setting up vSphere credentials requires configuring all of the
+following Helm flags during the execution of helm install or
+helm upgrade:
+Also, it is possible to use an existing secret
+instead of setting credentials through Helm parameters:
+Note
+Please ensure that the secret exists in the namespace where Veeam
+Kasten is installed.
+The default namespace assumed throughout this documentation is kasten-io.
+### Providing Credentials via the vSphere Infrastructure Profile
+Creation of a vSphere Infrastructure Profile is
+required to backup volumes provisioned by the vSphere CSI driver.
+Additional information related to the management of vSphere volumes
+is also found in the same section.
+If a Veeam Repository will be used
+to export snapshot data of vSphere CSI volumes, then
+configuring Change Tracking on the nodes
+would enable more efficient incremental backups.
+Refer to this
+or later Knowledge Base articles for details.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_other_k3s.md
+## Installing Veeam Kasten on K3S
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on K3S
+### Prerequisites
+Before installing Veeam Kasten on k3s, please ensure that the
+install prerequisites are met.
+### Installing Veeam Kasten
+To install Veeam Kasten on k3s, you also need to annotate the
+default VolumeSnapshotClass as specified in our CSI documentation.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_checklist.md
+## Production Deployment Checklist
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+Pre-Install
+Encryption Key
+Authentication Mode
+CSI-based Storage Providers
+FIPS Compliant Mode
+Post-Install
+Disaster Recovery
+Encryption Key
+Monitoring
+User Roles
+- Pre-Install
+Encryption Key
+Authentication Mode
+CSI-based Storage Providers
+FIPS Compliant Mode
+- Encryption Key
+- Authentication Mode
+- CSI-based Storage Providers
+- FIPS Compliant Mode
+- Post-Install
+Disaster Recovery
+Encryption Key
+Monitoring
+User Roles
+- Disaster Recovery
+- Monitoring
+- User Roles
+-
+- Installing Veeam Kasten
+- Production Deployment Checklist
+When you are deploying the Veeam Kasten platform in your production
+cluster, there are a few things you should consider.
+We have created a quick checklist for you to make sure your
+installation is easy.
+### Pre-Install
+Following are the items you need to check and configure before you
+install Veeam Kasten's platform.  The complete installation instructions
+can be found here.
+### Encryption Key
+Before you setup Kasten, you need to set and configure an encryption
+key. This key is needed for data and metadata encryption.
+More information can be found here.
+### Authentication Mode
+During installation, you have an option to choose an authentication mode.
+You can choose between Direct Access, Basic Authentication,
+Token-based Authentication or OpenID Connect.
+You can learn more about it here.
+### CSI-based Storage Providers
+If you are provisioning storage via the Container Storage Interface
+(CSI) and want to leverage CSI Volume Snapshots, please follow the
+documentation here to ensure that the
+VolumeSnapshotClass has the Veeam Kasten annotation.
+### FIPS Compliant Mode
+When installing, you have the option to enable FIPS mode, which enforces
+the use of FIPS approved algorithms. This ensures Kasten is compliant
+with FIPS requirements.
+However, in order to ensure success, this must be done on a new
+installation of Kasten. The underlying cluster should also be in
+running in FIPS mode.
+You can find more information on this topic here.
+### Post-Install
+Following are the items you need to check and configure after you
+have installed Veeam Kasten's platform. The complete installation instructions
+can be found here.
+### Disaster Recovery
+Kasten allows you to enable Disaster Recovery (DR) to protect Veeam Kasten
+from any infrastructure failures. Make sure to enable DR and save your
+cluster ID as well as the passphrase for recovery. More information about DR
+can be found here.
+### Encryption Key
+Once Veeam Kasten installation is complete, be sure to save the encryption key
+for future use. You can lose access to the data in case of loss of
+this encryption key.
+### Monitoring
+Once you have Veeam Kasten protecting your applications, you want to ensure
+that problems such as backup failures, infrastructure issues, and job
+failures due to license expiry are immediately noticed without having
+to constantly check the dashboard. We therefore highly recommend
+integrating your monitoring with our Prometheus
+endpoints and triggering alerts based on failure
+notifications.
+Note
+Veeam Kasten does not allow the disabling of Prometheus
+services. Attempting to disable these services may result in
+unsupported scenarios and potential issues with monitoring and logging
+functionalities, affecting Veeam Kasten's overall functionality. It
+is recommended to maintain these services enabled in order to ensure
+proper functionality and prevent unexpected behavior.
+### User Roles
+User roles are only available for certain authentication modes.
+Veeam Kasten is set up with different Cluster Roles
+that you can use to enable authorization in your cluster. You should not
+change these user roles but you can add on top of them to customize
+it to your needs.
+For more information about User Roles and Authorization, check
+here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_offline.md
+## Air-Gapped Install
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+Air-Gapped Veeam Kasten Installation
+Fetching the Helm Chart for Local Use
+Installing Veeam Kasten with Local Helm Chart and Container Images
+Installing Veeam Kasten with Disconnected OpenShift Operator
+Running Veeam Kasten Within a Local Network
+Providing Credentials if Local Container Repository is Private
+Preparing Veeam Kasten Container Images for Air-Gapped Use
+List Veeam Kasten Container Images
+Copy Kasten Images into a Private Repository
+Copy Kasten Images to/from a Filesystem Directory
+Using Iron Bank Veeam Kasten Container Images
+- Air-Gapped Veeam Kasten Installation
+Fetching the Helm Chart for Local Use
+Installing Veeam Kasten with Local Helm Chart and Container Images
+Installing Veeam Kasten with Disconnected OpenShift Operator
+Running Veeam Kasten Within a Local Network
+Providing Credentials if Local Container Repository is Private
+- Fetching the Helm Chart for Local Use
+- Installing Veeam Kasten with Local Helm Chart and Container Images
+- Installing Veeam Kasten with Disconnected OpenShift Operator
+- Running Veeam Kasten Within a Local Network
+- Providing Credentials if Local Container Repository is Private
+- Preparing Veeam Kasten Container Images for Air-Gapped Use
+List Veeam Kasten Container Images
+Copy Kasten Images into a Private Repository
+Copy Kasten Images to/from a Filesystem Directory
+Using Iron Bank Veeam Kasten Container Images
+- List Veeam Kasten Container Images
+- Copy Kasten Images into a Private Repository
+- Copy Kasten Images to/from a Filesystem Directory
+- Using Iron Bank Veeam Kasten Container Images
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+- Air-Gapped Install
+For environments that are connected to the Internet, one needs access
+to three repositories to install Veeam Kasten:
+- The Helm repository that contains the Veeam Kasten chart
+- The container registry that contains the Veeam Kasten container images
+- Upstream repositories to install Veeam Kasten dependencies (e.g., Prometheus)
+However, if an air-gapped installation is required, it is possible to
+use your own private container registry to install Veeam Kasten. While this can
+always be done manually, the k10tools image command makes it easier to
+automate the process.
+- Air-Gapped Veeam Kasten Installation
+Fetching the Helm Chart for Local Use
+Installing Veeam Kasten with Local Helm Chart and Container Images
+Installing Veeam Kasten with Disconnected OpenShift Operator
+Running Veeam Kasten Within a Local Network
+Providing Credentials if Local Container Repository is Private
+- Preparing Veeam Kasten Container Images for Air-Gapped Use
+List Veeam Kasten Container Images
+Copy Kasten Images into a Private Repository
+Copy Kasten Images to/from a Filesystem Directory
+Using Iron Bank Veeam Kasten Container Images
+Air-Gapped Veeam Kasten Installation
+Preparing Veeam Kasten Container Images for Air-Gapped Use
+### Air-Gapped Veeam Kasten Installation
+If the Veeam Kasten container images are already available in a private
+repository, the below instructions can be used to install in an
+air-gapped environment. If needed, support for uploading images to a
+private image registry is documented below.
+### Fetching the Helm Chart for Local Use
+To fetch the most recent Veeam Kasten Helm chart for local use, run
+the following command to pull the latest Veeam Kasten chart as a
+compressed tarball (.tgz) file into the working directory.
+If you need to fetch a specific version, please run the following command:
+### Installing Veeam Kasten with Local Helm Chart and Container Images
+If the Veeam Kasten container images were uploaded to a registry at
+repo.example.com, an air-gapped installation can be performed by
+setting global.airgapped.repository=repo.example.com as shown in
+the below command:
+### Installing Veeam Kasten with Disconnected OpenShift Operator
+To install Veeam Kasten with an OpenShift operator in an air-gapped
+cluster, follow the steps under
+offline operator install.
+### Running Veeam Kasten Within a Local Network
+To run Veeam Kasten in a network without the ability to connect to the
+internet, Veeam Kasten needs to be installed in an air-gapped mode with
+the helm value metering.mode=airgap as shown in the command below:
+Note
+If metering.mode=airgap is not set in an offline cluster, some functionality
+will be disabled. A message warning that Veeam Kasten is "Unable to validate license" will
+be displayed in the web based user interface. Errors containing messages
+"Could not get google bucket for metrics", "License check failed" and "Unable to validate license"
+will be logged.
+If the metering service is unable to connect to the internet for 24 hours,
+the metering service will restart.
+### Providing Credentials if Local Container Repository is Private
+If the local repository that has been provided as the value of
+global.airgapped.repository is private, credentials for that
+repository can be provided using secrets.dockerConfig and
+global.imagePullSecret flags, as below, with
+the helm install command.
+Our Helm chart creates a secret with the name k10-ecr
+with the value that has been provided for secrets.dockerConfig.
+That's why we are providing secret name k10-ecr as value of
+global.imagePullSecret.
+### Preparing Veeam Kasten Container Images for Air-Gapped Use
+There are multiple ways to use a private repository including setting
+up a caching or proxy image registry that points to the Veeam Kasten
+image repositories using tools such as JFrog Artifactory. However, if
+images need to be manually uploaded or an automated upload pipeline is
+required to add Veeam Kasten images into your private repository, the
+following documentation should help.
+To see all available commands and flags for running k10tools image please
+run the following:
+The following commands operate against the latest version of Veeam Kasten
+(7.5.8).
+Warning
+k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and
+must match the version you're installing.
+For older version, please refer to their documentation: https://docs.kasten.io/<version>/install/offline.html.
+### List Veeam Kasten Container Images
+The following command will list all images used by the current Veeam Kasten
+version (7.5.8). This can be helpful if there is a requirement to tag and
+push Veeam Kasten images into your private repository manually instead of using
+the Kasten provided tool documented below.
+### Copy Kasten Images into a Private Repository
+The following command will copy the Veeam Kasten container images into your
+specified registry. If the destination image tag should be different than the
+Veeam Kasten version, then the --dst-image-tag can be used to specify a new
+image tag.
+The following example uses a repository located at repo.example.com.
+This command will use your local docker config if the private registry
+requires authentication.
+The credsStore field in the $HOME/.docker/config.json is used to
+specify the credential store. This is typically an external credential
+store requiring an external helper and it may not be usable from within
+the docker container. Please refer to the docker documentation
+for more information.
+Alternatively, k10tools image provides authentication mechanisms such as
+passing a username and password (--dst-username and --dst-password
+flags) or a bearer token (--dst-token flag). Please refer to
+the help flag for more information.
+After running the previous command, use the
+instructions above to install Veeam Kasten via images
+uploaded to repo.example.com.
+### Copy Kasten Images to/from a Filesystem Directory
+Network limitations may limit the ability to directly copy images into a
+private repository. Alternatively, images can be copied to the local filesystem
+and then pushed to a repository separately. This requires downloading the
+k10tools binary.
+The following example copies the images to a directory images. This
+directory can then be used to upload to a private repository located at
+repo.example.com.
+### Using Iron Bank Veeam Kasten Container Images
+If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
+environment, execute the above commands but replace
+image with ironbank image:
+This ensures the images are pulled from Registry1.
+You must be logged in to the docker registry locally for this process
+to function correctly. Use docker login registry1.dso.mil --username
+"${REGISTRY1_USERNAME}" --password-stdin with your Registry1 CLI secret as
+the password to login.
+Alternatively, provide credentials using the methods
+described above.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_fips.md
+## Installing Kasten in FIPS mode
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+Cryptographic Modules
+FIPS Supported Kubernetes Distributions
+Limitations in FIPS mode
+Installation in FIPS mode
+- Cryptographic Modules
+- FIPS Supported Kubernetes Distributions
+- Limitations in FIPS mode
+- Installation in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+- Installing Kasten in FIPS mode
+Kasten, as of version 7.0, supports an installation option that complies with
+the Federal Information Processing Standards (FIPS) defined by the National
+Institute of Standards and Technology (NIST). This is especially important for
+organizations operating in highly regulated industries or government sectors.
+FIPS-compliant software ensures that cryptographic algorithms and security
+protocols meet strict government requirements, including those set by the
+United States Department of Defense (DoD). To learn more about FIPS, visit
+NIST's Compliance FAQs.
+Kasten in FIPS mode was designed to comply with the FIPS 140-3 standard.
+Activate this mode by using a set of Helm values specified below during the
+installation process, as explained in the accompanying document. To learn
+more about FIPS 140-3, please refer to
+NIST FIPS 140-3.
+### Cryptographic Modules
+Kasten uses OpenSSL for its implementation of cryptographic primitives and
+algorithms. OpenSSL is provided by Red Hat's Universal Base Images (UBI). This
+cryptographic module is currently listed as "review pending" by
+NIST's Cryptographic Module Validation Program.
+By incorporating OpenSSL, UBI, and aligning its implementation with Red Hat Compliance recommendations, Kasten ensures compliance of the FIPS 140-3 security requirements.
+### FIPS Supported Kubernetes Distributions
+Kasten has been extensively tested and verified with Red Hat OpenShift,
+ensuring seamless integration between the two platforms. By using Kasten
+with Red Hat OpenShift, customers can benefit from enhanced security and
+compliance features, which are necessary for protecting critical data in
+FIPS-compliant environments.
+While Kasten's FIPS mode can be activated in other environments, it may
+necessitate additional testing and configuration to ensure the cryptographic
+module's compliance. However, Kasten is continuously exploring opportunities
+to support additional Kubernetes distributions in the future.
+### Limitations in FIPS mode
+Some Kasten features are not currently supported when FIPS is enabled:
+- Prometheus
+- PDF Reports
+- Block mode exports and restores of supported Ceph CSI volumes do
+not use the Ceph API
+As a workaround for dashboards please install and configure a FIPS
+compliant version of Grafana and Prometheus with Kasten.
+### Installation in FIPS mode
+Warning
+During initialization, Kasten generates encryption keys using the configured
+encryption algorithms.
+This means FIPS algorithms must be enabled during the initial installation.
+However, some features will be unavailable (see above).
+To ensure that certified cryptographic modules are utilized and non-compliant
+features are disabled, you must install Kasten with additional Helm values that
+can be found here: FIPS values.
+To install the latest version of Kasten with the latest values use the
+command below:
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_install_gwif.md
 ## Installing Veeam Kasten with Google Workload Identity Federation
 - Install Requirements
@@ -2600,10 +1975,41 @@ target cluster.
 <location-profile-name> is the profile on target cluster that contains the
 credential configuration file.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_install_gvs_restricted.md
-## Restricted Use of Generic Storage Backup
+### latest_install_google_google.md
+## Installing Veeam Kasten on Google Cloud
 - Install Requirements
 - Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
 - Storage Integration
 - Generic Storage Backup and Restore
 - Restricted Use of Generic Storage Backup
@@ -2617,32 +2023,947 @@ credential configuration file.
 - Upgrading Veeam Kasten
 - Production Deployment Checklist
 -
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on Google Cloud
+Note
+With the 7.0 release in May 2024, "Kasten by Veeam" and
+"Kasten K10" have been replaced with "Veeam Kasten for Kubernetes."
+Throughout this documentation, references to "K10" will be modified
+to include both the new and simpler "Veeam Kasten" names. Both names
+will be used for a while, and then the documentation will be
+modified only to use the new names. The name K10 is still used for
+functional examples.
+### Prerequisites
+Before installing Veeam Kasten on Google Cloud's Google Kubernetes Engine
+(GKE), please ensure that the install
+prerequisites are met.
+### Installing Veeam Kasten
+Installing Veeam Kasten on Google requires two kinds of Service Accounts.
+The first, documented below, is a Google Cloud Platform (GCP) Service
+Account (SA)
+that grants access to underlying Google Cloud infrastructure resources such as
+storage. The second, as mentioned above in the Prerequisites section,
+is a Kubernetes Service Account that grants access to Kubernetes resources
+and will be auto-created during the helm install process or via
+Google Marketplace options.
+It is advised to make sure that the necessary permissions are available
+before proceeding with the installation of Veeam Kasten. The process of
+granting permissions may vary depending on the chosen installation mode.
+It is important to follow the instructions relevant to the desired
+installation mode to ensure a smooth and successful installation of
+Veeam Kasten.
+### GCP Service Account Configuration
+Veeam Kasten uses the Google Cloud Platform Service Account to manage volumesnapshot
+in the GCP account. Therefore, the service account needs to be assigned the
+compute.storageAdmin
+role.
+Service Account Key
+Veeam Kasten requires a Service Account key for the GCP Service Account
+and the GCP Project ID associated with it.
+### Using a Separate GCP Service Account
+The preferred option for a Veeam Kasten install is to create and use a
+separate Google service account with the appropriate permissions to
+operate on the underlying Google Cloud infrastructure and then use that.
+For more details on how to create and use a separate service account,
+refer to the following links:
+- Creating a New Service Account
+- Installing Veeam Kasten with the new Service Account
+Using a Custom Project ID
+Existing Secret Usage
+- Using a Custom Project ID
+- Existing Secret Usage
+For information on adding the compute.storageAdmin role to a Google
+Cloud Platform Service Account for the associated GCP project, refer to
+this link.
+### Service Accounts for a Marketplace Install
+If you are installing on Google via the Google Marketplace,
+first follow the below instructions on correctly configuring the
+cluster's default SA and then follow these
+instructions to install.
+### Using the Default GCP Service Account
+A GCP Service Account automatically gets created with every GKE
+cluster. This SA can be accessed within the GKE cluster to perform
+actions on GCP resources and, if set up correctly at cluster creation
+time, can be the simplest way to run the Kasten platform.
+This SA configuration needs to be done at cluster creation time. When
+using the Google Cloud Console to create a new Kubernetes cluster,
+please select More Options for every node pool you have
+added. Search for Security in the expanded list of options and,
+under Access Scopes, select Set access for each API. In the list
+of scopes that show up, please ensure that Compute Engine is set to
+Read Write.
+Once the Service Accounts are created and the node pools are running,
+Veeam Kasten can then be installed by running the following install command:
+To address any troubleshooting issues while installing Veeam
+Kasten on a Kubernetes platform using the Cilium Container Network
+Interface (CNI) setup, refer to this page.
+The page provides specific steps for resolving installation issues with
+Cilium CNI and Veeam Kasten compatibility.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_aws_aws.md
+## Installing Veeam Kasten on AWS
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
 - Installing Veeam Kasten
-Generic Storage Backup (GSB) is a feature developed by
-Kasten to provide backup capabilities for Kubernetes applications with
-persistent volumes using a storage provisioner that lacks snapshot
-capabilities. While this feature provided flexibility in the early stages of
-Kubernetes storage, it comes with certain limitations. GSB essentially copies
-the live filesystem of a persistent volume, and any changes occurring to that
-filesystem during the file copy operation can lead to inconsistent backup data.
-This inconsistency could potentially result in unexpected behavior when
-restoring applications using a GSB backup.
-Unlike GSB, storage snapshots allow for the creation of crash-consistent and
-data-consistent backups. The general availability of VolumeSnapshot APIs for
-Container Storage Interface (CSI) drivers allowed storage vendors to integrate
-their snapshot and cloning capabilities using a standardized interface.
-Since 2018, the list of production-ready CSI drivers
-has grown to over 100, with the majority now supporting VolumeSnapshots.
-Given the increasing availability and adoption of snapshot-capable CSI
-drivers, the utility of GSB has become limited.
-It is highly recommended for existing customers to migrate to a CSI driver with
-snapshot and clone capabilities based on their storage requirements. In rare
-cases where migration to a CSI driver is not possible, existing
-customers can contact Kasten by Veeam Support via MyVeeam,
+- Validating the Install
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on AWS
+### Prerequisites
+Before installing Veeam Kasten on Amazon EKS, it is important to determine the
+preferred authentication mechanism: either Long-term access keys or IAM Roles
+for service accounts. The choice of authentication mechanism will affect the
+necessary steps and prerequisites for the installation process.
+AWS provides two types of authentication mechanisms for programmatic access:
+- Long-term access keys
+- IAM Roles for Service Accounts
+If you opt for long-term access keys, you will need to provide the Access
+Key ID and Secret Access Key during the setup. In addition, you may optionally
+provide an additional IAM Role.
+The additional IAM Role allows for extra permissions to be granted to the
+identity authenticated with the long-term access key.
+On the other hand, if you choose IAM Roles for service accounts, you would
+not need to provide the Access Key ID and Secret Access Key. Instead, you will
+need to ensure the presence of the required IAM role.
+Please consider the authentication mechanism that best suits your
+requirements and follow the appropriate steps and instructions provided to
+ensure a seamless authentication experience.
+These mechanisms are designed to authenticate and authorize the programmatic
+interactions between scripts or command line interfaces and AWS services.
+Both authentication mechanisms provide secure programmatic access to
+AWS resources.
+Let's dive into the details:
+1. Long-term access keys:
+These keys are commonly used when authenticating programmatic access
+to AWS resources. When creating long-term access keys, you receive
+an Access key ID and a Secret Access Key. The Access Key ID serves
+as the identifier for the access key, and the Secret Access Key is a
+unique secret value used for authentication.
+During the Helm installation process, you are given the choice to
+assign a role. This role will be used during authentication when Veeam
+Kasten initially authenticates using the provided Access Key ID and
+Secret Access Key, along with the additional assigned role.
+During the Helm installation process, you can choose to configure
+long-term access secret keys and key IDs by providing the necessary
+key pairs:
+--set secrets.awsAccessKeyId and
+--set secrets.awsSecretAccessKey.
+(Optional) In addition to the long-term access keys,
+you can choose to provide an additional IAM role. This additional
+role will be associated with the secrets.awsIamRole configuration
+parameter.
+2. During the Helm installation process, you can choose to configure
+long-term access secret keys and key IDs by providing the necessary
+key pairs:
+--set secrets.awsAccessKeyId and
+--set secrets.awsSecretAccessKey.
+3. (Optional) In addition to the long-term access keys,
+you can choose to provide an additional IAM role. This additional
+role will be associated with the secrets.awsIamRole configuration
+parameter.
+4. IAM Roles for Service Accounts:
+IAM roles are useful in scenarios where you want to provide access to
+AWS services without managing or exposing long-term access keys.
+To know more about it, refer to IAM Roles for Service Accounts.
+Long-term access keys:
+These keys are commonly used when authenticating programmatic access
+to AWS resources. When creating long-term access keys, you receive
+an Access key ID and a Secret Access Key. The Access Key ID serves
+as the identifier for the access key, and the Secret Access Key is a
+unique secret value used for authentication.
+During the Helm installation process, you are given the choice to
+assign a role. This role will be used during authentication when Veeam
+Kasten initially authenticates using the provided Access Key ID and
+Secret Access Key, along with the additional assigned role.
+AWS IAM roles grant access to AWS account resources to trusted entities.
+The following links contain information on how to create roles and other
+permission-related details:
+- Using AWS IAM Roles with Veeam Kasten
+Creating an IAM Policy
+Veeam Kasten Installs with IAM Roles
+Option I: Using IAM Role With a Kubernetes Service Account (EKS)
+Enabling OIDC on your EKS Cluster
+Creating an IAM Role for Veeam Kasten Install
+Option II: Using an IAM Role With an IAM User
+- Creating an IAM Policy
+- Veeam Kasten Installs with IAM Roles
+Option I: Using IAM Role With a Kubernetes Service Account (EKS)
+Enabling OIDC on your EKS Cluster
+Creating an IAM Role for Veeam Kasten Install
+Option II: Using an IAM Role With an IAM User
+- Option I: Using IAM Role With a Kubernetes Service Account (EKS)
+Enabling OIDC on your EKS Cluster
+Creating an IAM Role for Veeam Kasten Install
+- Enabling OIDC on your EKS Cluster
+- Creating an IAM Role for Veeam Kasten Install
+- Option II: Using an IAM Role With an IAM User
+### Installing Veeam Kasten
+To install on AWS, you need to define two environment variables that
+specify your access key id and secret access key.
+After doing so, just run the following command to install Veeam Kasten,
+the Kasten platform on either AWS EKS or any other Kubernetes
+distribution running on EC2.
+If you want Veeam Kasten to assume an IAM Role in AWS infrastructure
+operations, refer to Using AWS IAM Roles with Veeam Kasten
+on how to create and use the role.
+For IAM Roles for Service Accounts, once the setup is completed, you will need to
+provide a token file to assign the role to the k10-k10 service account.
+With the assigned role, there is no need for Access Key and Secret Access Key.
+During the Veeam Kasten installation, you can choose to manually configure
+the k10-k10 service account.
+For additional information, refer to Associate Service Account Role.
+In some scenarios, it is advantageous to avoid pre-configuring a service
+account manually, and instead, leverage Helm's capabilities to streamline
+the process. By providing a role through the Helm package manager using
+the --set secrets.awsIamRole flag, the service account can be
+dynamically created.
+AWS keys or IAM Roles need to have permissions that allow Veeam Kasten to
+perform operations on EBS and, if needed, EFS and S3. The minimal set
+of permissions needed by Veeam Kasten for integrating against different AWS
+services can be found here:
+- Using Veeam Kasten with AWS EBS
+- Using Veeam Kasten with AWS S3
+- Using Veeam Kasten with Amazon RDS
+- Using Veeam Kasten with AWS EFS
+- Using Veeam Kasten with AWS Secrets Manager
+- Optional KMS Permissions
+The above permissions can also be used in the context of IAM Policies
+and Roles. Refer to Using AWS IAM Roles with Veeam Kasten for more information
+regarding IAM Policies and Roles.
+Note
+To address any troubleshooting issues while installing Veeam Kasten
+on a Kubernetes platform using the Cilium Container Network Interface (CNI)
+setup, refer to this page.
+The page provides specific steps for resolving installation issues with
+Cilium CNI and Veeam Kasten compatibility.
+### Existing Secret Usage
+It is possible to use an existing secret
+to provide the following parameters for AWS configuration:
+- AWS Access Key ID
+Field name - aws_access_key_id
+- AWS Secret Access Key
+Field name - aws_secret_access_key
+- AWS IAM Role
+Field name - role
+To do so, the following Helm option can be used:
+Please ensure that the secret exists in the namespace where Veeam Kasten
+is installed.
+The default namespace assumed throughout this documentation is kasten-io.
+### EKS Authentication Setup
+Finally, for end-to-end instructions on how to set up token-based
+authentication for AWS EKS clusters, please follow the documentation
+here.
+### Elastic File System Limitation
+Currently, Veeam Kasten supports backup and recovery of AWS Elastic
+File System (EFS) volumes. However, due to EFS limitations, cross-cluster
+EFS restores within the same region and across regions require manual
+intervention using the AWS CLI or AWS console using the below
+instructions.
+- Using the Veeam Kasten dashboard and AWS CLI for EFS Snapshot Migration
+- Using the Veeam Kasten dashboard and AWS Console for EFS Snapshot Migration
+### EKS IPv6 Clusters
+To install Veeam Kasten on an IPv6 cluster, run the following command:
+This will enable IPv6 listeners for all required services.
+Same option can be used to enable IPv6 listeners for a dual-stack setup.
+Veeam Kasten was tested in IPv6-only setup only on AWS EKS platform.
+Although it is expected to work on other platforms as well.
+Warning
+Port-forwarding to Veeam Kasten services may not work in IPv6-only setup with Dockershim CRI.
+Containerd CRI supports IPv6 port-forwarding since 1.5.2 release.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_configure.md
+## Configuring Veeam Kasten Encryption
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+Bootstrapping Passkeys Before Install
+Passphrases
+AWS Customer Managed Keys
+HashiCorp Vault Transit Secrets Engine
+PassKey Management
+Creating Passkeys
+Listing Passkeys
+Getting Passkeys
+Deleting Passkeys
+Changing Passkeys
+- Bootstrapping Passkeys Before Install
+Passphrases
+AWS Customer Managed Keys
+HashiCorp Vault Transit Secrets Engine
+- Passphrases
+- AWS Customer Managed Keys
+- HashiCorp Vault Transit Secrets Engine
+- PassKey Management
+Creating Passkeys
+Listing Passkeys
+Getting Passkeys
+Deleting Passkeys
+Changing Passkeys
+- Creating Passkeys
+- Listing Passkeys
+- Getting Passkeys
+- Deleting Passkeys
+- Changing Passkeys
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+- Configuring Veeam Kasten Encryption
+Veeam Kasten supports encryption for data and metadata stored in an object
+store or an NFS file store (e.g., for cross-cloud snapshot migration) via the
+use of the AES-256-GCM encryption algorithm. Veeam Kasten encryption
+is always enabled for external data and metadata (more information below),
+it cannot be disabled. Multiple methods of encryption can be used, and Veeam
+Kasten can be configured to use any of them. Veeam Kasten allows users to
+have multiple Passkeys. These Passkeys can be a combination of any of the
+different types listed below. However, only one of them will be in use at
+any point in time.
+A Passkey API resource is used to add, edit, list or remove a Passkey
+used for data and metadata encryption.
+### Bootstrapping Passkeys Before Install
+If you do not specify a cluster secret, a Passkey with a random
+passphrase will be generated by Veeam Kasten during install. The randomly
+generated Passkey can be changed via the Changing
+Passkeys instructions. However, if the passphrase
+needs to be specified before install, it can be done via the creation
+of a Kubernetes secret with a well-known name (k10-cluster-passphrase)
+in the namespace you will install Veeam Kasten in (default kasten-io):
+Warning
+Once the cluster secret is set or auto-generated, do
+not modify or delete the cluster secret directly, please follow
+the Passkey change workflow below.
+### Passphrases
+A passphrase is used to protect the encryption key used by Veeam Kasten to
+encrypt application data.
+Note
+The Passkey passphrase should be stored separately in a
+secure location for Veeam Kasten Disaster Recovery.
+### AWS Customer Managed Keys
+An AWS Customer Managed Key (CMK) can also be used to protect
+the encryption key used by Veeam Kasten to encrypt application data.
+IAM must be configured for Veeam Kasten. Refer to
+Using AWS IAM Roles for
+more information on IAM roles.
+AWS keys are required while installing Veeam Kasten in order to use
+the AWS Customer Manager Key. The IAM role is an optional value to be
+configured if Veeam Kasten should assume a specific role.
+Following is the AWS policy needed for access to AWS KMS.
+Additionally, the user/role needs to be added to the corresponding CMK policy
+as well.
+### HashiCorp Vault Transit Secrets Engine
+- Configuring Vault Server for Kubernetes Auth
+HashiCorp Vault Transit Secrets Engine can also be used to protect
+the encryption key used by Veeam Kasten to encrypt application data.
+Refer to the Vault Transit Secret Engine documentation
+for more information on configuring the transit secret engine.
+In addition to the Transit Secret Engine setup, Veeam Kasten needs to be
+authorized to access Vault. Either token or kubernetes authentication
+is supported for the Vault server.
+### Token Auth
+The token should be provided via a secret.
+This method will be deprecated in the future in favor of kubernetes auth
+This may cause the token to be stored in shell history.
+It is recommended to regularly rotate the token used for accessing Vault.
+When a new token is generated, the vault-creds secret should be updated
+with the new token provided below:
+Credentials can be provided with the Helm install or upgrade command
+using the following flags.
+### Kubernetes Auth
+Refer to Configuring Vault Server For Kubernetes Auth prior to installing Veeam Kasten.
+After setup is done, credentials can be provided with the Helm install or
+upgrade command using the following flags:
+vault.role is needed to authenticate via kubernetes service account tokens.
+vault.serviceAccountTokenPath can be left blank if the service account path
+was not changed from the default of:
+/var/run/secrets/kubernetes.io/serviceaccount/token
+vault.secretName can be provided to the helm install to do a
+best-effort fallback to token auth if kubernetes authentication fails. If not present
+and kubernetes authentication fails, then the primary key encryption will not
+succeed and will return an error.
+### PassKey Management
+### Creating Passkeys
+A Passkey that represents a passphrase, expects a Kubernetes Secret to be
+provided which contains the passphrase. This can be done via the creation of
+a Kubernetes secret in the Veeam Kasten namespace:
+As shown below, this secret can then be used to create a
+Passkey. Note that Passkeys are non-namespaced.
+A Passkey can also be used to represent an AWS KMS Customer Managed Key(CMK).
+The AWS CMK key ID can be provided directly in the passkey.
+A Passkey can also be used to represent a HashiCorp Vault Transit Secrets
+Engine. The Vault Transit key name and mount path can be provided directly in
+the passkey, as shown below.
+In addition, a vault authentication role and path to the service account token
+used for Vault's Kubernetes Authentication method can be passed in,
+vaultauthrole and vaultk8sserviceaccounttokenpath, respectively. This
+will override those values originally set via the helm install Kubernetes Auth.
+If using Token Auth, passing in these two values will
+have the effect of upgrading the authentication method from Token to Kubernetes.
+Please ensure your vault server is properly configured as shown in
+Configuring Vault Server for Kubernetes Auth before
+adding these to the Passkey.
+If usenow is set to true, while adding a Passkey, it will become
+the default Passkey.  For changing the default (in use) Passkey, take
+a look at  the Changing Passkeys instructions.
+Multiple Passkeys can have their usenow flags sets but only one
+Passkey will be in use at any point in time. The
+Passkey that is most recently added with usenow set to true,
+will be the Passkey in use.
+You can verify which Passkey is inuse by listing the Passkeys and
+checking the status. The status of the Passkey in use will have the inuse
+flag set to true.
+### Listing Passkeys
+To list all Passkeys, simply run:
+### Getting Passkeys
+To get a specific Passkey, run:
+You may see additional Passkey detail by using the -o yaml option:
+### Deleting Passkeys
+You can delete existing Passkeys if they are no longer required.
+If a Passkey is currently in use or only one Passkey exists,
+it cannot be deleted.
+### Changing Passkeys
+Veeam Kasten allows you to change the current Passkey used for data
+and metadata encryption.
+To change the Passkey, first add a new Passkey by following the
+instructions for adding Passkeys,
+but set the usenow flag to true.
+You can then delete the old Passkey by following the instructions for
+deleting Passkeys.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_generic.md
+## Generic Storage Backup and Restore
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+- Storage Integration
+- Generic Storage Backup and Restore
+Activating Generic Storage Backup
+Using Sidecars
+Enabling Kanister Sidecar Injection
+Updating the resource manifest
+End-to-End Example
+Prerequisites
+Deploy the application
+Create a Location Profile
+Insert Data
+Backup Data
+Destroy Data
+Restore Data
+Verify Data
+Generic Storage Backup and Restore on Unmounted PVCs
+- Activating Generic Storage Backup
+- Using Sidecars
+Enabling Kanister Sidecar Injection
+Updating the resource manifest
+- Enabling Kanister Sidecar Injection
+- Updating the resource manifest
+- End-to-End Example
+Prerequisites
+Deploy the application
+Create a Location Profile
+Insert Data
+Backup Data
+Destroy Data
+Restore Data
+Verify Data
+- Prerequisites
+- Deploy the application
+- Create a Location Profile
+- Insert Data
+- Backup Data
+- Destroy Data
+- Restore Data
+- Verify Data
+- Generic Storage Backup and Restore on Unmounted PVCs
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten
+- Generic Storage Backup and Restore
+Warning
+Generic Storage Backup must be used only in cases
+where migration to a CSI driver with snapshot support is not possible.
+For more details, refer to this page.
+Applications can often be deployed using non-shared storage (e.g.,
+local SSDs) or on systems where Veeam Kasten does not currently support
+the underlying storage provider. To protect data in these scenarios,
+Veeam Kasten with Kanister provides you with the ability
+to add functionality for backup, restore, and migration of application data
+with minimal modifications. This can be done in an efficient and
+transparent manner.
+While a complete example is provided below, the only changes needed are
+the activation of Generic Storage Backup (GSB) on Veeam Kasten (see below),
+addition of a sidecar to your application deployment that can mount the
+application data volume, and an annotation that requests GSB.
+### Activating Generic Storage Backup
+By default, the GSB feature is disabled. It can be activated by providing
+an activation token when installing Veeam Kasten via the Helm chart.
+Existing customers can contact Kasten by Veeam Support via MyVeeam,
 to open a support case and request the activation token for GSB.
-For all current prospects evaluating Veeam Kasten, we recommend reaching
-out to your local Kasten by Veeam Sales team through the local point of contact
-within the Veeam channel.
+For all current prospects evaluating Veeam Kasten, we recommend reaching out to
+your local Kasten by Veeam Sales team through the local point of contact within
+the Veeam channel.
+Provide the cluster ID (UUID of the default namespace) when requesting
+an activation token. This ID will help Veeam Kasten identify a cluster where
+GSB is activated. Use the following kubectl command to get the UUID:
+Once the token is obtained, provide it to Veeam Kasten with the following Helm
+option:
+Note
+A separate activation token is required for every cluster
+where you want to activate GSB.
+### Using Sidecars
+The sidecar can be added either by leveraging Veeam Kasten's sidecar injection
+feature or by manually patching the resource as described below.
+### Enabling Kanister Sidecar Injection
+Veeam Kasten implements a Mutating Webhook Server which mutates workload
+objects by injecting a Kanister sidecar into the workload when the
+workload is created. The Mutating Webhook Server also adds the
+k10.kasten.io/forcegenericbackup annotation to the targeted
+workloads to enforce generic backup. By default, the sidecar injection
+feature is disabled. To enable this feature, the following options
+need to be used when installing Veeam Kasten via the Helm chart:
+Once enabled, Kanister sidecar injection will be enabled for all
+workloads in all namespaces. To perform sidecar injections on
+workloads only in specific namespaces, the namespaceSelector
+labels can be set using the following option:
+By setting namespaceSelector labels, the Kanister sidecar will be
+injected only in the workloads which will be created in the namespace
+matching labels with namespaceSelector labels.
+Similarly, to inject the sidecar for only specific workloads,
+the objectSelector option can be set as shown below:
+It is recommended to add at least one namespaceSelector or
+objectSelector when enabling the injectGenericVolumeBackupSidecar feature.
+Otherwise, Veeam Kasten will try to inject a sidecar into every new workload.
+In the common case, this will lead to undesirable results and potential
+performance issues.
+For example, to inject sidecars into workloads that match the label
+component: db and are in namespaces that are labeled with
+k10/injectGenericVolumeBackupSidecar: true, the following options should be
+added to the Veeam Kasten Helm install command:
+The labels set with namespaceSelector and objectSelector are
+mutually inclusive. This means that if both the options are set to
+perform sidecar injection, the workloads should have labels matching
+the objectSelector labels AND they have to be created in the
+namespace with labels that match the namespaceSelector
+labels. Similarly, if multiple labels are specified for either
+namespaceSelector or objectSelector, they will all needed to
+match for a sidecar injection to occur.
+For the sidecar to choose a security context that can
+read data from the volume, Veeam Kasten performs the following checks in order:
+1. If there are multiple primary containers, the list of containers will be
+iterated over, and the SecurityContext of the containers will be merged so
+that the final SecurityContext is the most restrictive one. If there is
+only one primary container, the final SecurityContext of the sidecar will
+be the SecurityContext of the primary container.
+2. If the workload PodSpec has a SecurityContext set, the sidecar
+does not need an explicit specification and will automatically use
+the context from the PodSpec.
+3. If the above criteria are not met, by default, no SecurityContext
+will be set.
+The SecurityContext of the sidecar will have some additional "add"
+capabilities, and while selecting the most restrictive security context,
+some operations will be restricted. See this
+Veeam Kasten knowledge base article for more details.
+When the helm option for providing a Root CA to Veeam Kasten,
+i.e cacertconfigmap.name, is enabled, the Mutating Webhook will create a
+new ConfigMap, if it does not already exist, in the application namespace to
+provide the Root CA to the sidecar. This ConfigMap in the application
+namespace would be a copy of the Root CA ConfigMap residing in the Veeam Kasten
+namespace.
+Sidecar injection for standalone Pods is not currently supported.
+Refer to the following section to manually add the the Kanister sidecar
+to standalone Pods.
+### Updating the resource manifest
+Alternatively, the Kanister sidecar can be added by updating the
+resource manifest with the Kanister sidecar. An example, where
+/data is used as an sample mount path, can be seen in the below
+specification. Note that the sidecar must be named
+kanister-sidecar and the sidecar image version should be pinned to
+the latest Kanister release.
+Alternatively, the below command can be run to add the sidecar into the
+workload. Make sure to specify correct values for the specified
+placeholders resource_type, namespace, resource_name,
+volume-name and volume-mount-path:
+After injecting the sidecar manually, workload pods
+will be recreated. If the deployment strategy used for the
+workload is RollingUpdate,
+the workload should be scaled down and scaled up
+so that the volumes are mounted into the
+newly created pods.
+Once the above changes are made, Veeam Kasten will be able to automatically
+extract data and, using its data engine, efficiently
+deduplicate data and transfer it into an object store or NFS file store.
+If you have multiple volumes used by your pod, you simply need to
+mount them all within this sidecar container. There is no naming
+requirement on the mount path as long as they are unique.
+Note that a backup operation can take up to 800 MB of memory for
+some larger workloads. To ensure the pod containing the kanister-sidecar
+is scheduled on a node with sufficient memory for a particularly intensive
+workload, you can add a resource request to the container definition.
+### Generic Backup Annotation
+Generic backups can be requested by adding the
+k10.kasten.io/forcegenericbackup annotation to the workload as shown in the
+example below.
+The following is a kubectl example to add the annotation to a running
+deployment:
+Finally, note that the Kanister sidecar and Location profile must both
+be present for generic backups to work.
+### Required Capabilities for Generic Storage Backup
+OpenShift Container Platform (OCP) introduced more restrictive default
+security context constraints (SCCs) in
+the 4.11 release - Pod Security Admission.
+The change affects the ability to perform rootless
+Generic Storage Backup.
+Since K10 5.5.8 rootless is a default behavior for
+Veeam Kasten.
+To use Generic Storage Backup with OCP 4.11 and above,
+the following capabilities must be allowed:
+- FOWNER
+- CHOWN
+- DAC_OVERRIDE
+Even if Veeam Kasten is installed on Kubernetes distributions other than OCP,
+the capabilities mentioned above are required for ensuring the proper
+functionality of Generic Storage Backup.
+Previous version of restricted SCC can be used as a template.
+Change the allowedCapabilities field as follows:
+### End-to-End Example
+The below section provides a complete end-to-end example of how to
+extend your application to support generic backup and restore. A dummy
+application is used below but it should be straightforward to extend
+this example.
+### Prerequisites
+- Make sure you have obtained the activation token and have Veeam Kasten
+installed by providing the token using the genericStorageBackup.token
+option.
+- Make sure you have installed Veeam Kasten with
+injectGenericVolumeBackupSidecar enabled.
+- (Optional) namespaceSelector labels are set for
+injectGenericVolumeBackupSidecar.
+injectGenericVolumeBackupSidecar can be enabled by passing the following
+flags while installing Veeam Kasten helm chart
+### Deploy the application
+The following specification contains a complete example of how to
+exercise generic backup and restore functionality. It consists of a an
+application Deployment that use a Persistent Volume Claim (mounted
+internally at /data) for storing data.
+Saving the below specification as a file, deployment.yaml, is
+recommended for reuse later.
+- Create a namespace:
+$ kubectl create namespace <namespace>
+If injectGenericVolumeBackupSidecar.namespaceSelector labels are set while
+installing Veeam Kasten, add the labels to namespace to match with
+namespaceSelector
+$ kubectl label namespace <namespace> k10/injectGenericVolumeBackupSidecar=true
+- Deploy the above application as follows:
+## Deploying in a specific namespace
+$ kubectl apply --namespace=<namespace> -f deployment.yaml
+- Check status of deployed application:
+List pods in the namespace. The demo-app pods can be seen created with two
+containers.
+## List pods
+$ kubectl get pods --namespace=<namespace> | grep demo-app
+## demo-app-56667f58dc-pbqqb   2/2     Running   0          24s
+- Describe the pod and verify the kanister-sidecar container is injected
+with the same volumeMounts.
+volumeMounts:
+- name: data
+  mountPath: /data
+Create a namespace:
+If injectGenericVolumeBackupSidecar.namespaceSelector labels are set while
+installing Veeam Kasten, add the labels to namespace to match with
+namespaceSelector
+Deploy the above application as follows:
+Check status of deployed application:
+List pods in the namespace. The demo-app pods can be seen created with two
+containers.
+Describe the pod and verify the kanister-sidecar container is injected
+with the same volumeMounts.
+### Create a Location Profile
+If you haven't done so already, create a Location profile with
+the appropriate Location and Credentials information from the Veeam
+Kasten settings page. Instructions for creating location profiles can be
+found here
+Generic storage backup and restore workflows are not
+compatible with immutable backups location profiles.
+Immutable backups enabled location profiles can be used with these
+workflows, but will be treated as a non-immutability-enabled profile:
+the protection period will be ignored, and no point-in-time restore
+functionality will be provided. Please note that use of an object-locking
+bucket for such cases can amplify storage usage without any additional
+benefit.
+### Insert Data
+The easiest way to insert data into the demo application is to simply
+copy it in:
+### Backup Data
+Backup the application data either by creating a Policy or running a
+Manual Backup from Veeam Kasten. This assumes that the application is
+running on a system where Veeam kasten does not support the provisioned
+disks (e.g., local storage). Make sure to specify the location profile
+in the advanced settings for the policy. This is required to perform
+Kanister operations.
+This policy covers an application running in the namespace sampleApp.
+For complete documentation of the Policy CR, refer to Policy API Type.
+### Destroy Data
+To destroy the data manually, run the following command:
+Alternatively, the application and the PVC can be deleted and recreated.
+### Restore Data
+Restore the data using Veeam Kasten by selecting the appropriate restore point.
+### Verify Data
+After restore, you should verify that the data is intact. One way to
+verify this is to use MD5 checksum tool.
+The MD5 checksums should match.
+### Generic Storage Backup and Restore on Unmounted PVCs
+Generic Storage Backup and Restore on unmounted PVCs can be enabled by adding
+k10.kasten.io/forcegenericbackup annotation to the StorageClass with which
+the volumes have been provisioned.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_azure_azure.md
+## Installing Veeam Kasten on Azure
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on Azure
+Note
+As of March 5, 2024, "Azure Active Directory" has been renamed as
+"Microsoft Entra ID." Throughout this documentation, references to "Azure
+Active Directory" will be updated to use both the new and old names. Both
+names will be used for a while, after which the documentation will be updated
+to use only the new name.
+### Prerequisites
+Before installing Veeam Kasten on Azure Kubernetes Service (AKS), please ensure
+that the install prerequisites are met.
+### Installing Veeam Kasten
+Veeam Kasten supports multiple options to authenticate with Microsoft Entra
+ID (formerly Azure Active Directory), including Azure Service Principal,
+Azure Managed Identity with a specific Client ID, and Azure Managed Identity
+with the default ID. Please select one of these options if you wish to
+provide Azure credentials through helm. If multiple credential sets
+are provided, the installation will fail.
+### Installing Veeam Kasten with Service Principal
+To install on Azure with Service Principal, you need to specify Client Secret
+credentials including your Azure tenant, service principal client ID and
+service principal client secret.
+### Installing Veeam Kasten on Azure Stack with Service Principal
+To install on Azure Stack, you need to specify your -
+- Azure tenant: the Azure Stack tenant ID (you'll find it in global
+azure portal > Azure Directory > Properties)
+- Service principal client ID: client ID of the app that was used
+to create the Kubernetes cluster (you'll find it in global azure
+portal > Azure Directory > App registration)
+- Service principal client secret: client-secret of the app that was
+used to create the Kubernetes cluster (you'll find it in global
+azure portal > Azure Directory > App registration > Certificate and
+secrets)
+- Azure Resource Group: name of the Resource Group that was created for
+the Kubernetes cluster
+- Azure subscription ID: a valid subscription in your Azure Stack
+tenant (if your az client has its default cloud set to your Azure
+Stack instance, you can obtain the first subscription ID with
+az account list | jq '.[0].id')
+- Azure Resource Manager endpoint: the resource management endpoint
+for this Azure Stack instance (if your az client has its default
+cloud set to your Azure Stack instance, you can obtain it with
+az cloud show | jq '.endpoints.resourceManager'. e.g.,
+https://management.ppe5.example.com)
+- Active Directory endpoint: the active directory login endpoint
+(if your az client has its default cloud set to your Azure Stack
+instance, you can obtain it with az cloud show |
+jq '.endpoints.activeDirectory'. e.g.,
+https://login.microsoftonline.com/)
+- Active Directory resource ID: the resource ID to obtain AD tokens
+(if your az client has its default cloud set to your Azure
+Stack instance, you can obtain it with az cloud show | jq
+'.endpoints.activeDirectoryResourceId. e.g.,
+https://management.example.com/71fb132f-xxxx-4e60-yyyy-example47e19)
+You can find more information for creating a Kubernetes cluster on
+Azure Stack in this
+Microsoft tutorial
+### Existing Secret Usage
+It is possible to use an existing secret
+to provide the following parameters for Azure configuration:
+- Azure tenantField name - azure_tenant_id
+- Service principal client IDField name - azure_client_id
+- Service principal client secretField name - azure_client_secret
+Field name - azure_tenant_id
+Field name - azure_client_id
+Field name - azure_client_secret
+To do so, the following Helm option can be used:
+Please ensure that the secret exists in the namespace where
+Veeam Kasten is installed.
+The default namespace assumed throughout this documentation is kasten-io.
+### Installing Veeam Kasten with Managed Identity
+Before installing Veeam Kasten with Azure Managed Identity, you need to
+ensure that Managed Identity
+is enabled on your cluster. Please note that Veeam Kasten supports only
+single-identity nodes at the moment.
+When installing Veeam Kasten with Managed Identity, you have an option of
+installing with a specific Client ID, or to use the default ID.
+To install on Azure using a specific client ID, you need to specify
+the client ID.
+To install on Azure using the default Managed Identity, you need to set
+azure.useDefaultMSI to true.
+### Installing Veeam Kasten on Azure US Government Cloud (...and others)
+To install Veeam Kasten on Microsoft Azure US Government cloud, make sure to
+set the following helm options:
+This will ensure that Veeam Kasten points to appropriate endpoints. These
+options can also be used to specify other clouds like AzureChinaCloud.
+### Validating the Install
+To validate that Veeam Kasten has been installed properly, the
+following command can be run in Veeam Kasten's namespace (the
+install default is kasten-io) to watch for the status of
+all Veeam Kasten pods:
+It may take a couple of minutes for all pods to come up but all pods
+should ultimately display the status of Running.
+In the unlikely scenario that pods that are stuck in any other state,
+please follow the support documentation to debug
+further.
+### Validate Dashboard Access
+By default, the Veeam Kasten dashboard will not be exposed externally.
+To establish a connection to it, use the following kubectl command
+to forward a local port to the Veeam Kasten ingress port:
+The Veeam Kasten dashboard will be available at
+http://127.0.0.1:8080/k10/##/.
+For a complete list of options for accessing the Kasten Veeam Kasten
+dashboard through a LoadBalancer, Ingress or OpenShift Route you can
+use the instructions here.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_install_storage.md
 ## Storage Integration
@@ -3278,160 +3599,6 @@ Enable Instant Recovery checkbox (this will only appear if all
 compatibility criteria are met) or set the InstantRecovery property
 in the RestoreAction spec.
 All restore features are supported with Instant Recovery.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_azure_azure.md
-## Installing Veeam Kasten on Azure
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-- Prerequisites
-- Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on Azure
-Note
-As of March 5, 2024, "Azure Active Directory" has been renamed as
-"Microsoft Entra ID." Throughout this documentation, references to "Azure
-Active Directory" will be updated to use both the new and old names. Both
-names will be used for a while, after which the documentation will be updated
-to use only the new name.
-### Prerequisites
-Before installing Veeam Kasten on Azure Kubernetes Service (AKS), please ensure
-that the install prerequisites are met.
-### Installing Veeam Kasten
-Veeam Kasten supports multiple options to authenticate with Microsoft Entra
-ID (formerly Azure Active Directory), including Azure Service Principal,
-Azure Managed Identity with a specific Client ID, and Azure Managed Identity
-with the default ID. Please select one of these options if you wish to
-provide Azure credentials through helm. If multiple credential sets
-are provided, the installation will fail.
-### Installing Veeam Kasten with Service Principal
-To install on Azure with Service Principal, you need to specify Client Secret
-credentials including your Azure tenant, service principal client ID and
-service principal client secret.
-### Installing Veeam Kasten on Azure Stack with Service Principal
-To install on Azure Stack, you need to specify your -
-- Azure tenant: the Azure Stack tenant ID (you'll find it in global
-azure portal > Azure Directory > Properties)
-- Service principal client ID: client ID of the app that was used
-to create the Kubernetes cluster (you'll find it in global azure
-portal > Azure Directory > App registration)
-- Service principal client secret: client-secret of the app that was
-used to create the Kubernetes cluster (you'll find it in global
-azure portal > Azure Directory > App registration > Certificate and
-secrets)
-- Azure Resource Group: name of the Resource Group that was created for
-the Kubernetes cluster
-- Azure subscription ID: a valid subscription in your Azure Stack
-tenant (if your az client has its default cloud set to your Azure
-Stack instance, you can obtain the first subscription ID with
-az account list | jq '.[0].id')
-- Azure Resource Manager endpoint: the resource management endpoint
-for this Azure Stack instance (if your az client has its default
-cloud set to your Azure Stack instance, you can obtain it with
-az cloud show | jq '.endpoints.resourceManager'. e.g.,
-https://management.ppe5.example.com)
-- Active Directory endpoint: the active directory login endpoint
-(if your az client has its default cloud set to your Azure Stack
-instance, you can obtain it with az cloud show |
-jq '.endpoints.activeDirectory'. e.g.,
-https://login.microsoftonline.com/)
-- Active Directory resource ID: the resource ID to obtain AD tokens
-(if your az client has its default cloud set to your Azure
-Stack instance, you can obtain it with az cloud show | jq
-'.endpoints.activeDirectoryResourceId. e.g.,
-https://management.example.com/71fb132f-xxxx-4e60-yyyy-example47e19)
-You can find more information for creating a Kubernetes cluster on
-Azure Stack in this
-Microsoft tutorial
-### Existing Secret Usage
-It is possible to use an existing secret
-to provide the following parameters for Azure configuration:
-- Azure tenantField name - azure_tenant_id
-- Service principal client IDField name - azure_client_id
-- Service principal client secretField name - azure_client_secret
-Field name - azure_tenant_id
-Field name - azure_client_id
-Field name - azure_client_secret
-To do so, the following Helm option can be used:
-Please ensure that the secret exists in the namespace where
-Veeam Kasten is installed.
-The default namespace assumed throughout this documentation is kasten-io.
-### Installing Veeam Kasten with Managed Identity
-Before installing Veeam Kasten with Azure Managed Identity, you need to
-ensure that Managed Identity
-is enabled on your cluster. Please note that Veeam Kasten supports only
-single-identity nodes at the moment.
-When installing Veeam Kasten with Managed Identity, you have an option of
-installing with a specific Client ID, or to use the default ID.
-To install on Azure using a specific client ID, you need to specify
-the client ID.
-To install on Azure using the default Managed Identity, you need to set
-azure.useDefaultMSI to true.
-### Installing Veeam Kasten on Azure US Government Cloud (...and others)
-To install Veeam Kasten on Microsoft Azure US Government cloud, make sure to
-set the following helm options:
-This will ensure that Veeam Kasten points to appropriate endpoints. These
-options can also be used to specify other clouds like AzureChinaCloud.
-### Validating the Install
-To validate that Veeam Kasten has been installed properly, the
-following command can be run in Veeam Kasten's namespace (the
-install default is kasten-io) to watch for the status of
-all Veeam Kasten pods:
-It may take a couple of minutes for all pods to come up but all pods
-should ultimately display the status of Running.
-In the unlikely scenario that pods that are stuck in any other state,
-please follow the support documentation to debug
-further.
-### Validate Dashboard Access
-By default, the Veeam Kasten dashboard will not be exposed externally.
-To establish a connection to it, use the following kubectl command
-to forward a local port to the Veeam Kasten ingress port:
-The Veeam Kasten dashboard will be available at
-http://127.0.0.1:8080/k10/##/.
-For a complete list of options for accessing the Kasten Veeam Kasten
-dashboard through a LoadBalancer, Ingress or OpenShift Route you can
-use the instructions here.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_install_advanced.md
 ## Advanced Install Options
@@ -4223,173 +4390,6 @@ Veeam Kasten. However, if labels and annotations are set in the Prometheus
 sub-chart, they will be prioritized over the global pod labels
 and annotations set.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_install_configure.md
-## Configuring Veeam Kasten Encryption
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-Bootstrapping Passkeys Before Install
-Passphrases
-AWS Customer Managed Keys
-HashiCorp Vault Transit Secrets Engine
-PassKey Management
-Creating Passkeys
-Listing Passkeys
-Getting Passkeys
-Deleting Passkeys
-Changing Passkeys
-- Bootstrapping Passkeys Before Install
-Passphrases
-AWS Customer Managed Keys
-HashiCorp Vault Transit Secrets Engine
-- Passphrases
-- AWS Customer Managed Keys
-- HashiCorp Vault Transit Secrets Engine
-- PassKey Management
-Creating Passkeys
-Listing Passkeys
-Getting Passkeys
-Deleting Passkeys
-Changing Passkeys
-- Creating Passkeys
-- Listing Passkeys
-- Getting Passkeys
-- Deleting Passkeys
-- Changing Passkeys
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten
-- Configuring Veeam Kasten Encryption
-Veeam Kasten supports encryption for data and metadata stored in an object
-store or an NFS file store (e.g., for cross-cloud snapshot migration) via the
-use of the AES-256-GCM encryption algorithm. Veeam Kasten encryption
-is always enabled for external data and metadata (more information below),
-it cannot be disabled. Multiple methods of encryption can be used, and Veeam
-Kasten can be configured to use any of them. Veeam Kasten allows users to
-have multiple Passkeys. These Passkeys can be a combination of any of the
-different types listed below. However, only one of them will be in use at
-any point in time.
-A Passkey API resource is used to add, edit, list or remove a Passkey
-used for data and metadata encryption.
-### Bootstrapping Passkeys Before Install
-If you do not specify a cluster secret, a Passkey with a random
-passphrase will be generated by Veeam Kasten during install. The randomly
-generated Passkey can be changed via the Changing
-Passkeys instructions. However, if the passphrase
-needs to be specified before install, it can be done via the creation
-of a Kubernetes secret with a well-known name (k10-cluster-passphrase)
-in the namespace you will install Veeam Kasten in (default kasten-io):
-Warning
-Once the cluster secret is set or auto-generated, do
-not modify or delete the cluster secret directly, please follow
-the Passkey change workflow below.
-### Passphrases
-A passphrase is used to protect the encryption key used by Veeam Kasten to
-encrypt application data.
-Note
-The Passkey passphrase should be stored separately in a
-secure location for Veeam Kasten Disaster Recovery.
-### AWS Customer Managed Keys
-An AWS Customer Managed Key (CMK) can also be used to protect
-the encryption key used by Veeam Kasten to encrypt application data.
-IAM must be configured for Veeam Kasten. Refer to
-Using AWS IAM Roles for
-more information on IAM roles.
-AWS keys are required while installing Veeam Kasten in order to use
-the AWS Customer Manager Key. The IAM role is an optional value to be
-configured if Veeam Kasten should assume a specific role.
-Following is the AWS policy needed for access to AWS KMS.
-Additionally, the user/role needs to be added to the corresponding CMK policy
-as well.
-### HashiCorp Vault Transit Secrets Engine
-- Configuring Vault Server for Kubernetes Auth
-HashiCorp Vault Transit Secrets Engine can also be used to protect
-the encryption key used by Veeam Kasten to encrypt application data.
-Refer to the Vault Transit Secret Engine documentation
-for more information on configuring the transit secret engine.
-In addition to the Transit Secret Engine setup, Veeam Kasten needs to be
-authorized to access Vault. Either token or kubernetes authentication
-is supported for the Vault server.
-### Token Auth
-The token should be provided via a secret.
-This method will be deprecated in the future in favor of kubernetes auth
-This may cause the token to be stored in shell history.
-It is recommended to regularly rotate the token used for accessing Vault.
-When a new token is generated, the vault-creds secret should be updated
-with the new token provided below:
-Credentials can be provided with the Helm install or upgrade command
-using the following flags.
-### Kubernetes Auth
-Refer to Configuring Vault Server For Kubernetes Auth prior to installing Veeam Kasten.
-After setup is done, credentials can be provided with the Helm install or
-upgrade command using the following flags:
-vault.role is needed to authenticate via kubernetes service account tokens.
-vault.serviceAccountTokenPath can be left blank if the service account path
-was not changed from the default of:
-/var/run/secrets/kubernetes.io/serviceaccount/token
-vault.secretName can be provided to the helm install to do a
-best-effort fallback to token auth if kubernetes authentication fails. If not present
-and kubernetes authentication fails, then the primary key encryption will not
-succeed and will return an error.
-### PassKey Management
-### Creating Passkeys
-A Passkey that represents a passphrase, expects a Kubernetes Secret to be
-provided which contains the passphrase. This can be done via the creation of
-a Kubernetes secret in the Veeam Kasten namespace:
-As shown below, this secret can then be used to create a
-Passkey. Note that Passkeys are non-namespaced.
-A Passkey can also be used to represent an AWS KMS Customer Managed Key(CMK).
-The AWS CMK key ID can be provided directly in the passkey.
-A Passkey can also be used to represent a HashiCorp Vault Transit Secrets
-Engine. The Vault Transit key name and mount path can be provided directly in
-the passkey, as shown below.
-In addition, a vault authentication role and path to the service account token
-used for Vault's Kubernetes Authentication method can be passed in,
-vaultauthrole and vaultk8sserviceaccounttokenpath, respectively. This
-will override those values originally set via the helm install Kubernetes Auth.
-If using Token Auth, passing in these two values will
-have the effect of upgrading the authentication method from Token to Kubernetes.
-Please ensure your vault server is properly configured as shown in
-Configuring Vault Server for Kubernetes Auth before
-adding these to the Passkey.
-If usenow is set to true, while adding a Passkey, it will become
-the default Passkey.  For changing the default (in use) Passkey, take
-a look at  the Changing Passkeys instructions.
-Multiple Passkeys can have their usenow flags sets but only one
-Passkey will be in use at any point in time. The
-Passkey that is most recently added with usenow set to true,
-will be the Passkey in use.
-You can verify which Passkey is inuse by listing the Passkeys and
-checking the status. The status of the Passkey in use will have the inuse
-flag set to true.
-### Listing Passkeys
-To list all Passkeys, simply run:
-### Getting Passkeys
-To get a specific Passkey, run:
-You may see additional Passkey detail by using the -o yaml option:
-### Deleting Passkeys
-You can delete existing Passkeys if they are no longer required.
-If a Passkey is currently in use or only one Passkey exists,
-it cannot be deleted.
-### Changing Passkeys
-Veeam Kasten allows you to change the current Passkey used for data
-and metadata encryption.
-To change the Passkey, first add a new Passkey by following the
-instructions for adding Passkeys,
-but set the usenow flag to true.
-You can then delete the old Passkey by following the instructions for
-deleting Passkeys.
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_install_openshift_helm.md
 ## Helm based Installation
 - Install Requirements
@@ -4591,6 +4591,178 @@ OpenShift Web Console panel on the left. Click on the tab to open the plugin.
 The plugin UI contains all the essential data from the
 Veeam Kasten Dashboard, including the system overview and the
 recent activity.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_google_service_account_install.md
+## Creating a New Service Account
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on Google Cloud
+- Creating a New Service Account
+Veeam Kasten requires a newly created service account to contain the following
+roles:
+Note
+Currently, the Google Service Account key needs to be created in the same GCP account as the GKE cluster.
+The following steps should be used to create the service account and
+add the required permissions:
+Use the base64 tool to encode the k10-sa-key.json file generated above,
+and then install Veeam Kasten with the newly created credentials.
+### Using a Custom Project ID
+If the Google Service Account belongs to a project other than the one
+in which the cluster is located, then the project's ID for the cluster
+must also be provided during the installation.
+### Existing Secret Usage
+It is possible to use an existing secret
+to provide Service Account and Project ID.
+To do so, the following Helm option can be used:
+Please ensure that the secret exists in the namespace where Veeam Kasten
+is installed.
+The default namespace assumed throughout this documentation is kasten-io.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_install_aws_aws_permissions.md
+## Using Veeam Kasten with AWS EBS
+- Install Requirements
+- Installing Veeam Kasten on Kubernetes
+Installing Veeam Kasten on AWS
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+Installing Veeam Kasten on Azure
+Installing Veeam Kasten on Azure Marketplace
+Installing Veeam Kasten on Red Hat OpenShift
+Installing Veeam Kasten on Google Cloud
+Installing Veeam Kasten on DigitalOcean
+Installing Veeam Kasten on VMware vSphere
+SUSE Rancher Apps & Marketplace Based Installation
+Installing Veeam Kasten on K3S
+Installing Veeam Kasten on Other Kubernetes Distributions
+- Installing Veeam Kasten on AWS
+Prerequisites
+Installing Veeam Kasten
+Validating the Install
+- Prerequisites
+- Installing Veeam Kasten
+- Validating the Install
+- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
+- Installing Veeam Kasten on Azure
+- Installing Veeam Kasten on Azure Marketplace
+- Installing Veeam Kasten on Red Hat OpenShift
+- Installing Veeam Kasten on Google Cloud
+- Installing Veeam Kasten on DigitalOcean
+- Installing Veeam Kasten on VMware vSphere
+- SUSE Rancher Apps & Marketplace Based Installation
+- Installing Veeam Kasten on K3S
+- Installing Veeam Kasten on Other Kubernetes Distributions
+- Storage Integration
+- Generic Storage Backup and Restore
+- Restricted Use of Generic Storage Backup
+- Shareable Volume Backup and Restore
+- Air-Gapped Install
+- Installing Kasten in FIPS mode
+- Installing Veeam Kasten with Iron Bank Images
+- Installing Veeam Kasten with Google Workload Identity Federation
+- Advanced Install Options
+- Configuring Veeam Kasten Encryption
+- Upgrading Veeam Kasten
+- Production Deployment Checklist
+-
+- Installing Veeam Kasten on Kubernetes
+- Installing Veeam Kasten on AWS
+- Using Veeam Kasten with AWS EBS
+The following permissions are needed by Kasten to operate on EBS, AWS
+EC2's underlying block storage solution
+The following additional permissions are required to use the
+EBS Direct API
+to get changed block data in a Block Mode Export.
+While Veeam Kasten can use AWS S3 to migrate applications between
+different clusters or even clouds, the access permissions should
+not be specified as a part of the Veeam Kasten install, but instead
+later as a part of creating Location profiles.
+The credentials used for the profile should have the following
+permissions on the needed buckets.
+Additional permissions are needed for the creation and maintenance
+of immutable backups in Veeam Kasten.
+- s3:ListBucketVersions
+- s3:GetObjectRetention
+- s3:PutObjectRetention
+- s3:GetBucketObjectLockConfiguration
+- s3:GetBucketVersioning
+- s3:GetObjectVersion
+- s3:DeleteObjectVersion
+The credentials specified as a part of creating
+Location profiles should have the following
+permissions for Veeam Kasten to perform Amazon RDS operations.
+Veeam Kasten assumes that the user has successfully provisioned an EFS
+volume and is using the EFS CSI driver to mount the
+volume within Kubernetes. While Veeam Kasten will transparently work
+with this setup, there are a couple of things to be aware of when
+using Veeam Kasten to back up EFS that is different from EBS.
+- Veeam Kasten creates its own vault to back up EFS.
+- EFS volumes are created externally and today require manual cleanup
+when all references to them from Kubernetes are gone. This also means
+that when a restore happens, a manual cleanup of the old volumes
+will be needed.
+- Unlike EBS, EFS backups can be slow because of the underlying AWS
+performance constraints with different data sets. Backup policy
+action frequencies should be set to accommodate this performance
+difference.
+Finally, to operate on AWS EFS, Veeam Kasten will need the following
+permissions to perform backups and restores.
+When enabling Veeam Kasten DR using AWS Secrets Manager, it is
+required that an AWS Infrastructure Profile
+is created prior with credentials that have the adequate permissions.
+More policy examples for secrets in AWS Secrets Manager are
+documented here.
+When operating on Encrypted EBS volumes, Veeam Kasten will ensure
+snapshots and any new volumes created from those snapshots are encrypted
+with the same key.
+If Customer Managed Keys (CMKs) are used to encrypt the EBS volumes,
+the following permissions should be granted for all KMS keys.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_install_vault_vault.md
 ## Configuring Vault Server for Kubernetes Auth
@@ -4922,77 +5094,6 @@ The plugin UI contains all the essential data from the
 Veeam Kasten Dashboard, including the system overview and the
 recent activity.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_install_google_service_account_install.md
-## Creating a New Service Account
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-- Prerequisites
-- Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on Google Cloud
-- Creating a New Service Account
-Veeam Kasten requires a newly created service account to contain the following
-roles:
-Note
-Currently, the Google Service Account key needs to be created in the same GCP account as the GKE cluster.
-The following steps should be used to create the service account and
-add the required permissions:
-Use the base64 tool to encode the k10-sa-key.json file generated above,
-and then install Veeam Kasten with the newly created credentials.
-### Using a Custom Project ID
-If the Google Service Account belongs to a project other than the one
-in which the cluster is located, then the project's ID for the cluster
-must also be provided during the installation.
-### Existing Secret Usage
-It is possible to use an existing secret
-to provide Service Account and Project ID.
-To do so, the following Helm option can be used:
-Please ensure that the secret exists in the namespace where Veeam Kasten
-is installed.
-The default namespace assumed throughout this documentation is kasten-io.
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_install_aws_using_aws_iam_roles.md
 ## Using AWS IAM Roles with Veeam Kasten
 - Install Requirements
@@ -5223,105 +5324,4 @@ the security group (target cluster) that was created with type NFS, and click
 Save.
 From the Veeam Kasten dashboard, follow the steps outlined earlier to restore
 applications.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_install_aws_aws_permissions.md
-## Using Veeam Kasten with AWS EBS
-- Install Requirements
-- Installing Veeam Kasten on Kubernetes
-Installing Veeam Kasten on AWS
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-Installing Veeam Kasten on Azure
-Installing Veeam Kasten on Azure Marketplace
-Installing Veeam Kasten on Red Hat OpenShift
-Installing Veeam Kasten on Google Cloud
-Installing Veeam Kasten on DigitalOcean
-Installing Veeam Kasten on VMware vSphere
-SUSE Rancher Apps & Marketplace Based Installation
-Installing Veeam Kasten on K3S
-Installing Veeam Kasten on Other Kubernetes Distributions
-- Installing Veeam Kasten on AWS
-Prerequisites
-Installing Veeam Kasten
-Validating the Install
-- Prerequisites
-- Installing Veeam Kasten
-- Validating the Install
-- Installing Veeam Kasten on AWS Marketplace for Containers Anywhere
-- Installing Veeam Kasten on Azure
-- Installing Veeam Kasten on Azure Marketplace
-- Installing Veeam Kasten on Red Hat OpenShift
-- Installing Veeam Kasten on Google Cloud
-- Installing Veeam Kasten on DigitalOcean
-- Installing Veeam Kasten on VMware vSphere
-- SUSE Rancher Apps & Marketplace Based Installation
-- Installing Veeam Kasten on K3S
-- Installing Veeam Kasten on Other Kubernetes Distributions
-- Storage Integration
-- Generic Storage Backup and Restore
-- Restricted Use of Generic Storage Backup
-- Shareable Volume Backup and Restore
-- Air-Gapped Install
-- Installing Kasten in FIPS mode
-- Installing Veeam Kasten with Iron Bank Images
-- Installing Veeam Kasten with Google Workload Identity Federation
-- Advanced Install Options
-- Configuring Veeam Kasten Encryption
-- Upgrading Veeam Kasten
-- Production Deployment Checklist
--
-- Installing Veeam Kasten on Kubernetes
-- Installing Veeam Kasten on AWS
-- Using Veeam Kasten with AWS EBS
-The following permissions are needed by Kasten to operate on EBS, AWS
-EC2's underlying block storage solution
-The following additional permissions are required to use the
-EBS Direct API
-to get changed block data in a Block Mode Export.
-While Veeam Kasten can use AWS S3 to migrate applications between
-different clusters or even clouds, the access permissions should
-not be specified as a part of the Veeam Kasten install, but instead
-later as a part of creating Location profiles.
-The credentials used for the profile should have the following
-permissions on the needed buckets.
-Additional permissions are needed for the creation and maintenance
-of immutable backups in Veeam Kasten.
-- s3:ListBucketVersions
-- s3:GetObjectRetention
-- s3:PutObjectRetention
-- s3:GetBucketObjectLockConfiguration
-- s3:GetBucketVersioning
-- s3:GetObjectVersion
-- s3:DeleteObjectVersion
-The credentials specified as a part of creating
-Location profiles should have the following
-permissions for Veeam Kasten to perform Amazon RDS operations.
-Veeam Kasten assumes that the user has successfully provisioned an EFS
-volume and is using the EFS CSI driver to mount the
-volume within Kubernetes. While Veeam Kasten will transparently work
-with this setup, there are a couple of things to be aware of when
-using Veeam Kasten to back up EFS that is different from EBS.
-- Veeam Kasten creates its own vault to back up EFS.
-- EFS volumes are created externally and today require manual cleanup
-when all references to them from Kubernetes are gone. This also means
-that when a restore happens, a manual cleanup of the old volumes
-will be needed.
-- Unlike EBS, EFS backups can be slow because of the underlying AWS
-performance constraints with different data sets. Backup policy
-action frequencies should be set to accommodate this performance
-difference.
-Finally, to operate on AWS EFS, Veeam Kasten will need the following
-permissions to perform backups and restores.
-When enabling Veeam Kasten DR using AWS Secrets Manager, it is
-required that an AWS Infrastructure Profile
-is created prior with credentials that have the adequate permissions.
-More policy examples for secrets in AWS Secrets Manager are
-documented here.
-When operating on Encrypted EBS volumes, Veeam Kasten will ensure
-snapshots and any new volumes created from those snapshots are encrypted
-with the same key.
-If Customer Managed Keys (CMKs) are used to encrypt the EBS volumes,
-the following permissions should be granted for all KMS keys.
 © Copyright 2017-2024, Kasten, Inc.
