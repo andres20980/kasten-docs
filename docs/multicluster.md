@@ -76,9 +76,22 @@ Multi-Cluster Manager system. It helps you obtain a deeper
 understanding of how the Veeam Kasten Multi-Cluster manager
 works.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_known_limitations.md
-## Known Limitations
+### latest_multicluster_concepts_overview.md
+## Overview
 - Concepts
+Overview
+Primary
+Secondary
+Requirements
+License Management
+- Overview
+Primary
+Secondary
+Requirements
+- Primary
+- Secondary
+- Requirements
+- License Management
 - Getting Started
 - How-Tos
 - References
@@ -86,19 +99,53 @@ works.
 - Upgrading
 -
 - Veeam Kasten Multi-Cluster Manager
-- The status of resources distributed to target clusters is not represented at
-a global level.
-- Modified global resources may not be re-distributed until the corresponding
-distribution resource is modified.
-- Resources distributed to target clusters will be overwritten when the global
-resource is re-distributed.
-- Modifications to resources distributed to target clusters will not be
-overwritten until the global resource is modified.
-- Disconnecting a cluster does not remove previously distributed global
-resources.
+- Concepts
+- Overview
+In a Multi-Cluster setup, one cluster is designated as primary, while
+all others are designated as secondaries. All primary and secondary
+clusters must have Veeam Kasten installed. See
+Installing Veeam Kasten for instructions.
+### Primary
+The cluster from which the Multi-Cluster Manager will be
+accessed is designated as primary.
+The primary cluster defines policies and other configuration centrally.
+Centrally defined policies and configuration can then be distributed to
+designated clusters to be enacted.
+The primary cluster also aggregates metrics so that they may be reported
+centrally.
+This provides a single pane of glass through which all clusters in the system
+are managed.
+### Secondary
+Non-primary clusters are designated as secondaries.
+The secondary clusters receive policies and other configuration from the
+primary cluster. Once policies are distributed to a secondary, the local
+Veeam Kasten installation enacts the policy. This ensures that the policy
+will continue to be enforced, even if disconnected from the primary.
+### Requirements
+### Network
+- Primary cluster's dashboard ingress must be accessible by secondaryclusters.
+- If using custom certificates, please make sure that secondary has the correct
+certificates to connect to the primary. More information can be found at
+Using Trusted Root Certificate.
+- Secondary Dashboard Access via Multi-Cluster Dashboard (Optional)
+Secondary cluster's dashboard ingress must be accessible by
+the primary cluster.
+If using custom certificates, please make sure that primary has the correct
+certificates to connect to the secondary. More information can be found at
+Using Trusted Root Certificate.
+- Secondary cluster's dashboard ingress must be accessible by
+the primary cluster.
+- If using custom certificates, please make sure that primary has the correct
+certificates to connect to the secondary. More information can be found at
+Using Trusted Root Certificate.
+clusters.
+Secondary Dashboard Access via Multi-Cluster Dashboard (Optional)
+### Clock Synchronization
+- Primary and secondary clusters must have less than 5 minute clock skew
+for multi-cluster metrics functionality.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos_disable.md
-## Disabling Multi Cluster
+### latest_multicluster_how-tos.md
+## How-Tos
 - Concepts
 - Getting Started
 - How-Tos
@@ -120,14 +167,205 @@ HTTP Primary Ingress Connection
 -
 - Veeam Kasten Multi-Cluster Manager
 - How-Tos
-To disable the Multi-Cluster Manager system on the primary or
-a secondary cluster, please add the following to any of
-the helm install or helm upgrade commands:
+This section contains instructions on how to do individual tasks.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_known_limitations.md
+## Known Limitations
+- Concepts
+- Getting Started
+- How-Tos
+- References
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- The status of resources distributed to target clusters is not represented at
+a global level.
+- Modified global resources may not be re-distributed until the corresponding
+distribution resource is modified.
+- Resources distributed to target clusters will be overwritten when the global
+resource is re-distributed.
+- Modifications to resources distributed to target clusters will not be
+overwritten until the global resource is modified.
+- Disconnecting a cluster does not remove previously distributed global
+resources.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_concepts_license.md
+## License Management
+- Concepts
+Overview
+License Management
+License Sharing Model
+Enabling Multi-Cluster License Management
+Multi-Cluster Lease
+License Usage
+Multi-cluster Lease States
+- Overview
+- License Management
+License Sharing Model
+Enabling Multi-Cluster License Management
+Multi-Cluster Lease
+License Usage
+Multi-cluster Lease States
+- License Sharing Model
+- Enabling Multi-Cluster License Management
+- Multi-Cluster Lease
+- License Usage
+- Multi-cluster Lease States
+- Getting Started
+- How-Tos
+- References
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- Concepts
+- License Management
+Multi-Cluster Manager enables licensing all clusters in
+the same multi-cluster system with a single license.
+This can be achieved by installing a single license on the primary cluster,
+which will then distribute license leases to secondary clusters.
+Any excess license capacity from licenses installed on secondary clusters,
+will be contributed to a global pool of licenses maintained by the primary
+cluster.
 Note
-If Multi-Cluster Manager was already running on a cluster,
-it will fail during helm upgrade if Multi-Cluster is disabled.
-To disable Multi-Cluster safely, disconnect all clusters
-before disabling.
+### License Sharing Model
+When Multi-Cluster license management is enabled, a cluster can contribute its
+excess license capacity to the Multi-Cluster license pool.
+The excess license capacity is calculated by subtracting the number of
+worker nodes in the cluster from the sum of the node limits of all valid
+licenses installed in the cluster.
+Clusters that do not have sufficient licenses will use the Multi-Cluster
+license pool to meet the licensing requirements.
+E.g. There are two clusters, A and B, in a Multi-Cluster system, with 4 and
+5 worker nodes, respectively.
+A license for 10 nodes is installed in cluster A, and cluster B has no
+licenses.
+The 10 node license covers the 4 nodes in cluster A, and there is an excess
+license capacity of 6 (= 10 - 4) on this cluster.
+This excess license capacity can be leased by cluster B to meet its license
+requirement for 5 nodes.
+Both clusters are licensed with a single license in cluster A.
+### Enabling Multi-Cluster License Management
+To enable Multi-Cluster license management, the primary cluster needs to be
+setup with an ingress, which the secondary clusters are able to connect to.
+If an ingress was not specified when setting up the primary, the ingress may
+be set by editing the Cluster resource directly. See
+Upgrading for details.
+### Multi-Cluster Lease
+When Multi-Cluster license management is enabled, a Multi-Cluster Lease will
+be shown on each cluster's Settings -> Licenses page.
+This lease is valid for an hour, and clusters will connect to the primary
+cluster to renew the lease prior to expiry.
+- Example lease of a cluster leasing from the Multi-Cluster license pool:
+This cluster has 2 worker nodes, but does not have any valid licenses
+installed locally.
+The cluster is leasing 2 nodes from the Multi-Cluster license pool, to
+license its 2 worker nodes.
+- Example lease of a cluster contributing to the Multi-Cluster license pool:
+This cluster has 2 worker nodes and licenses installed locally for 100
+nodes.
+The cluster is contributing excess license capacity of 98 (= 100 - 2)
+nodes to the Multi-Cluster license pool.
+### License Usage
+Multi-Cluster Manager's Licensing page
+provides the cumulative license capacity of the Multi-Cluster system, and the
+cumulative number of worker nodes licensed in the Multi-Cluster system.
+License capacity of this Multi-Cluster system is 100 nodes, and the
+sum of worker nodes in this Multi-Cluster system is 4.
+### Multi-cluster Lease States
+### Updating
+This indicates that the Multi-Cluster lease state is updating. This state
+should transition to a different state within minutes.
+### Valid
+Multi-Cluster lease is valid, and cluster meets the license requirements.
+### Expired
+Multi-Cluster lease has expired. This indicates that the cluster was not able
+to connect to the Multi-Cluster license manager in the primary cluster to
+renew its lease.
+Please verify the cluster is able to connect to the primary.
+### Limit Exceeded
+The Multi-Cluster lease is insufficient to license the nodes in the cluster.
+Please contact Kasten through your account contact or at contact@kasten.io.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_reference.md
+## References
+- Concepts
+- Getting Started
+- How-Tos
+- References
+Multi-Cluster API Reference
+RBAC Reference
+- Multi-Cluster API Reference
+- RBAC Reference
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- References
+This section contains references to tools and APIs related to the
+Veeam Kasten Multi-Cluster Manager system.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_how-tos_usage.md
+## Using The Dashboard
+- Concepts
+- Getting Started
+- How-Tos
+Dashboard Access
+Using The Dashboard
+Overview
+Global Resources
+Distributions
+Disconnect
+Multi-Cluster Access
+Disabling Multi Cluster
+HTTP Primary Ingress Connection
+- Dashboard Access
+- Using The Dashboard
+Overview
+Global Resources
+Distributions
+- Overview
+- Global Resources
+- Distributions
+- Disconnect
+- Multi-Cluster Access
+- Disabling Multi Cluster
+- HTTP Primary Ingress Connection
+- References
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- How-Tos
+- Using The Dashboard
+The following sections provide an overview of how to perform common
+tasks using the Multi-Cluster Manager. The equivalent
+actions can also be performed via a Kubernetes-native API.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_reference_api.md
+## Multi-Cluster API Reference
+- Concepts
+- Getting Started
+- How-Tos
+- References
+Multi-Cluster API Reference
+Distributions API
+RBAC Reference
+- Multi-Cluster API Reference
+Distributions API
+- Distributions API
+- RBAC Reference
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- References
+- Multi-Cluster API Reference
+Veeam Kasten Multi-Cluster exposes an API based on Kubernetes Custom Resource
+Definitions (CRDs).
+The simplest way to use the API is through kubectl.
+To understand the API better refer to the following:
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_multicluster_upgrading.md
 ## Upgrading
@@ -178,24 +416,74 @@ For upgrades from versions 3.0.7 or lower to version 3.0.8 and higher, all
 clusters must be individually upgraded and all secondary clusters should be
 re-joined.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos_access.md
-## Dashboard Access
+### latest_multicluster_how-tos_user_access.md
+## Multi-Cluster Access
 - Concepts
 - Getting Started
 - How-Tos
 Dashboard Access
-Multi-Cluster Admins
-Multi-Cluster Users
+Using The Dashboard
+Disconnect
+Multi-Cluster Access
+Configuring Access for Multi-Cluster Users
+Disabling Multi Cluster
+HTTP Primary Ingress Connection
+- Dashboard Access
+- Using The Dashboard
+- Disconnect
+- Multi-Cluster Access
+Configuring Access for Multi-Cluster Users
+- Configuring Access for Multi-Cluster Users
+- Disabling Multi Cluster
+- HTTP Primary Ingress Connection
+- References
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- How-Tos
+- Multi-Cluster Access
+For users to get access to Multi-Cluster Manager,
+Multi-Cluster access control can be configured.
+Users first need access to clusters joined and available in
+the Multi-Cluster Manager setup. Refer
+Multi-Cluster User section for
+more information.
+### Configuring Access for Multi-Cluster Users
+Veeam Kasten allows users and/or groups to be bound to a list of
+clusters with pre-defined K10ClusterRoles. This ensures, users
+and/or groups can be given granular access for individual clusters.
+Veeam Kasten will handle any Kubernetes roles or bindings required
+to facilitate the access control.
+Note
+Because Veeam Kasten handles access control, authentication
+domains for users/groups can be different on primary and secondary
+clusters.
+Admin users can add or update K10ClusterRoleBindings in the
+Multi-Cluster Manager dashboard.
+### K10ClusterRoleBindings
+K10ClusterRoleBindings defines users/groups access to clusters.
+One of the predefined K10ClusterRoles, k10-multi-cluster-admin,
+k10-multi-cluster-basic or k10-multi-cluster-config-view,  can
+be selected.
+Either all clusters or a list of clusters can be selected using name or a
+selector string.
+List of users or groups can be added using fully qualified names.
+The complete RBAC reference for K10ClusterRoleBindings can be found in
+this section.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_how-tos_http_primary_ingress_connection.md
+## HTTP Primary Ingress Connection
+- Concepts
+- Getting Started
+- How-Tos
+Dashboard Access
 Using The Dashboard
 Disconnect
 Multi-Cluster Access
 Disabling Multi Cluster
 HTTP Primary Ingress Connection
 - Dashboard Access
-Multi-Cluster Admins
-Multi-Cluster Users
-- Multi-Cluster Admins
-- Multi-Cluster Users
 - Using The Dashboard
 - Disconnect
 - Multi-Cluster Access
@@ -207,141 +495,25 @@ Multi-Cluster Users
 -
 - Veeam Kasten Multi-Cluster Manager
 - How-Tos
-- Dashboard Access
-Once a primary cluster is configured for the Multi-Cluster
-Manager features can be accessed via the Dashboard.
-### Multi-Cluster Admins
-The Multi-Cluster Manager dashboard will be available at
-https://<URL to k10 gateway service>/k10/##/clusters for Veeam Kasten
-exposed externally or http://127.0.0.1:<forwarding port>/k10/##/clusters
-for Veeam Kasten exposed through kubectl port-forward during install.
-Refer Dashboard Access for more information.
-If a cluster is setup as primary, the dashboard will have
-a drop-down at top of the navigation sidebar that allows navigation to the
-Multi-Cluster Manager dashboard.
-For users to get admin access to the Multi-Cluster Manager
-dashboard as well as other Multi-Cluster features, additional
-role bindings may be required.
-The k10-mc-admin ClusterRole is installed during install/
-upgrade. It grants admin users access to Distributions, Clusters, Config,
-Secrets and Multi-Cluster RBAC configurations in
-the Multi-Cluster namespace.
-During joining, Veeam Kasten creates a RoleBinding for a default Group
-k10:admins in the Multi-Cluster namespace. Admin users can be
-added to this Group and will be able to use the above k10-mc-admin
-ClusterRole.
+When joining a secondary cluster to a Multi-Cluster system, the ingress
+used to connect to the primary cluster requires a secure scheme (https)
+by default.
+Warning
+Using an insecure primary ingress is not recommended for security
+reasons.
+If an insecure scheme (http) is required for the primary cluster ingress,
+an additional flag in Join ConfigMap is needed. Follow the steps in
+Adding a Secondary Cluster within the
+Setting Up Via CLI flow and ensure that the
+option allow-insecure-primary-ingress in
+Join ConfigMap is set to "true" with the
+following command.
 Note
-k10-mc-admin will be installed under the name <release_name>-mc-admin.
-This ClusterRole is not configurable and is installed with Veeam Kasten.
-You can also create role bindings for existing users or service accounts.
-To bind the k10-mc-admin ClusterRole to a User, use the following command
-To bind the k10-mc-admin ClusterRole to a ServiceAccount, use the following
-command
-Multi-Cluster RBAC section.
-Admin users might also need to configure additional K10ClusterRoleBindings.
-The K10ClusterRoleBindings allow users to be granted access to the
-secondary clusters.
-K10ClusterRoleBindings are used for defining who (users/groups) have what
-access in which clusters. They are resources that can be created
-in the primary cluster to give users/groups access to all or some secondary
-clusters.
-During joining, Veeam Kasten creates a K10ClusterRoleBinding in the
-Multi-Cluster namespace. The default group for this binding is
-k10:admins. Other admin users or groups can be
-added to this K10ClusterRoleBinding via API or via the dashboard, or a
-new K10ClusterRoleBinding can be created.
-The complete K10ClusterRoleBinding reference can be found in the
-Multi-Cluster Access section.
-### Multi-Cluster Users
-For users who need access only to certain cluster-level operations but
-not all the Multi-Cluster Manager configurations, admins can
-configure users to have limited access control using Veeam Kasten
-Multi-Cluster RBAC. Refer Multi-Cluster User Access
-for more information.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_reference_rbac.md
-## RBAC Reference
-- Concepts
-- Getting Started
-- How-Tos
-- References
-Multi-Cluster API Reference
-RBAC Reference
-Multi-Cluster Admin
-Multi-Cluster User
-- Multi-Cluster API Reference
-- RBAC Reference
-Multi-Cluster Admin
-Multi-Cluster User
-- Multi-Cluster Admin
-- Multi-Cluster User
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- References
-- RBAC Reference
-For facilitating role-based access for users, Veeam Kasten leverages
-Kubernetes ClusterRoles and Bindings. Currently, the Veeam Kasten
-Multi-Cluster global manager is only available to admin users and
-requires additional RBAC roles and bindings.
-### Multi-Cluster Admin
-The k10-mc-admin ClusterRole is added for Distributions, Clusters,
-Config, Secrets and Multi-Cluster RBAC configuration access in the Veeam
-Kasten Multi-Cluster namespace.
-Note
-k10-mc-admin will be installed under the name <release_name>-mc-admin.
-This ClusterRole is not configurable and is installed with Veeam Kasten.
-The following is an example of the k10-mc-admin ClusterRole:
-### Multi-Cluster Admin Binding
-The k10-mc-admin ClusterRole needs a RoleBinding in the Veeam Kasten
-Multi-Cluster namespace.
-Veeam Kasten creates a RoleBinding for a default Group k10:admins in the
-Veeam Kasten Multi-Cluster namespace. Admin users can be added to this Group
-and will be able to use the above k10-mc-admin ClusterRole.
-To bind the k10-mc-admin ClusterRole to a User, use the following command
-The above kubectl command will create the following RoleBinding object
-Alternatively, you can also bind the ClusterRole to a ServiceAccount.
-### Multi-Cluster User
-For non-admin users of Veeam Kasten Multi-Cluster Manager, admins
-can allow cluster-level access, without giving access to configuration
-or admin-only operations.
-The following rules can be applied to any existing user's ClusterRole or a new
-ClusterRole can be created.
-Above ClusterRole will give access to ALL clusters, for a more granular
-access, use resourceNames option.
-To bind the k10-mc-user ClusterRole to a User, use the following command
-To bind the k10-mc-user ClusterRole to a ServiceAccount, use the following
-command
-### Multi-Cluster User Binding
-Once users are bound to clusters using the cluster role or rules defined above,
-a K10ClusterRoleBinding is required to define the level of access within
-the clusters.
-### K10ClusterRoles
-These are pre-defined K10ClusterRoles already installed with K10.
-k10-multi-cluster-admin K10ClusterRole has access defined in k10-admin
-ClusterRole, k10-multi-cluster-basic K10ClusterRole has access defined in
-k10-basic ClusterRole, and k10-multi-cluster-config-view K10ClusterRole
-has access defined in k10-config-view ClusterRole. More about
-k10-admin, k10-basic, and k10-config-view can be found at
-K10 RBAC.
-### K10ClusterRoleBindings
-K10ClusterRoleBindings are used for defining who (users/groups) have what
-(K10ClusterRole) access in which clusters. They are Custom Resources
-that can be created in the primary cluster to give users/groups access to
-all or some secondary clusters.
-K10 is installed with three pre-defined K10ClusterRoles that correspond to
-k10-admin, k10-basic and k10-config-view ClusterRoles.
-The following example illustrates how to create a K10ClusterRoleBinding for
-user user1, using k10-multi-cluster-admin K10ClusterRole, for cluster
-cluster1.
-For service account users, a prefix of
-system:serviceaccount:<sa_namespace>: is needed for adding such users.
-The following example illustrates how to create a K10ClusterRoleBinding for
-user sa1, using k10-multi-cluster-admin K10ClusterRole, for cluster
-cluster1.
-### K10ClusterRoleBindings API Type
-The following is a complete specification of the K10ClusterRoleBinding API.
+Usage of an insecure primary ingress scheme is not supported in the
+UI, regardless of the allow-insecure-primary-ingress flag.
+The flag is required whether the primary is set up with an insecure
+ingress, or if the ingress used for the primary cluster was overridden
+to an insecure scheme.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_multicluster_getting_started.md
 ## Getting Started
@@ -516,160 +688,6 @@ You can see the information by looking at the mc-cluster-info secret.
 A corresponding bootstrap and cluster object should be created in the primary
 cluster's kasten-io-mc namespace.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos.md
-## How-Tos
-- Concepts
-- Getting Started
-- How-Tos
-Dashboard Access
-Using The Dashboard
-Disconnect
-Multi-Cluster Access
-Disabling Multi Cluster
-HTTP Primary Ingress Connection
-- Dashboard Access
-- Using The Dashboard
-- Disconnect
-- Multi-Cluster Access
-- Disabling Multi Cluster
-- HTTP Primary Ingress Connection
-- References
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- How-Tos
-This section contains instructions on how to do individual tasks.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_concepts_overview.md
-## Overview
-- Concepts
-Overview
-Primary
-Secondary
-Requirements
-License Management
-- Overview
-Primary
-Secondary
-Requirements
-- Primary
-- Secondary
-- Requirements
-- License Management
-- Getting Started
-- How-Tos
-- References
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- Concepts
-- Overview
-In a Multi-Cluster setup, one cluster is designated as primary, while
-all others are designated as secondaries. All primary and secondary
-clusters must have Veeam Kasten installed. See
-Installing Veeam Kasten for instructions.
-### Primary
-The cluster from which the Multi-Cluster Manager will be
-accessed is designated as primary.
-The primary cluster defines policies and other configuration centrally.
-Centrally defined policies and configuration can then be distributed to
-designated clusters to be enacted.
-The primary cluster also aggregates metrics so that they may be reported
-centrally.
-This provides a single pane of glass through which all clusters in the system
-are managed.
-### Secondary
-Non-primary clusters are designated as secondaries.
-The secondary clusters receive policies and other configuration from the
-primary cluster. Once policies are distributed to a secondary, the local
-Veeam Kasten installation enacts the policy. This ensures that the policy
-will continue to be enforced, even if disconnected from the primary.
-### Requirements
-### Network
-- Primary cluster's dashboard ingress must be accessible by secondaryclusters.
-- If using custom certificates, please make sure that secondary has the correct
-certificates to connect to the primary. More information can be found at
-Using Trusted Root Certificate.
-- Secondary Dashboard Access via Multi-Cluster Dashboard (Optional)
-Secondary cluster's dashboard ingress must be accessible by
-the primary cluster.
-If using custom certificates, please make sure that primary has the correct
-certificates to connect to the secondary. More information can be found at
-Using Trusted Root Certificate.
-- Secondary cluster's dashboard ingress must be accessible by
-the primary cluster.
-- If using custom certificates, please make sure that primary has the correct
-certificates to connect to the secondary. More information can be found at
-Using Trusted Root Certificate.
-clusters.
-Secondary Dashboard Access via Multi-Cluster Dashboard (Optional)
-### Clock Synchronization
-- Primary and secondary clusters must have less than 5 minute clock skew
-for multi-cluster metrics functionality.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos_usage.md
-## Using The Dashboard
-- Concepts
-- Getting Started
-- How-Tos
-Dashboard Access
-Using The Dashboard
-Overview
-Global Resources
-Distributions
-Disconnect
-Multi-Cluster Access
-Disabling Multi Cluster
-HTTP Primary Ingress Connection
-- Dashboard Access
-- Using The Dashboard
-Overview
-Global Resources
-Distributions
-- Overview
-- Global Resources
-- Distributions
-- Disconnect
-- Multi-Cluster Access
-- Disabling Multi Cluster
-- HTTP Primary Ingress Connection
-- References
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- How-Tos
-- Using The Dashboard
-The following sections provide an overview of how to perform common
-tasks using the Multi-Cluster Manager. The equivalent
-actions can also be performed via a Kubernetes-native API.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_reference_api.md
-## Multi-Cluster API Reference
-- Concepts
-- Getting Started
-- How-Tos
-- References
-Multi-Cluster API Reference
-Distributions API
-RBAC Reference
-- Multi-Cluster API Reference
-Distributions API
-- Distributions API
-- RBAC Reference
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- References
-- Multi-Cluster API Reference
-Veeam Kasten Multi-Cluster exposes an API based on Kubernetes Custom Resource
-Definitions (CRDs).
-The simplest way to use the API is through kubectl.
-To understand the API better refer to the following:
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_multicluster_how-tos_disconnect.md
 ## Disconnect
 - Concepts
@@ -721,220 +739,202 @@ from the cluster object corresponding to the secondary cluster.
 After disconnecting all the secondary clusters, you can disconnect a primary
 cluster, by simply deleting the primary cluster object.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_concepts_license.md
-## License Management
+### latest_multicluster_how-tos_disable.md
+## Disabling Multi Cluster
 - Concepts
-Overview
-License Management
-License Sharing Model
-Enabling Multi-Cluster License Management
-Multi-Cluster Lease
-License Usage
-Multi-cluster Lease States
-- Overview
-- License Management
-License Sharing Model
-Enabling Multi-Cluster License Management
-Multi-Cluster Lease
-License Usage
-Multi-cluster Lease States
-- License Sharing Model
-- Enabling Multi-Cluster License Management
-- Multi-Cluster Lease
-- License Usage
-- Multi-cluster Lease States
 - Getting Started
 - How-Tos
+Dashboard Access
+Using The Dashboard
+Disconnect
+Multi-Cluster Access
+Disabling Multi Cluster
+HTTP Primary Ingress Connection
+- Dashboard Access
+- Using The Dashboard
+- Disconnect
+- Multi-Cluster Access
+- Disabling Multi Cluster
+- HTTP Primary Ingress Connection
 - References
 - Known Limitations
 - Upgrading
 -
 - Veeam Kasten Multi-Cluster Manager
-- Concepts
-- License Management
-Multi-Cluster Manager enables licensing all clusters in
-the same multi-cluster system with a single license.
-This can be achieved by installing a single license on the primary cluster,
-which will then distribute license leases to secondary clusters.
-Any excess license capacity from licenses installed on secondary clusters,
-will be contributed to a global pool of licenses maintained by the primary
-cluster.
+- How-Tos
+To disable the Multi-Cluster Manager system on the primary or
+a secondary cluster, please add the following to any of
+the helm install or helm upgrade commands:
 Note
-### License Sharing Model
-When Multi-Cluster license management is enabled, a cluster can contribute its
-excess license capacity to the Multi-Cluster license pool.
-The excess license capacity is calculated by subtracting the number of
-worker nodes in the cluster from the sum of the node limits of all valid
-licenses installed in the cluster.
-Clusters that do not have sufficient licenses will use the Multi-Cluster
-license pool to meet the licensing requirements.
-E.g. There are two clusters, A and B, in a Multi-Cluster system, with 4 and
-5 worker nodes, respectively.
-A license for 10 nodes is installed in cluster A, and cluster B has no
-licenses.
-The 10 node license covers the 4 nodes in cluster A, and there is an excess
-license capacity of 6 (= 10 - 4) on this cluster.
-This excess license capacity can be leased by cluster B to meet its license
-requirement for 5 nodes.
-Both clusters are licensed with a single license in cluster A.
-### Enabling Multi-Cluster License Management
-To enable Multi-Cluster license management, the primary cluster needs to be
-setup with an ingress, which the secondary clusters are able to connect to.
-If an ingress was not specified when setting up the primary, the ingress may
-be set by editing the Cluster resource directly. See
-Upgrading for details.
-### Multi-Cluster Lease
-When Multi-Cluster license management is enabled, a Multi-Cluster Lease will
-be shown on each cluster's Settings -> Licenses page.
-This lease is valid for an hour, and clusters will connect to the primary
-cluster to renew the lease prior to expiry.
-- Example lease of a cluster leasing from the Multi-Cluster license pool:
-This cluster has 2 worker nodes, but does not have any valid licenses
-installed locally.
-The cluster is leasing 2 nodes from the Multi-Cluster license pool, to
-license its 2 worker nodes.
-- Example lease of a cluster contributing to the Multi-Cluster license pool:
-This cluster has 2 worker nodes and licenses installed locally for 100
-nodes.
-The cluster is contributing excess license capacity of 98 (= 100 - 2)
-nodes to the Multi-Cluster license pool.
-### License Usage
-Multi-Cluster Manager's Licensing page
-provides the cumulative license capacity of the Multi-Cluster system, and the
-cumulative number of worker nodes licensed in the Multi-Cluster system.
-License capacity of this Multi-Cluster system is 100 nodes, and the
-sum of worker nodes in this Multi-Cluster system is 4.
-### Multi-cluster Lease States
-### Updating
-This indicates that the Multi-Cluster lease state is updating. This state
-should transition to a different state within minutes.
-### Valid
-Multi-Cluster lease is valid, and cluster meets the license requirements.
-### Expired
-Multi-Cluster lease has expired. This indicates that the cluster was not able
-to connect to the Multi-Cluster license manager in the primary cluster to
-renew its lease.
-Please verify the cluster is able to connect to the primary.
-### Limit Exceeded
-The Multi-Cluster lease is insufficient to license the nodes in the cluster.
-Please contact Kasten through your account contact or at contact@kasten.io.
+If Multi-Cluster Manager was already running on a cluster,
+it will fail during helm upgrade if Multi-Cluster is disabled.
+To disable Multi-Cluster safely, disconnect all clusters
+before disabling.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_reference.md
-## References
+### latest_multicluster_how-tos_access.md
+## Dashboard Access
+- Concepts
+- Getting Started
+- How-Tos
+Dashboard Access
+Multi-Cluster Admins
+Multi-Cluster Users
+Using The Dashboard
+Disconnect
+Multi-Cluster Access
+Disabling Multi Cluster
+HTTP Primary Ingress Connection
+- Dashboard Access
+Multi-Cluster Admins
+Multi-Cluster Users
+- Multi-Cluster Admins
+- Multi-Cluster Users
+- Using The Dashboard
+- Disconnect
+- Multi-Cluster Access
+- Disabling Multi Cluster
+- HTTP Primary Ingress Connection
+- References
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- How-Tos
+- Dashboard Access
+Once a primary cluster is configured for the Multi-Cluster
+Manager features can be accessed via the Dashboard.
+### Multi-Cluster Admins
+The Multi-Cluster Manager dashboard will be available at
+https://<URL to k10 gateway service>/k10/##/clusters for Veeam Kasten
+exposed externally or http://127.0.0.1:<forwarding port>/k10/##/clusters
+for Veeam Kasten exposed through kubectl port-forward during install.
+Refer Dashboard Access for more information.
+If a cluster is setup as primary, the dashboard will have
+a drop-down at top of the navigation sidebar that allows navigation to the
+Multi-Cluster Manager dashboard.
+For users to get admin access to the Multi-Cluster Manager
+dashboard as well as other Multi-Cluster features, additional
+role bindings may be required.
+The k10-mc-admin ClusterRole is installed during install/
+upgrade. It grants admin users access to Distributions, Clusters, Config,
+Secrets and Multi-Cluster RBAC configurations in
+the Multi-Cluster namespace.
+During joining, Veeam Kasten creates a RoleBinding for a default Group
+k10:admins in the Multi-Cluster namespace. Admin users can be
+added to this Group and will be able to use the above k10-mc-admin
+ClusterRole.
+Note
+k10-mc-admin will be installed under the name <release_name>-mc-admin.
+This ClusterRole is not configurable and is installed with Veeam Kasten.
+You can also create role bindings for existing users or service accounts.
+To bind the k10-mc-admin ClusterRole to a User, use the following command
+To bind the k10-mc-admin ClusterRole to a ServiceAccount, use the following
+command
+Multi-Cluster RBAC section.
+Admin users might also need to configure additional K10ClusterRoleBindings.
+The K10ClusterRoleBindings allow users to be granted access to the
+secondary clusters.
+K10ClusterRoleBindings are used for defining who (users/groups) have what
+access in which clusters. They are resources that can be created
+in the primary cluster to give users/groups access to all or some secondary
+clusters.
+During joining, Veeam Kasten creates a K10ClusterRoleBinding in the
+Multi-Cluster namespace. The default group for this binding is
+k10:admins. Other admin users or groups can be
+added to this K10ClusterRoleBinding via API or via the dashboard, or a
+new K10ClusterRoleBinding can be created.
+The complete K10ClusterRoleBinding reference can be found in the
+Multi-Cluster Access section.
+### Multi-Cluster Users
+For users who need access only to certain cluster-level operations but
+not all the Multi-Cluster Manager configurations, admins can
+configure users to have limited access control using Veeam Kasten
+Multi-Cluster RBAC. Refer Multi-Cluster User Access
+for more information.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_reference_rbac.md
+## RBAC Reference
 - Concepts
 - Getting Started
 - How-Tos
 - References
 Multi-Cluster API Reference
 RBAC Reference
+Multi-Cluster Admin
+Multi-Cluster User
 - Multi-Cluster API Reference
 - RBAC Reference
+Multi-Cluster Admin
+Multi-Cluster User
+- Multi-Cluster Admin
+- Multi-Cluster User
 - Known Limitations
 - Upgrading
 -
 - Veeam Kasten Multi-Cluster Manager
 - References
-This section contains references to tools and APIs related to the
-Veeam Kasten Multi-Cluster Manager system.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos_http_primary_ingress_connection.md
-## HTTP Primary Ingress Connection
-- Concepts
-- Getting Started
-- How-Tos
-Dashboard Access
-Using The Dashboard
-Disconnect
-Multi-Cluster Access
-Disabling Multi Cluster
-HTTP Primary Ingress Connection
-- Dashboard Access
-- Using The Dashboard
-- Disconnect
-- Multi-Cluster Access
-- Disabling Multi Cluster
-- HTTP Primary Ingress Connection
-- References
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- How-Tos
-When joining a secondary cluster to a Multi-Cluster system, the ingress
-used to connect to the primary cluster requires a secure scheme (https)
-by default.
-Warning
-Using an insecure primary ingress is not recommended for security
-reasons.
-If an insecure scheme (http) is required for the primary cluster ingress,
-an additional flag in Join ConfigMap is needed. Follow the steps in
-Adding a Secondary Cluster within the
-Setting Up Via CLI flow and ensure that the
-option allow-insecure-primary-ingress in
-Join ConfigMap is set to "true" with the
-following command.
+- RBAC Reference
+For facilitating role-based access for users, Veeam Kasten leverages
+Kubernetes ClusterRoles and Bindings. Currently, the Veeam Kasten
+Multi-Cluster global manager is only available to admin users and
+requires additional RBAC roles and bindings.
+### Multi-Cluster Admin
+The k10-mc-admin ClusterRole is added for Distributions, Clusters,
+Config, Secrets and Multi-Cluster RBAC configuration access in the Veeam
+Kasten Multi-Cluster namespace.
 Note
-Usage of an insecure primary ingress scheme is not supported in the
-UI, regardless of the allow-insecure-primary-ingress flag.
-The flag is required whether the primary is set up with an insecure
-ingress, or if the ingress used for the primary cluster was overridden
-to an insecure scheme.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos_user_access.md
-## Multi-Cluster Access
-- Concepts
-- Getting Started
-- How-Tos
-Dashboard Access
-Using The Dashboard
-Disconnect
-Multi-Cluster Access
-Configuring Access for Multi-Cluster Users
-Disabling Multi Cluster
-HTTP Primary Ingress Connection
-- Dashboard Access
-- Using The Dashboard
-- Disconnect
-- Multi-Cluster Access
-Configuring Access for Multi-Cluster Users
-- Configuring Access for Multi-Cluster Users
-- Disabling Multi Cluster
-- HTTP Primary Ingress Connection
-- References
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- How-Tos
-- Multi-Cluster Access
-For users to get access to Multi-Cluster Manager,
-Multi-Cluster access control can be configured.
-Users first need access to clusters joined and available in
-the Multi-Cluster Manager setup. Refer
-Multi-Cluster User section for
-more information.
-### Configuring Access for Multi-Cluster Users
-Veeam Kasten allows users and/or groups to be bound to a list of
-clusters with pre-defined K10ClusterRoles. This ensures, users
-and/or groups can be given granular access for individual clusters.
-Veeam Kasten will handle any Kubernetes roles or bindings required
-to facilitate the access control.
-Note
-Because Veeam Kasten handles access control, authentication
-domains for users/groups can be different on primary and secondary
-clusters.
-Admin users can add or update K10ClusterRoleBindings in the
-Multi-Cluster Manager dashboard.
+k10-mc-admin will be installed under the name <release_name>-mc-admin.
+This ClusterRole is not configurable and is installed with Veeam Kasten.
+The following is an example of the k10-mc-admin ClusterRole:
+### Multi-Cluster Admin Binding
+The k10-mc-admin ClusterRole needs a RoleBinding in the Veeam Kasten
+Multi-Cluster namespace.
+Veeam Kasten creates a RoleBinding for a default Group k10:admins in the
+Veeam Kasten Multi-Cluster namespace. Admin users can be added to this Group
+and will be able to use the above k10-mc-admin ClusterRole.
+To bind the k10-mc-admin ClusterRole to a User, use the following command
+The above kubectl command will create the following RoleBinding object
+Alternatively, you can also bind the ClusterRole to a ServiceAccount.
+### Multi-Cluster User
+For non-admin users of Veeam Kasten Multi-Cluster Manager, admins
+can allow cluster-level access, without giving access to configuration
+or admin-only operations.
+The following rules can be applied to any existing user's ClusterRole or a new
+ClusterRole can be created.
+Above ClusterRole will give access to ALL clusters, for a more granular
+access, use resourceNames option.
+To bind the k10-mc-user ClusterRole to a User, use the following command
+To bind the k10-mc-user ClusterRole to a ServiceAccount, use the following
+command
+### Multi-Cluster User Binding
+Once users are bound to clusters using the cluster role or rules defined above,
+a K10ClusterRoleBinding is required to define the level of access within
+the clusters.
+### K10ClusterRoles
+These are pre-defined K10ClusterRoles already installed with K10.
+k10-multi-cluster-admin K10ClusterRole has access defined in k10-admin
+ClusterRole, k10-multi-cluster-basic K10ClusterRole has access defined in
+k10-basic ClusterRole, and k10-multi-cluster-config-view K10ClusterRole
+has access defined in k10-config-view ClusterRole. More about
+k10-admin, k10-basic, and k10-config-view can be found at
+K10 RBAC.
 ### K10ClusterRoleBindings
-K10ClusterRoleBindings defines users/groups access to clusters.
-One of the predefined K10ClusterRoles, k10-multi-cluster-admin,
-k10-multi-cluster-basic or k10-multi-cluster-config-view,  can
-be selected.
-Either all clusters or a list of clusters can be selected using name or a
-selector string.
-List of users or groups can be added using fully qualified names.
-The complete RBAC reference for K10ClusterRoleBindings can be found in
-this section.
+K10ClusterRoleBindings are used for defining who (users/groups) have what
+(K10ClusterRole) access in which clusters. They are Custom Resources
+that can be created in the primary cluster to give users/groups access to
+all or some secondary clusters.
+K10 is installed with three pre-defined K10ClusterRoles that correspond to
+k10-admin, k10-basic and k10-config-view ClusterRoles.
+The following example illustrates how to create a K10ClusterRoleBinding for
+user user1, using k10-multi-cluster-admin K10ClusterRole, for cluster
+cluster1.
+For service account users, a prefix of
+system:serviceaccount:<sa_namespace>: is needed for adding such users.
+The following example illustrates how to create a K10ClusterRoleBinding for
+user sa1, using k10-multi-cluster-admin K10ClusterRole, for cluster
+cluster1.
+### K10ClusterRoleBindings API Type
+The following is a complete specification of the K10ClusterRoleBinding API.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_multicluster_how-tos_global_resources.md
 ## Global Resources
@@ -1001,61 +1001,6 @@ If Multi-Cluster license management is enabled, the Licensing tab provides
 the global license usage information.
 See License Usage section for more information.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_multicluster_how-tos_distributions.md
-## Distributions
-- Concepts
-- Getting Started
-- How-Tos
-Dashboard Access
-Using The Dashboard
-Overview
-Global Resources
-Distributions
-Disconnect
-Multi-Cluster Access
-Disabling Multi Cluster
-HTTP Primary Ingress Connection
-- Dashboard Access
-- Using The Dashboard
-Overview
-Global Resources
-Distributions
-- Overview
-- Global Resources
-- Distributions
-- Disconnect
-- Multi-Cluster Access
-- Disabling Multi Cluster
-- HTTP Primary Ingress Connection
-- References
-- Known Limitations
-- Upgrading
--
-- Veeam Kasten Multi-Cluster Manager
-- How-Tos
-- Using The Dashboard
-Distributions provide a way to describe the relationship between globally
-defined resources and the clusters to which they should be distributed. This
-affords a tremendous amount of flexibility, allowing the correct policies to be
-applied to the correct clusters.
-For simple setups, a single distribution may be sufficient. Multiple
-distributions may be used to accommodate more complex setups and topologies.
-### Global Resources
-Resources managed centrally in the Multi-Cluster Manager are also
-called Global Resources.
-Global resources are defined independently from other resources defined in the
-primary cluster. This separation means global resources, such as Policies, do
-not apply to the primary cluster unless they are also distributed to the
-cluster. This ensures the administrator has control over where global resources
-are applied.
-See Global Resources for additional details.
-### Clusters
-Distributions can target any cluster or set of clusters that have been
-joined. This includes the primary cluster.
-Tip
-For more details on the joining process, see the
-Getting Started guide.
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_multicluster_how-tos_overview.md
 ## Overview
 - Concepts
@@ -1120,6 +1065,61 @@ using the instructions here
 will by default have click through disabled.
 If clicking through into the secondary cluster is required, then
 the ingress URL of the secondary cluster must be configured.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_multicluster_how-tos_distributions.md
+## Distributions
+- Concepts
+- Getting Started
+- How-Tos
+Dashboard Access
+Using The Dashboard
+Overview
+Global Resources
+Distributions
+Disconnect
+Multi-Cluster Access
+Disabling Multi Cluster
+HTTP Primary Ingress Connection
+- Dashboard Access
+- Using The Dashboard
+Overview
+Global Resources
+Distributions
+- Overview
+- Global Resources
+- Distributions
+- Disconnect
+- Multi-Cluster Access
+- Disabling Multi Cluster
+- HTTP Primary Ingress Connection
+- References
+- Known Limitations
+- Upgrading
+-
+- Veeam Kasten Multi-Cluster Manager
+- How-Tos
+- Using The Dashboard
+Distributions provide a way to describe the relationship between globally
+defined resources and the clusters to which they should be distributed. This
+affords a tremendous amount of flexibility, allowing the correct policies to be
+applied to the correct clusters.
+For simple setups, a single distribution may be sufficient. Multiple
+distributions may be used to accommodate more complex setups and topologies.
+### Global Resources
+Resources managed centrally in the Multi-Cluster Manager are also
+called Global Resources.
+Global resources are defined independently from other resources defined in the
+primary cluster. This separation means global resources, such as Policies, do
+not apply to the primary cluster unless they are also distributed to the
+cluster. This ensures the administrator has control over where global resources
+are applied.
+See Global Resources for additional details.
+### Clusters
+Distributions can target any cluster or set of clusters that have been
+joined. This includes the primary cluster.
+Tip
+For more details on the joining process, see the
+Getting Started guide.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_multicluster_reference_api_distribution.md
 ## Distributions API

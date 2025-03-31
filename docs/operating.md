@@ -20,6 +20,68 @@ ranging from command-line interaction to monitoring the status of policies and
 jobs in the system. The following sections cover these topics in
 depth.
 © Copyright 2017-2024, Kasten, Inc.
+### latest_operating_reporting.md
+## Reporting
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+Enabling Veeam Kasten Reports
+Viewing Generated Reports
+Viewing Reports With The Dashboard
+Viewing Reports With kubectl
+- Enabling Veeam Kasten Reports
+- Viewing Generated Reports
+Viewing Reports With The Dashboard
+Viewing Reports With kubectl
+- Viewing Reports With The Dashboard
+- Viewing Reports With kubectl
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Reporting
+Veeam Kasten Reporting provides regular insights into key performance and
+operational states of the system. When reporting is enabled, Veeam Kasten
+periodically collects information from the system and compiles it into a
+report. Generated reports include information such as license status,
+actions run, configured policies and profiles, compliance information,
+and service information.
+### Enabling Veeam Kasten Reports
+Under Usage and Reports menu in the navigation sidebar, select Reports
+and then select Enable Reports.
+When enabled, a policy is created to manage the generation of reports. Reports
+are generated according to the policy and then stored in the cluster. The
+policy is also be visible on the policies page.
+### Viewing Generated Reports
+A generated report contains information about the state of the system at the
+time the report was generated as well as select metrics collected from the
+Veeam Kasten Prometheus service.
+Note
+If some of the information is unavailable at the time the report
+is generated, it is omitted from the report. For example, if the Veeam
+Kasten Prometheus service is disabled or otherwise unavailable, metrics
+are omitted from the report.
+### Viewing Reports With The Dashboard
+Recent reports can be viewed on the Usage & Reports page. The full details of
+a given report can be viewed by clicking on a report in the list.
+### Viewing Reports With kubectl
+Reports can be listed and viewed using kubectl.
+Tip
+By default, kubectl get doesn't sort results, they're displayed
+in the same order they're received from the API server. This means
+reports may not be listed in the order they were generated.
+The --sort-by=.spec.reportTimestamp option can be added to ensure the
+most recent reports are listed last.
+An individual report can also be shown using the -o yaml option for
+kubectl get:
+© Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_security_requirements.md
 ## Security Requirements
 - Veeam Kasten Disaster Recovery
@@ -84,186 +146,6 @@ the security policies must allow the supplementalGroup
 used by the profile.
 See NFS Location Profile for details.
 © Copyright 2017-2024, Kasten, Inc.
-### latest_operating_garbagecollector.md
-## Garbage Collector
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-Supported Resource Types
-- Supported Resource Types
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Garbage Collector
-Veeam Kasten provides a way to collect and clean up the resources that
-are either orphaned or their expiration period has passed.
-The following Helm options can be used to tune Garbage Collector behavior:
-- garbagecollector.daemonPeriod - the length of time between
-two consecutive garbage collection events (in seconds)
-- garbagecollector.keepMaxActions - how many finished actions to keep
-(if value is less than or equal to 0, no actions will be deleted)
-- garbagecollector.actions.enabled - enables action
-collectors (boolean)
-### Supported Resource Types
-Garbage Collector daemon can currently clean up the following resource types:
-- Actions: When the limit, as defined by garbagecollector.keepMaxActions,
-is exceeded, the oldest actions are removed until the limit is reached.
-Each action type is handled independently in this process.
-- RestorePointContents - expired manual backups will be removed
-as determined by spec.expiresAt.
-This can be set via kubectl or on the manual snapshot page in the UI.
-- CSISnapshot - temporary CSI snapshots created during restore operations.
-- PersistentVolumes - temporary volumes created during restore operations.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_uninstall.md
-## Uninstalling Veeam Kasten
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-It is important to uninstall Veeam Kasten with the Helm command to
-ensure that all non-namespaced resources are cleaned up. Simply
-deleting the namespace Veeam Kasten is installed in might cause
-issues with stale services. Assuming Veeam Kasten was installed
-with the release name k10 and in the kasten-io namespace,
-run the following command to uninstall:
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_support.md
-## Support and Troubleshooting
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-Supported Kubernetes Versions
-Gathering Debugging Information
-Application Debug Information
-Veeam Kasten Tools
-Storage Class Validation
-Security Disclosures
-- Supported Kubernetes Versions
-- Gathering Debugging Information
-Application Debug Information
-- Application Debug Information
-- Veeam Kasten Tools
-- Storage Class Validation
-- Security Disclosures
-- Uninstalling Veeam Kasten
--
-- Operating Veeam Kasten
-- Support and Troubleshooting
-If you have questions or need support, please refer to
-Veeam Kasten Community Support
-or open a case via https://my.veeam.com.
-### Supported Kubernetes Versions
-Veeam Kasten currently supports deployments running on the following certified
-Kubernetes distributions and respective OpenShift versions:
-Note: Veeam Kasten also does not support distributions/versions that have
-been declared 'End of Life' status as defined by their respective
-entity/community/vendor (in other words, distributions/versions for which
-maintenance is not provided anymore by their supporting
-entity/community/vendor).
-Kubernetes
-RedHat Openshift
-Notes
-1.32
-Respective OpenShift version is not supported yet
-1.31
-1.30
-4.17
-1.29
-4.16
-1.28
-4.15
-Kubernetes version only supported when deployed as an OpenShift cluster
-1.27
-4.14
-1.26
-4.13
-1.25
-4.12
-### Gathering Debugging Information
-Admin users running 4.5.7 or later can get support logs from the
-System Information page under the Settings menu in the
-navigation sidebar.
-Alternatively, if you run into problems with Veeam Kasten, please run
-these commands on your cluster as a first step to get information to
-support. The script assumes that your default kubectl context is
-pointed to the cluster you have installed Veeam Kasten on and that
-Veeam Kasten is installed in the kasten-io namespace.
-By default, the debug script will generate a compressed archive file
-k10_debug_logs.tar.gz which will have separate log files
-for Veeam Kasten services.
-If you installed Veeam Kasten in a different namespace or want to log to
-a different file you can specify additional option flags to the script:
-See the script usage message for additional help.
-The debug script can optionally gather metrics from the Prometheus
-server installed by Veeam Kasten,
-by specifying the --prom-duration flag with a value indicating
-the desired duration (e.g. "1d", "3h25m").
-The start time of the metric collection is implicitly assumed to
-be the current time less the specified duration, but can be adjusted
-with the --prom-start-time flag to specify a time in the past.
-The format is either the simple duration string that is accepted by
-the duration flag,
-or a string that is parsable with the date command, which could
-be a timestamp or a free form relative or absolute time specification.
-For example:
-would collect 270 minutes of metrics starting from 51 hours in the past.
-Note
-Metrics capture only works with the Prometheus instance installed
-by Veeam Kasten.
-The specified duration directly impacts the size of the captured
-metrics data so constrain the duration accordingly.
-One can also consider using the --prom-metrics-only flag to
-separate the collection of metrics from the collection of the logs.
-### Application Debug Information
-If you are having issues with a particular application, please also
-gather the following information.
-Please also get the Helm status:
-### Veeam Kasten Tools
-The k10tools binary has commands that can help with validating if a cluster
-is setup correctly before installing Veeam Kasten and for debugging Veeam
-Kasten's micro services.
-To learn more about this, see Veeam Kasten Tools.
-### Storage Class Validation
-k10tools provides an option to validate
-storage classes via CSI Capabilities Check or
-Generic Volume Snapshot Capabilities Check commands.
-It is also possible for admin users to validate storage classes from the
-Veeam Kasten dashboard, under the System Information page of the
-Settings menu in the navigation sidebar. The state "Unknown" is shown
-until validation is run.
-### Security Disclosures
-We value the critical role that the security community plays in helping
-us protect the confidentiality, integrity, and availability of our software,
-services, and information. If you have information about security
-vulnerabilities that affect Kasten software, services, or information, please
-report it via our vulnerability disclosure program.
-© Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_audit.md
 ## Auditing Veeam Kasten
 - Veeam Kasten Disaster Recovery
@@ -319,24 +201,62 @@ attributed to the user that initiated them. Other system actions
 (e.g., validation of a Profile or Policy) will be attributed to the
 Veeam Kasten Service Account (SA).
 © Copyright 2017-2024, Kasten, Inc.
-### latest_operating_reporting.md
-## Reporting
+### latest_operating_dr.md
+## Veeam Kasten Disaster Recovery
 - Veeam Kasten Disaster Recovery
+Configuring Veeam Kasten Disaster Recovery Mode
+Comparing Legacy DR and Quick DR
+Enabling Veeam Kasten Disaster Recovery
+Managing the Veeam Kasten Disaster Recovery Policy
+Disabling Veeam Kasten Disaster Recovery
+Recovering Veeam Kasten from a Disaster via UI
+Recovering Veeam Kasten from a Disaster via CLI
+Recovering Veeam Kasten From a Disaster via Helm
+Specifying a Disaster Recovery Passphrase
+Reinstalling Veeam Kasten
+Configuring Location Profile
+Restoring Veeam Kasten with k10restore
+Restoring Veeam Kasten Backup with Iron Bank Kasten Images
+Restoring Veeam Kasten Backup in FIPS Mode
+Restoring Veeam Kasten Backup in Air-Gapped environment
+Restoring Veeam Kasten Backup with Google Workload Identity Federation
+Uninstalling k10restore
+Recovering with the Operator
+Using the Restored Veeam Kasten in Place of the Original
+- Configuring Veeam Kasten Disaster Recovery Mode
+Comparing Legacy DR and Quick DR
+- Comparing Legacy DR and Quick DR
+- Enabling Veeam Kasten Disaster Recovery
+- Managing the Veeam Kasten Disaster Recovery Policy
+- Disabling Veeam Kasten Disaster Recovery
+- Recovering Veeam Kasten from a Disaster via UI
+- Recovering Veeam Kasten from a Disaster via CLI
+- Recovering Veeam Kasten From a Disaster via Helm
+Specifying a Disaster Recovery Passphrase
+Reinstalling Veeam Kasten
+Configuring Location Profile
+Restoring Veeam Kasten with k10restore
+Restoring Veeam Kasten Backup with Iron Bank Kasten Images
+Restoring Veeam Kasten Backup in FIPS Mode
+Restoring Veeam Kasten Backup in Air-Gapped environment
+Restoring Veeam Kasten Backup with Google Workload Identity Federation
+Uninstalling k10restore
+- Specifying a Disaster Recovery Passphrase
+- Reinstalling Veeam Kasten
+- Configuring Location Profile
+- Restoring Veeam Kasten with k10restore
+- Restoring Veeam Kasten Backup with Iron Bank Kasten Images
+- Restoring Veeam Kasten Backup in FIPS Mode
+- Restoring Veeam Kasten Backup in Air-Gapped environment
+- Restoring Veeam Kasten Backup with Google Workload Identity Federation
+- Uninstalling k10restore
+- Recovering with the Operator
+- Using the Restored Veeam Kasten in Place of the Original
 - API and Command Line
 - Monitoring
 - Auditing Veeam Kasten
 - Integrating Security Information and Event Management (SIEM) Systems
 - Reporting
-Enabling Veeam Kasten Reports
-Viewing Generated Reports
-Viewing Reports With The Dashboard
-Viewing Reports With kubectl
-- Enabling Veeam Kasten Reports
-- Viewing Generated Reports
-Viewing Reports With The Dashboard
-Viewing Reports With kubectl
-- Viewing Reports With The Dashboard
-- Viewing Reports With kubectl
 - Garbage Collector
 - Resource Requirements
 - Security Requirements
@@ -345,41 +265,426 @@ Viewing Reports With kubectl
 - Veeam Kasten Tools
 -
 - Operating Veeam Kasten
-- Reporting
-Veeam Kasten Reporting provides regular insights into key performance and
-operational states of the system. When reporting is enabled, Veeam Kasten
-periodically collects information from the system and compiles it into a
-report. Generated reports include information such as license status,
-actions run, configured policies and profiles, compliance information,
-and service information.
-### Enabling Veeam Kasten Reports
-Under Usage and Reports menu in the navigation sidebar, select Reports
-and then select Enable Reports.
-When enabled, a policy is created to manage the generation of reports. Reports
-are generated according to the policy and then stored in the cluster. The
-policy is also be visible on the policies page.
-### Viewing Generated Reports
-A generated report contains information about the state of the system at the
-time the report was generated as well as select metrics collected from the
-Veeam Kasten Prometheus service.
+- Veeam Kasten Disaster Recovery
+As Veeam Kasten is a stateful application running on the
+cluster, it must be responsible for backing up its own data to enable
+recovery in the event of disaster - this is enabled by the
+Veeam Kasten Disaster Recovery (KDR) policy. In particular, KDR
+provides the ability to recover the Veeam Kasten platform
+from a variety of disasters, such as the unintended deletion of
+Veeam Kasten or its restore points, the failure of the underlying
+storage used by Veeam Kasten, or even the accidental
+destruction of the Kubernetes cluster on which Veeam Kasten is deployed.
+### Configuring Veeam Kasten Disaster Recovery Mode
+The KDR mode specifies how internal Veeam Kasten resources are protected. The
+mode can be set either before or after enabling the KDR policy. Changes
+to the KDR mode only apply to future KDR policy runs.
+All installations default to Legacy DR mode. Quick DR mode is available
+and recommended for installations using snapshot-capable storage.
+Warning
+Quick DR mode should only be enabled if the storage provisioner
+used for Veeam Kasten PVCs supports both the creation of snapshots
+and the ability to restore the existing volume from a snapshot.
+- To enable Quick DR mode, install or upgrade Veeam Kasten
+with the --set kastenDisasterRecovery.quickMode.enabled=true Helm value.
+- To enable Legacy DR mode, install or upgrade Veeam Kasten
+with the --set kastenDisasterRecovery.quickMode.enabled=false Helm value.
+### Comparing Legacy DR and Quick DR
+Refer to the details below to understand the key differences between
+each mode.
+Quick DR
+- Snapshot-capable storage for Veeam Kasten PVCs required
+- Incrementally exports only necessary data from the catalog database
+and creates a local snapshot of the catalog PVC on each policy run
+- Enables recovery of exported restore points on any cluster
+- Enables recovery of local restore points, exported
+restore points, and action history only where the local catalog
+snapshot is available (i.e. in-place recovery on the
+original cluster)
+- Faster KDR backup and recovery versus Legacy DR
+- Consumes less location profile storage versus Legacy DR
+- Protects additional Veeam Kasten resource types versus Legacy DR
+Legacy DR
+- No dependency on snapshot-capable storage for Veeam
+Kasten PVCs
+- Exports a full dump of the catalog database
+on each policy run
+- Enables recovery of local restore points, exported
+restore points, and action history
+KDR Protected Resource Matrix
+Veeam Kasten Resource
+Actions
+Yes(1)
+Yes
+Local Restore Points
+Exported Restore Points
+Policies
+Basic User Policies
+No
+Profiles
+Blueprints
+Blueprint Bindings
+Policy Presets
+Transform Sets
+Multi-Cluster Primary
+Multi-Cluster Secondary
+Reports
+ActionPodSpecs
+AuditConfig
+StorageSecurityContext
+StorageSecurityContextBinding
 Note
-If some of the information is unavailable at the time the report
-is generated, it is omitted from the report. For example, if the Veeam
-Kasten Prometheus service is disabled or otherwise unavailable, metrics
-are omitted from the report.
-### Viewing Reports With The Dashboard
-Recent reports can be viewed on the Usage & Reports page. The full details of
-a given report can be viewed by clicking on a report in the list.
-### Viewing Reports With kubectl
-Reports can be listed and viewed using kubectl.
-Tip
-By default, kubectl get doesn't sort results, they're displayed
-in the same order they're received from the API server. This means
-reports may not be listed in the order they were generated.
-The --sort-by=.spec.reportTimestamp option can be added to ensure the
-most recent reports are listed last.
-An individual report can also be shown using the -o yaml option for
-kubectl get:
+For Quick DR, resources marked with (1) can only be
+restored if a local KDR snapshot is available.
+### Enabling Veeam Kasten Disaster Recovery
+Enabling Veeam Kasten Disaster Recovery (KDR) creates a dedicated
+policy within Veeam Kasten to back up its resources and catalog data
+to an external location profile.
+Veeam Repository location profiles cannot
+be used as a destination for KDR backups.
+It is strongly recommended to use a location profile
+that supports immutable backups to ensure
+restore point catalog data can be recovered in the event of
+incidents including ransomware and accidental deletion.
+The Veeam Kasten Disaster Recovery settings are accessible via the
+Setup Kasten DR page under the Settings menu in the
+navigation sidebar. For new installations, these settings are
+also accessible using the link located within the alerts panel.
+Select the Setup Kasten DR page under the Settings menu in the
+navigation sidebar.
+Enabling KDR requires selecting a Location
+Profile for the exported KDR backups and providing
+a passphrase to encrypt the data using AES-256-GCM.
+The passphrase can be provided as a raw string
+or as reference to a secret in HashiCorp Vault or AWS Secrets Manager.
+Enable KDR by selecting a valid location profile and providing
+either a raw passphrase or secret management credentials, then clicking
+the Enable Kasten DR button.
+If providing a raw passphrase,
+save it securely outside the cluster.
+Using HashiCorp Vault requires that
+Kasten is configured to access Vault.
+Using AWS Secrets Manager requires that an
+AWS Infrastructure Profile exists
+with the adequate permissions
+A confirmation message with the cluster ID will be displayed
+when KDR is enabled. This ID is used as a prefix to
+the object storage or NFS file storage location where Veeam Kasten
+saves its exported backup data.
+After enabling Veeam Kasten Disaster Recovery, it is essential
+to retain the following to successfully recover Veeam Kasten
+from a disaster:
+1. The source cluster ID
+2. The KDR passphrase (or external secret manager details)
+3. The KDR location profile details and credential
+Without this information, restore point catalog recovery will not be possible.
+The cluster ID value can also be accessed by using the
+following kubectl command.
+### Managing the Veeam Kasten Disaster Recovery Policy
+A policy named k10-disaster-recovery-policy that implements
+Veeam Kasten Disaster Recovery (KDR) will automatically be created when
+KDR is enabled. This policy can be viewed through the Policies
+page in the navigation sidebar.
+Click Run Once on the k10-disaster-recovery-policy to start a
+manual backup.
+Click Edit to modify the frequency and retention settings. It is
+recommended that the KDR policy match the frequency of the lowest RPO
+policy on the cluster.
+### Disabling Veeam Kasten Disaster Recovery
+Veeam Kasten Disaster Recovery can be disabled by clicking
+the Disable Kasten DR button on the Setup Kasten DR page,
+which is found under the Settings menu in the navigation sidebar.
+It is not recommended to run Veeam Kasten without KDR enabled.
+### Recovering Veeam Kasten from a Disaster via UI
+To recover from a KDR backup using the UI, follow these steps:
+1. On a new cluster, install a fresh Veeam Kasten instance in the same
+namespace as the original Veeam Kasten instance.
+2. On the new cluster, create a location profile by providing the
+bucket information and credentials for the object storage
+location or NFS file storage location where previous Veeam
+Kasten backups are stored.
+3. On the new cluster, navigate to the Restore Kasten
+page under the Settings menu in the navigation sidebar.
+4. In the Profile drop-down, select the location profile created
+in step 3.
+1. For Cluster ID, provide the ID of the original cluster with
+Veeam Kasten Disaster Recovery enabled. This ID can be found
+on the Setup Kasten DR page of the original cluster that
+currently has Veeam Kasten Disaster Recovery enabled.
+- Raw passphrase: Provide the passphrase used when enabling
+Disaster Recovery.
+- HashiCorp Vault: Provide the Key Value Secrets Engine Version,
+Mount, Path, and Passphrase Key stored in a HashiCorp Vault secret.
+- AWS Secrets Manager: Provide the secret name, its associated region,
+and the key.
+For immutable location profiles, a previous
+point in time can be provided to filter out any restore points
+newer than the specified time in the next step. If no specific
+date is chosen, it will display all available restore points,
+with the most recent ones appearing first.
+1. Click the Next button to start the validation process.
+If validation succeeds, a drop-down containing the available
+restore points will be displayed.
+All times are displayed in the local timezone of the
+client's browser.
+1. Select the desired restore point and click the Next button.
+2. Review the summary and click the Start Restore button to
+begin the restore process.
+1. Upon completion of a successful restoration, navigation to the
+dashboard and information about ownership and deletion of
+the configmap is displayed.
+Following recovery of the Veeam Kasten restore point catalog,
+restore cluster-scoped resources and
+applications as required.
+### Recovering Veeam Kasten from a Disaster via CLI
+In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
+API or CLI using DR API Resources.
+Recovering from a KDR backup using CLI involves the following
+sequence of steps:
+1. Create a Kubernetes Secret, k10-dr-secret, using the passphrase
+provided while enabling Disaster Recovery as described in
+Specifying a Disaster Recovery Passphrase.
+2. Install a fresh Veeam Kasten instance in the same namespace as the above
+Secret.
+3. Provide bucket information and credentials for the object storage
+location or NFS file storage location where previous Veeam Kasten backups
+are stored.
+4. Create KastenDRReview resource providing
+the source cluster information.
+5. Create KastenDRRestore resource
+referring to the KastenDRReview resource and choosing one of the restore
+points provided in the KastenDRReview status.
+6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be
+created directly with the source cluster information.
+7. Delete the KastenDRReview and KastenDRRestore resources after restore
+completes.
+### Recovering Veeam Kasten From a Disaster via Helm
+The k10restore Helm chart is deprecated with Veeam Kasten v7.5.0
+release and will be removed in a future release.
+Recovering from a KDR backup using k10restore involves the
+following sequence of actions:
+1. Create a Kubernetes Secret, k10-dr-secret, using the passphrase
+provided while enabling Disaster Recovery
+2. Install a fresh Veeam Kasten instance in the same namespace as the above
+Secret
+3. Provide bucket information and credentials for the object storage
+location or NFS file storage location where previous Veeam Kasten backups
+are stored
+4. Restoring the Veeam Kasten backup
+5. Uninstalling the Veeam Kasten restore instance after recovery is
+recommended
+If Kasten was previously installed in FIPS mode, ensure the fresh
+Veeam Kasten instance is also installed in FIPS mode.
+If Veeam Kasten backup is stored using an
+NFS File Storage Location, it is
+important that the same NFS share is reachable from the recovery cluster
+and is mounted on all nodes where Veeam Kasten is installed.
+### Specifying a Disaster Recovery Passphrase
+Currently, Veeam Kasten Disaster Recovery encrypts all artifacts via the
+use of the AES-256-GCM algorithm. The passphrase entered while enabling
+Disaster Recovery is used for this encryption. On the cluster used for
+Veeam Kasten recovery, the Secret k10-dr-secret needs to be
+therefore created using that same passphrase in the Veeam Kasten
+namespace (default kasten-io)
+The passphrase can be provided as a raw string or reference
+a secret in HashiCorp Vault or AWS Secrets Manager.
+Specifying the passphrase as a raw string:
+Specifying the passphrase as a HashiCorp Vault secret:
+The supported values for vault-kv-version are KVv1 and KVv2.
+Using a passphrase from HashiCorp Vault also requires enabling
+HashiCorp Vault authentication when installing the kasten/k10restore
+helm chart. Refer: Enabling HashiCorp Vault using
+Token Auth or
+Kubernetes Auth.
+Specifying the passphrase as an AWS Secrets Manager secret:
+### Reinstalling Veeam Kasten
+When reinstalling Veeam Kasten on the same cluster, it is
+important to clean up the namespace in which Veeam Kasten was
+previously installed before the above passphrase creation.
+Veeam Kasten must be reinstalled before recovery. Please follow
+the instructions here.
+### Configuring Location Profile
+Create a Location Profile with the object
+storage location or NFS file storage location where Veeam Kasten
+KDR backups are stored.
+### Restoring Veeam Kasten with k10restore
+Requirements:
+- Source cluster ID
+- Name of Location Profile from the previous step
+If Veeam Kasten Quick Disaster Recovery is enabled, the Veeam Kasten restore
+helm chart should be installed with the following helm value:
+The overrideResources flag must be set to true when using
+Quick Disaster Recovery. Since the Disaster Recovery operation involves
+creating or replacing resources, confirmation should be provided
+by setting this flag.
+Veeam Kasten provides the ability to apply labels and annotations to all
+temporary worker pods created during Veeam Kasten recovery as part of its
+operation. The labels and annotations can be set through the podLabels and
+podAnnotations Helm flags, respectively. For example, if using a
+values.yaml file:
+Alternatively, the Helm parameters can be configured using the --set flag:
+The restore job always restores the restore point catalog and artifact
+information. If the restore of other resources (options include profiles,
+policies, secrets) needs to be skipped, the skipResource flag can be used.
+The timeout of the entire restore process can be configured by the helm field
+restore.timeout. The type of this field is int and the value is
+in minutes.
+If the Disaster Recovery Location Profile was configured for
+Immutable Backups, Veeam Kasten can be
+restored to an earlier point in time. The protection period chosen when
+creating the profile determines how far in the past the point-in-time
+can be. Set the pointInTime helm value to the desired time stamp.
+See Immutable Backups Workflow for additional
+information.
+### Restoring Veeam Kasten Backup with Iron Bank Kasten Images
+The general instructions found in
+Restoring Veeam Kasten with k10restore
+can be used for restoring Veeam Kasten using Iron Bank
+hardened images with a few changes.
+Specific helm values are used to ensure that the Veeam Kasten
+restore helm chart only uses Iron Bank images.
+The values file must be downloaded by running:
+This file is protected and should not be modified. It is necessary
+to specify all other values using the corresponding helm flags, such as
+--set, --values, etc.
+Credentials for Registry1 must be provided in order to successfully pull
+the images. These should already have been created as part of re-deploying a
+new Veeam Kasten instance; therefore, only the name of the secret should be
+used here.
+The following set of flags should be added to the instructions found in
+Restoring Veeam Kasten with k10restore to use
+Iron Bank images for Veeam Kasten recovery:
+### Restoring Veeam Kasten Backup in FIPS Mode
+The general instructions found in
+Restoring Veeam Kasten with k10restore
+can be used for restoring Veeam Kasten in FIPS mode with a few changes.
+To ensure that certified cryptographic modules are utilized, you must install
+the k10restore chart with additional Helm values that can be found here: FIPS
+values. These should be added to the
+instructions found in
+Restoring Veeam Kasten with k10restore
+for Veeam Kasten disaster recovery:
+### Restoring Veeam Kasten Backup in Air-Gapped environment
+In case of air-gapped installations, it's assumed that k10offline tool is
+used to push the images to a private container registry.
+Below command can be used to instruct k10restore to run in air-gapped mode.
+### Restoring Veeam Kasten Backup with Google Workload Identity Federation
+Veeam Kasten can be restored from a Google Cloud Storage bucket using the
+Google Workload Identity Federation. Please follow the instructions
+provided here to restore Veeam Kasten with
+this option.
+### Uninstalling k10restore
+The K10restore instance can be uninstalled with the helm uninstall command.
+### Enabling HashiCorp Vault using Token Auth
+Create a Kubernetes secret with the Vault token.
+This may cause the token to be stored in shell history.
+Use these additional parameters when installing the kasten/k10restore
+helm chart.
+### Enabling HashiCorp Vault using Kubernetes Auth
+Refer to Configuring Vault Server For Kubernetes Auth prior to installing the kasten/k10restore helm chart.
+Use these additional parameters when installing the
+kasten/k10restore helm chart.
+vault.role is the name of the Vault Kubernetes authentication role binding
+the Veeam Kasten service account and namespace to the Vault policy.
+vault.serviceAccountTokenPath is optional and defaults to
+/var/run/secrets/kubernetes.io/serviceaccount/token.
+### Recovering with the Operator
+If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
+the k10restore tool can be deployed via the Operator as described below.
+However, it is recommended to use either the
+Recovering Veeam Kasten from a Disaster via UI or
+Recovering Veeam Kasten from a Disaster via CLI
+process.
+Recovering from a Veeam Kasten backup involves the following sequence of
+actions:
+1. Install a fresh Veeam Kasten instance.
+2. Configure a Location Profile from
+where the Veeam Kasten backup will be restored.
+3. Create a Kubernetes Secret named k10-dr-secret in the same namespace
+as the Veeam Kasten install, with the passphrase given when disaster
+recovery    was enabled on the previous Veeam Kasten instance.
+The commands are detailed here.
+4. Create a K10restore instance. The required values are
+Cluster ID - value given when disaster recovery was enabled
+on the previous Veeam Kasten instance.
+Profile name - name of the Location Profile configured in Step 2.
+and the optional values are
+Point in time - time (RFC3339) at which to evaluate restore data.
+Example "2022-01-02T15:04:05Z".
+Resources to skip - can be used to skip restore of specific resources.
+Example "profile,policies".
+After recovery, deleting the k10restore instance is recommended.
+5. Cluster ID - value given when disaster recovery was enabled
+on the previous Veeam Kasten instance.
+6. Profile name - name of the Location Profile configured in Step 2.
+7. Point in time - time (RFC3339) at which to evaluate restore data.
+Example "2022-01-02T15:04:05Z".
+8. Resources to skip - can be used to skip restore of specific resources.
+Example "profile,policies".
+Create a K10restore instance. The required values are
+and the optional values are
+After recovery, deleting the k10restore instance is recommended.
+Operator K10restore form view with Enable HashiCorp Vault set to False
+Operator K10restore form view with Enable HashiCorp Vault set to True
+### Using the Restored Veeam Kasten in Place of the Original
+The newly restored Veeam Kasten includes a safety mechanism to prevent
+it from performing critical background maintenance operations on backup
+data in storage. These operations are exclusive, meaning that there
+is only one Veeam Kasten instance should perform them one at a time.
+The DR-restored Veeam Kasten initially assumes that it does not have
+permission to perform these maintenance tasks. This assumption is
+made in case the original source, Veeam Kasten, is still running,
+especially during scenarios like testing the DR restore procedure in
+a secondary test cluster while the primary production Veeam Kasten is
+still active.
+If no other Veeam Kasten instances are accessing the same sets of backup
+data (i.e., the original Veeam Kasten has been uninstalled and only the new
+DR-restored Veeam Kasten remains), it can be signaled that the new Veeam
+Kasten is now eligible to take over the maintenance duties by deleting
+the following resource:
+It is critical that you delete this resource only when you are prepared
+to make the permanent cutover to the new DR-restored Veeam Kasten instance.
+Running multiple Veeam Kasten instances simultaneously, each assuming
+ownership, can corrupt backup data.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_garbagecollector.md
+## Garbage Collector
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+Supported Resource Types
+- Supported Resource Types
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Garbage Collector
+Veeam Kasten provides a way to collect and clean up the resources that
+are either orphaned or their expiration period has passed.
+The following Helm options can be used to tune Garbage Collector behavior:
+- garbagecollector.daemonPeriod - the length of time between
+two consecutive garbage collection events (in seconds)
+- garbagecollector.keepMaxActions - how many finished actions to keep
+(if value is less than or equal to 0, no actions will be deleted)
+- garbagecollector.actions.enabled - enables action
+collectors (boolean)
+### Supported Resource Types
+Garbage Collector daemon can currently clean up the following resource types:
+- Actions: When the limit, as defined by garbagecollector.keepMaxActions,
+is exceeded, the oldest actions are removed until the limit is reached.
+Each action type is handled independently in this process.
+- RestorePointContents - expired manual backups will be removed
+as determined by spec.expiresAt.
+This can be set via kubectl or on the manual snapshot page in the UI.
+- CSISnapshot - temporary CSI snapshots created during restore operations.
+- PersistentVolumes - temporary volumes created during restore operations.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_k10tools.md
 ## Veeam Kasten Tools
@@ -682,6 +987,772 @@ To list earlier snapshots, k10tools v6.5.0
 should be used with an additional environment variable:
 ## category name can be found from the vSphere infrastructure profile, in the form of "k10:<UUID>"
 export VSPHERE_SNAPSHOT_TAGGING_CATEGORY=$(kubectl -n kasten-io get profiles $(kubectl -n kasten-io get profiles -o=jsonpath='{.items[?(@.spec.infra.type=="VSphere")].metadata.name}') -o jsonpath='{.spec.infra.vsphere.categoryName}')
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_support.md
+## Support and Troubleshooting
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+Supported Kubernetes Versions
+Gathering Debugging Information
+Application Debug Information
+Veeam Kasten Tools
+Storage Class Validation
+Security Disclosures
+- Supported Kubernetes Versions
+- Gathering Debugging Information
+Application Debug Information
+- Application Debug Information
+- Veeam Kasten Tools
+- Storage Class Validation
+- Security Disclosures
+- Uninstalling Veeam Kasten
+-
+- Operating Veeam Kasten
+- Support and Troubleshooting
+If you have questions or need support, please refer to
+Veeam Kasten Community Support
+or open a case via https://my.veeam.com.
+### Supported Kubernetes Versions
+Veeam Kasten currently supports deployments running on the following certified
+Kubernetes distributions and respective OpenShift versions:
+Note: Veeam Kasten also does not support distributions/versions that have
+been declared 'End of Life' status as defined by their respective
+entity/community/vendor (in other words, distributions/versions for which
+maintenance is not provided anymore by their supporting
+entity/community/vendor).
+Kubernetes
+RedHat Openshift
+Notes
+1.32
+Respective OpenShift version is not supported yet
+1.31
+1.30
+4.17
+1.29
+4.16
+1.28
+4.15
+Kubernetes version only supported when deployed as an OpenShift cluster
+1.27
+4.14
+1.26
+4.13
+1.25
+4.12
+### Gathering Debugging Information
+Admin users running 4.5.7 or later can get support logs from the
+System Information page under the Settings menu in the
+navigation sidebar.
+Alternatively, if you run into problems with Veeam Kasten, please run
+these commands on your cluster as a first step to get information to
+support. The script assumes that your default kubectl context is
+pointed to the cluster you have installed Veeam Kasten on and that
+Veeam Kasten is installed in the kasten-io namespace.
+By default, the debug script will generate a compressed archive file
+k10_debug_logs.tar.gz which will have separate log files
+for Veeam Kasten services.
+If you installed Veeam Kasten in a different namespace or want to log to
+a different file you can specify additional option flags to the script:
+See the script usage message for additional help.
+The debug script can optionally gather metrics from the Prometheus
+server installed by Veeam Kasten,
+by specifying the --prom-duration flag with a value indicating
+the desired duration (e.g. "1d", "3h25m").
+The start time of the metric collection is implicitly assumed to
+be the current time less the specified duration, but can be adjusted
+with the --prom-start-time flag to specify a time in the past.
+The format is either the simple duration string that is accepted by
+the duration flag,
+or a string that is parsable with the date command, which could
+be a timestamp or a free form relative or absolute time specification.
+For example:
+would collect 270 minutes of metrics starting from 51 hours in the past.
+Note
+Metrics capture only works with the Prometheus instance installed
+by Veeam Kasten.
+The specified duration directly impacts the size of the captured
+metrics data so constrain the duration accordingly.
+One can also consider using the --prom-metrics-only flag to
+separate the collection of metrics from the collection of the logs.
+### Application Debug Information
+If you are having issues with a particular application, please also
+gather the following information.
+Please also get the Helm status:
+### Veeam Kasten Tools
+The k10tools binary has commands that can help with validating if a cluster
+is setup correctly before installing Veeam Kasten and for debugging Veeam
+Kasten's micro services.
+To learn more about this, see Veeam Kasten Tools.
+### Storage Class Validation
+k10tools provides an option to validate
+storage classes via CSI Capabilities Check or
+Generic Volume Snapshot Capabilities Check commands.
+It is also possible for admin users to validate storage classes from the
+Veeam Kasten dashboard, under the System Information page of the
+Settings menu in the navigation sidebar. The state "Unknown" is shown
+until validation is run.
+### Security Disclosures
+We value the critical role that the security community plays in helping
+us protect the confidentiality, integrity, and availability of our software,
+services, and information. If you have information about security
+vulnerabilities that affect Kasten software, services, or information, please
+report it via our vulnerability disclosure program.
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_footprint.md
+## Resource Requirements
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+Requirement Types
+Requirement Guidelines
+Configuring Veeam Kasten Resource Usage for Core Pods
+Prometheus Pod's Resources
+Configuring Veeam Kasten Resource Usage for Worker Pods
+Configuring Cluster-Wide Worker Pod Resource Usage
+Configuring Granular Worker Pod Resource Usage
+Worker Pod Resource Usage Configuration Priority
+Configuring Metric Sidecar Resource Usage for Worker Pods
+- Requirement Types
+- Requirement Guidelines
+- Configuring Veeam Kasten Resource Usage for Core Pods
+Prometheus Pod's Resources
+- Prometheus Pod's Resources
+- Configuring Veeam Kasten Resource Usage for Worker Pods
+Configuring Cluster-Wide Worker Pod Resource Usage
+Configuring Granular Worker Pod Resource Usage
+Worker Pod Resource Usage Configuration Priority
+Configuring Metric Sidecar Resource Usage for Worker Pods
+- Configuring Cluster-Wide Worker Pod Resource Usage
+- Configuring Granular Worker Pod Resource Usage
+- Worker Pod Resource Usage Configuration Priority
+- Configuring Metric Sidecar Resource Usage for Worker Pods
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Resource Requirements
+Veeam Kasten's resource requirements are almost always related to
+the number of applications in your Kubernetes cluster and the kind
+of data management operations being performed (e.g., snapshots
+vs. backups).
+Some of the resource requirements are static (base resource
+requirements) while other resources are only required when certain
+work is done (dynamic resource requirements). The auto-scaling nature
+of Veeam Kasten ensures that resources consumed by dynamic
+requirements will always scale down to zero when no work is being
+performed.
+While the below recommendations for both requests and limits should be
+applicable to most clusters, it is important to note that the final
+requirement will be a function of your cluster and application scale,
+total amount of data, file size distribution, and data churn rate. You
+can always use Prometheus or Kubernetes Vertical Pod Autoscaling (VPA)
+with updates disabled to check your particular requirements.
+### Requirement Types
+- Base Requirements: These are the core resources needed for Veeam
+Kasten's internal scheduling and cleanup services, which are
+mostly driven by monitoring and catalog scale requirements.
+The resource footprint for these base requirements is usually
+static and generally does not noticeably grow with either a
+growth in catalog size (number of   Kubernetes resources protected)
+or number of applications protected.
+- Disaster Recovery: These are the resources needed to perform a
+DR of the Veeam Kasten install and are predominantly used to compress,
+deduplicate, encrypt, and transfer the Veeam Kasten catalog to object
+storage. Providing additional resources can also speed up the DR
+operation. The DR resource footprint is dynamic and scales down to
+zero when a DR is not being performed.
+- Backup Requirements: Resources for backup are required when data
+is transferred from volume snapshots to object storage or NFS file storage.
+While the backup requirements depend on your data, churn rate, and
+file system layout, the requirements are not unbounded and can easily
+fit in   a relatively narrow band. Providing additional resources can also
+speed up backup operations. To prevent unbounded parallelism when
+protecting a large number of workloads, Veeam Kasten bounds the number of
+simultaneous backup jobs (default 9). The backup resource footprint
+is dynamic and scales down to zero when a backup is not being
+performed.
+### Requirement Guidelines
+The below table lists the resource requirements for a Veeam Kasten install
+protecting 100 applications or namespaces.
+It should be noted that DR jobs are also included in the maximum
+parallelism limit (N) and therefore you can only have N
+simultaneous backup jobs or N-1 simultaneous backup jobs
+concurrently with 1 DR job.
+Type
+Requested CPU (Cores)
+Limit CPU (Cores)
+Requested Memory (GB)
+Limit Memory (GB)
+Base
+1
+2
+4
+DR
+0.3
+Dynamic (per parallel job)
+0.4
+Total
+3
+1.8
+4.8
+Note
+Kasten temporarily consumes approximately
+3GB of ephemeral storage on a worker node for each
+concurrent volume export or restore operation.
+Default worker node storage configuration can
+vary based on distribution. Configuring worker nodes
+with 100GB of storage is recommended to
+prevent interruptions to Kasten operations.
+### Configuring Veeam Kasten Resource Usage for Core Pods
+Using Helm values, resource requests and limits can be set for
+the core Pods that make up Veeam Kasten's base requirements. Kubernetes
+resource management is at the container level, so in order
+to set resource values, you will need to provide both the deployment
+and container names. Custom resource usage can be set through
+Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+resources:
+  <deployment-name>:
+    <container-name>:
+      requests:
+        memory: <value>
+        cpu: <value>
+      limits:
+        memory: <value>
+        cpu: <value>
+Note
+See Resource units in Kubernetes
+for details on how to specify valid memory and CPU values.
+For example, this file will modify the settings for the
+catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
+which runs in the pod created by the catalog-svc deployment:
+resources:
+  catalog-svc:
+    catalog-svc:
+      requests:
+        memory: "1.5Gi"
+        cpu: "300m"
+      limits:
+        memory: "3Gi"
+        cpu: "1"
+    upgrade-init:
+      requests:
+        memory: "120Mi"
+        cpu: "100m"
+      limits:
+        memory: "360Mi"
+        cpu: "300m"
+    kanister-sidecar:
+      requests:
+        memory: "800Mi"
+        cpu: "250m"
+      limits:
+        memory: "950Mi"
+        cpu: "900m"
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=resources.<deployment-name>.<container-name>.[requests|limits].[memory|cpu]=<value>
+For the equivalent behavior of the example above, the following values
+can be provided:
+--set=resources.catalog-svc.catalog-svc.requests.memory=1.5Gi \
+--set=resources.catalog-svc.catalog-svc.requests.cpu=300m \
+--set=resources.catalog-svc.catalog-svc.limits.memory=3Gi \
+--set=resources.catalog-svc.catalog-svc.limits.cpu=1 \
+--set=resources.catalog-svc.upgrade-init.requests.memory=120Mi \
+--set=resources.catalog-svc.upgrade-init.requests.cpu=100m \
+--set=resources.catalog-svc.upgrade-init.limits.memory=360Mi \
+--set=resources.catalog-svc.upgrade-init.limits.cpu=300m \
+--set=resources.catalog-svc.kanister-sidecar.requests.memory=800Mi \
+--set=resources.catalog-svc.kanister-sidecar.requests.cpu=250m \
+--set=resources.catalog-svc.kanister-sidecar.limits.memory=950Mi \
+--set=resources.catalog-svc.kanister-sidecar.limits.cpu=900m
+Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+See Resource units in Kubernetes
+for details on how to specify valid memory and CPU values.
+For example, this file will modify the settings for the
+catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
+which runs in the pod created by the catalog-svc deployment:
+Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+For the equivalent behavior of the example above, the following values
+can be provided:
+When adjusting a container's resource limits or requests, if any setting
+is left empty, the Helm chart will assume it should be unspecified. Likewise,
+providing empty settings for a container will result in no limits/requests
+being applied.
+For example, the following Helm values file will yield no specified resource
+requests or limits for the kanister-sidecar container and only a CPU
+limit for the jobs-svc container, which runs in the pod
+created by the jobs-svc deployment:
+### Prometheus Pod's Resources
+Resource requests and limits can be added to the Prometheus
+pod through Prometheus child Helm charts values.
+Custom resource usage can be set through Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+prometheus:
+  server:
+    resources:
+      requests:
+        memory: <value>
+        cpu: <value>
+      limits:
+        memory: <value>
+        cpu: <value>
+  configmapReload:
+    prometheus:
+      resources:
+        requests:
+          memory: <value>
+          cpu: <value>
+        limits:
+          memory: <value>
+          cpu: <value>
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=prometheus.server.resources.[requests|limits].[memory|cpu]=<value> \
+--set=prometheus.configmapReload.prometheus.resources.[requests|limits].[memory|cpu]=<value>
+### Configuring Veeam Kasten Resource Usage for Worker Pods
+By default, Veeam Kasten does not assign resource requests or limits
+to temporary worker Pods. This allows Pods responsible for data
+movement during backup or restore operations to scale up as needed
+to ensure timely completion. If explicit resource settings are required
+in the environment, see the available methods below.
+### Configuring Cluster-Wide Worker Pod Resource Usage
+Using Helm values, resource requests and limits can be set for the
+temporary worker Pods created by Veeam Kasten to perform operations.
+This method will set the same requests and limits for all injected
+Kanister sidecar containers used for Generic Volume Backup,
+as well as all other temporary worker Pods provisioned by Veeam Kasten.
+As it may be undesirable to configure the same requests and limits for
+all temporary worker Pods across all applications, a granular alternative is
+described in the following section.
+Veeam Kasten affinity-pvc-group- Pods have fixed
+resource requests and limits that cannot be modified. These Pods
+are used only for PVC/node placement prior to data restore and
+do not require customization based on workload.
+If namespace level resource limitations have been configured
+using LimitRange or ResourceQuota, the values below may be prevented
+from being applied or result in failure of the operation. Make sure
+resources are specified taking those restrictions into consideration.
+Cluster-wide resource requests and limits for Veeam Kasten worker Pods
+can be applied through Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+genericVolumeSnapshot:
+  resources:
+    requests:
+      memory: <value>
+      cpu: <value>
+    limits:
+      memory: <value>
+      cpu: <value>
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=genericVolumeSnapshot.resources.[requests|limits].[memory|cpu]=<value>
+### Configuring Granular Worker Pod Resource Usage
+The following approach allows for specifying granular resource requests
+and limits for different types of Veeam Kasten worker Pods, as well as
+allowing configuration on a per application basis. The purpose is to
+accommodate "right-sizing" across different application profiles within
+a single cluster, rather than sizing all worker Pods based on the
+data mover requirements of the largest applications.
+Granular resource configuration uses the Veeam Kasten-specific custom
+resources, ActionPodSpec and ActionPodSpecBinding. An ActionPodSpec
+specifies the Pod categories and their associated request and limit values.
+An ActionPodSpec resource may be applied to a specific namespace using
+an ActionPodSpecBinding, or may be applied via reference within a policy.
+An ActionPodSpec can be created in any namespace and
+may be cross referenced from other namespaces.
+An ActionPodSpecBinding must be created in application namespace to
+which the referenced ActionPodSpec is being applied.
+To enable granular resource control,
+set the Helm flag workerPodCRDs.enabled to true.
+You can also define a default ActionPodSpec during installation.
+This will have the lowest priority and will be used if there
+is no ActionPodSpec defined for the namespace or action.
+### Examples
+An ActionPodSpec with an explicit resource configuration
+for the export-volume-to-repository Pod type and a default
+configuration for all other temporary worker Pods:
+An ActionPodSpecBinding applying an ActionPodSpec to
+the temporary worker Pods within a specific namespace:
+Alternatively, a Policy referencing an ActionPodSpec to
+affect temporary worker Pod resources provisioned as part of the
+backup action:
+### Action Pod Types
+This list contains Pod types that are affected by the specified settings.
+Typically, Pod types are associated with specific operations;
+however, on rare occasions,
+a single Pod type may be used for several similar operations.
+Pod type can also be found in the k10.kasten.io/actionPodType
+annotation on worker Pods.
+Pod Type Value
+Pod Type Description
+*
+Wildcard value to configure any worker Pods types not explicitly specified
+check-repository
+Performs checks on a repository during the export process
+create-repository
+Initializes a backup repository in an export location
+delete-block-data-from-repository
+Deletes backup data exported using block mode
+delete-collection
+Deletes the application manifest data associated with a backup
+delete-data-from-repository
+Deletes backup data exported using the default filesystem mode
+export-block-volume-to-repository
+Exports a snapshot using block mode
+export-volume-to-repository
+Exports a snapshot using the default filesystem mode
+image-copy
+Exports and restores container images from ImageStreams
+kanister-job
+Created by Blueprint actions to perform custom operations
+list-data-from-repository
+Lists data in the repository when retiring backups
+repository-operations
+Performs background operations such as repository scans and maintenance
+repository-server
+API server used for multiple operations including export, restore, and import
+restore-block-volume-from-repository
+Restores a volume exported using block mode
+restore-data-dr
+Restores Veeam Kasten from a Disaster Recovery backup
+restore-data-from-repository
+Restores a volume exported using the default filesystem mode
+upgrade-repository
+Upgrades the repository
+validate-repository
+Validates a remote repository when restoring a Disaster Recovery backup
+### Worker Pod Resource Usage Configuration Priority
+The cluster-wide genericVolumeSnapshot Helm setting holds the
+lowest priority and will be overridden by any applied ActionPodSpec.
+ActionPodSpec resources that are bound to a namespace using an
+ActionPodSpecBinding hold a lower priority than an ActionPodSpec
+explicitly specified as part of a policy. ActionPodSpec
+configurations from multiple sources are not merged;
+therefore, it is not possible to apply namespace-bound
+resources to one type of Pod and policy-specific resources to another.
+It is possible to override resources of worker pods globally through the
+Kanister Pod Override,
+but this approach is not recommended.
+### Configuring Metric Sidecar Resource Usage for Worker Pods
+By default, Veeam Kasten provisions a sidecar container on temporary
+worker Pods used to collect metrics to monitor resource utilization.
+Using Helm, resource requests and limits can be added to the metric sidecar
+container added to worker Pods. This setting is independent of either
+method previously detailed for configuring worker Pod resources.
+Custom resource requests and limits can be set through Helm in two ways:
+- Providing the path to one or more YAML files during
+helm install or helm upgrade with the --values flag:
+workerPodMetricSidecar:
+  resources:
+    requests:
+      memory: <value>
+      cpu: <value>
+    limits:
+      memory: <value>
+      cpu: <value>
+- Modifying the resource values one at a time with the
+--set flag during helm install or helm upgrade:
+--set=workerPodMetricSidecar.resources.[requests|limits].[memory|cpu]=<value>
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_uninstall.md
+## Uninstalling Veeam Kasten
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+It is important to uninstall Veeam Kasten with the Helm command to
+ensure that all non-namespaced resources are cleaned up. Simply
+deleting the namespace Veeam Kasten is installed in might cause
+issues with stale services. Assuming Veeam Kasten was installed
+with the release name k10 and in the kasten-io namespace,
+run the following command to uninstall:
+© Copyright 2017-2024, Kasten, Inc.
+### latest_operating_siem.md
+## Integrating Security Information and Event Management (SIEM) Systems
+- Veeam Kasten Disaster Recovery
+- API and Command Line
+- Monitoring
+- Auditing Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+Detecting Veeam Kasten SIEM Scenarios
+Enabling Agent-based Veeam Kasten Event Capture
+Enabling Agent-less Veeam Kasten Event Capture
+Datadog Cloud SIEM
+Configuring Ingest
+Adding Detection Rules
+Microsoft Sentinel
+Configuring Ingest
+Importing Analytics Rules
+- Detecting Veeam Kasten SIEM Scenarios
+- Enabling Agent-based Veeam Kasten Event Capture
+- Enabling Agent-less Veeam Kasten Event Capture
+- Datadog Cloud SIEM
+Configuring Ingest
+Adding Detection Rules
+- Configuring Ingest
+- Adding Detection Rules
+- Microsoft Sentinel
+Configuring Ingest
+Importing Analytics Rules
+- Importing Analytics Rules
+- Reporting
+- Garbage Collector
+- Resource Requirements
+- Security Requirements
+- Support and Troubleshooting
+- Uninstalling Veeam Kasten
+- Veeam Kasten Tools
+-
+- Operating Veeam Kasten
+- Integrating Security Information and Event Management (SIEM) Systems
+Inhibiting data protection software and deleting backup data are examples
+of actions that may be taken by a malicious actor before proceeding to the
+next stage of an attack, such as file encryption. Prompt notification of such
+potentially malicious behavior can help mitigate the impact of an attack.
+To provide activity correlation and analysis, Veeam Kasten can integrate
+with SIEM solutions. SIEMs ingest and aggregate data from an environment,
+including logs, alerts, and events, for the purpose of providing real-time
+threat detection and analysis, and assisting in investigations.
+As an application built upon Kubernetes CRDs and API Aggregation, Veeam
+Kasten events (e.g., creating a Location Profile resource) can be captured
+through the Kubernetes audit log.
+These events can then be ingested by a SIEM system. However, there are
+situations where you may not have direct control over the Kubernetes audit
+policy configuration for a cluster (or the kube-apiserver), especially when
+using a cloud-hosted managed Kubernetes service. This limitation can impact the
+detail available in Kubernetes API server responses that can be collected for
+audit events and the customization of log transmission.
+For this reason, Veeam Kasten provides an extended audit mechanism to
+enable direct ingestion of Veeam Kasten events into a SIEM system,
+independently of Kubernetes cluster audit policy configurations.
+Furthermore, this extended mechanism allows more fine-tuned control
+over how to store these logs, including options like file-based and
+cloud-based storage.
+The audit policy applied to Veeam Kasten's aggregated-apiserver is the
+following:
+This section provides documentation on configuring each of these mechanisms
+and includes example rules that a SIEM system can enable. Sample
+integrations are provided for Datadog Cloud SIEM and Microsoft Sentinel, though
+similar detection rules can be adapted to any SIEM platform capable of
+ingesting Kubernetes audit and container logs.
+### Detecting Veeam Kasten SIEM Scenarios
+Below are multiple scenarios which could be used to drive SIEM detection and
+alerts based on Veeam Kasten user activity:
+Resource
+Action
+RestorePoints
+Excessive Deletion
+RestorePointContents
+ClusterRestorePoints
+CancelAction
+Excessive Create
+RetireAction
+Passkeys
+Excessive Update/Delete/Get
+### Enabling Agent-based Veeam Kasten Event Capture
+By default, Veeam Kasten is deployed to write these new audit event logs to
+stdout (standard output) from the aggregatedapis-svc pod. These logs
+can be ingested using an agent installed in the cluster. Examples for
+Datadog Cloud SIEM and
+Microsoft Sentinel are provided below.
+To disable, configure the Veeam Kasten deployment with
+--set siem.logging.cluster.enabled=false.
+### Enabling Agent-less Veeam Kasten Event Capture
+Many SIEM solutions support ingestion of stdout log data from Kubernetes
+applications using an agent deployed to the cluster. If an agent-based
+approach is not available or not preferred, Veeam Kasten offers the
+option to send these audit events to a Location Profile. SIEM-specific
+tools can then be used to ingest the log data from the object store.
+Note
+Currently, only AWS S3 Location Profiles are supported as a target for
+Veeam Kasten audit events.
+By default, Veeam Kasten is deployed with the ability to send these new
+audit event logs to available cloud object stores. However, enabling this
+feature is just the first step. The action of sending the logs depends on
+the creation or update of an applicable
+K10 AuditConfig that points to a
+valid Location Profile. An example for Datadog is shown
+below.
+To disable the sending of these logs to AWS S3, you can configure the
+Veeam Kasten deployment with the following command:
+--set siem.logging.cloud.awsS3.enabled=false.
+To begin, you should first determine the name of your target Location
+Profile.
+Next, define and apply an AuditConfig manifest to your Veeam Kasten
+namespace. In the example below, make sure to replace the target values
+for spec.profile.name and spec.profile.namespace before applying.
+If the spec.profile.namespace is left blank, the default value
+will be the namespace of the AuditConfig.
+Veeam Kasten event logs will now be sent to the target Location Profile bucket
+under the k10audit/ directory. If you wish to change the destination path
+of the logs within the bucket, configure the Veeam Kasten deployment with
+--set siem.logging.cloud.path=<DIRECTORY PATH WITHIN BUCKET>.
+### Datadog Cloud SIEM
+Veeam Kasten integrates with Datadog Cloud SIEM to provide high-fidelity signal
+data that can be used to detect suspicious activity and support security operators.
+### Configuring Ingest
+Review each of the sections below to understand how Veeam Kasten event data can
+be sent to Datadog. Both methods can be configured per cluster.
+### Setting up the Datadog Agent on a Kubernetes Cluster
+The Datadog Agent can be installed on the Kubernetes cluster and used to
+collect application logs, metrics, and traces.
+Refer to Datadog Kubernetes
+documentation for complete instructions on installing the Agent on the
+cluster.
+For Datadog to ingest Veeam Kasten event logs, the Agent must be configured
+with log collection enabled
+and an include_at_match global processing rule to match the Veeam Kasten
+specific pattern, (?i).*K10Event.*.
+Here is an example of a values.yaml file for installing the Datadog Agent
+using Helm:
+Refer to the Datadog
+processing rules
+documentation for instructions on alternative methods for configuring
+processing rules.
+### Setting up the Datadog Forwarder with AWS
+The Datadog Forwarder is an AWS Lambda function used to ingest Veeam
+Kasten event logs sent to an AWS S3 bucket.
+Refer to the Datadog
+cloudformation
+documentation to install the Forwarder in the same AWS region as the target S3
+bucket.
+After deploying the Forwarder, follow the to Datadog
+S3 trigger
+documentation to add an S3 Trigger using the settings below:
+Field
+Value
+Bucket
+<TARGET S3 BUCKET>
+Event type
+Object Created (All)
+Prefix
+<TARGET S3 BUCKET PREFIX> (defaults to k10audit/)
+Suffix
+<BLANK>
+### Adding Detection Rules
+Detection Rules define how Datadog analyzes ingested data and when to
+generate a signal. Using these rules, Veeam Kasten event data can be
+used to alert organizations to specific activity that could indicate
+an ongoing security breach. This section provides the details required
+to add example Veeam Kasten rules to Datadog Cloud SIEM.
+Open the Datadog Cloud SIEM user
+interface and select Detection Rules from the toolbar.
+At the top right corner of the page, click the New Rule button.
+Complete the form using the details below for each rule.
+Each rule should be configured to notify the appropriate services
+and/or users. Since the specific configurations are unique to each
+environment, they are not covered in the examples provided below.
+### Veeam Kasten RestorePoints Manually Deleted
+The purpose of this rule is to detect deletions of Veeam Kasten
+RestorePoint resources initiated by a user.
+Typically, the removal of this type of resource would be the result of backup
+data no longer being needed based on a policy's retention schedule and
+performed directly by Veeam Kasten.
+Removal of a Kubernetes namespace containing RestorePoints may also
+trigger this signal.
+Rule Name
+Kasten RestorePoints Manually Deleted
+Rule Type
+Log Detection
+Detection Method
+Threshold
+Query
+Trigger
+deleted_k10_rps > 0
+Severity
+Low
+Tags
+tactic:TA0040-impact
+Use the following notification body to provide an informative alert:
+### Kasten RestorePointContents Manually Deleted
+The purpose of this rule is to detect deletions of Veeam Kasten
+RestorePointContent resources initiated by a
+user. The removal of this type of resource should only be the result of backup
+data no longer being needed based on a policy's retention schedule and
+performed directly by Veeam Kasten.
+Kasten RestorePointContents Manually Deleted
+deleted_k10_rpcs > 0
+High/Critical
+tactic:TA0040-impact,
+technique:T1490-inhibit-system-recovery
+Use of the cluster-name tag in both the query and notification
+body requires capturing Veeam Kasten event logs via Datadog Agent.
+### Veeam Kasten ClusterRestorePoints Manually Deleted
+The purpose of this rule is to detect deletions of Veeam Kasten
+ClusterRestorePoint resources initiated by a
+user. The removal of this type of resource should only be the result of backup
+data no longer being needed based on a policy's retention schedule and
+performed directly by Veeam Kasten.
+Kasten ClusterRestorePoints Manually Deleted
+deleted_k10_crps > 0
+### Microsoft Sentinel
+Veeam Kasten integrates with Microsoft Sentinel to provide high-fidelity
+signal data that can be used to detect suspicious activity and support
+security operators.
+### Configuring Ingest
+The Azure Monitor agent can be installed on Azure Kubernetes Service (AKS) and
+Azure Arc-managed Kubernetes clusters for collecting logs and metrics.
+Refer to the Azure Monitor documentation for instructions on enabling Container Insights. Container Insights
+must be configured to send container logs to the Log Analytics
+workspace associated with Sentinel.
+To minimize the cost associated with log collection, individual namespaces
+may be excluded from Azure Monitor using a ConfigMap as documented here.
+### Importing Analytics Rules
+Analytics Rules define how Sentinel analyzes ingested data and when to
+generate an alert. Using these rules, Veeam Kasten event data can be
+used to alert organizations to specific activity that could indicate an
+ongoing security breach. This section provides the details required to
+add example Veeam Kasten rules to Sentinel.
+Download the provided rules:
+kasten_sentinel_rules.json
+1. Open a Sentinel instance from the Azure Portal user interface.
+2. Select Analytics from the sidebar.
+1. Select Import from the toolbar.
+2. Choose the previously downloaded file named kasten_sentinel_rules.jsonto import the rules.
+to import the rules.
+### Kasten RestorePoint Resources Manually Deleted
+The purpose of this rule is to detect deletions of Veeam Kasten
+RestorePoint, RestorePointContents, ClusterRestorePoint,
+and ClusterRestorePointContents resources initiated by a user.
+The removal of these resource types should only occur as a
+result of backup data no longer being needed based on a policy's
+retention schedule and performed directly by Veeam Kasten.
+Each rule should be configured to notify the appropriate services
+and/or users. Since each environment has its own configurations, these are not covered in the examples provided below. See
+the  Sentinel documentation
+for details on creating automation rules to manage notifications and
+responses.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_monitoring.md
 ## Monitoring
@@ -1211,1077 +2282,6 @@ operational states of the system. It uses prometheus to obtain information
 about action runs and storage consumption. For more information about
 Veeam Kasten Reporting, see Reporting
 ### Integration with External Tools
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_footprint.md
-## Resource Requirements
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-Requirement Types
-Requirement Guidelines
-Configuring Veeam Kasten Resource Usage for Core Pods
-Prometheus Pod's Resources
-Configuring Veeam Kasten Resource Usage for Worker Pods
-Configuring Cluster-Wide Worker Pod Resource Usage
-Configuring Granular Worker Pod Resource Usage
-Worker Pod Resource Usage Configuration Priority
-Configuring Metric Sidecar Resource Usage for Worker Pods
-- Requirement Types
-- Requirement Guidelines
-- Configuring Veeam Kasten Resource Usage for Core Pods
-Prometheus Pod's Resources
-- Prometheus Pod's Resources
-- Configuring Veeam Kasten Resource Usage for Worker Pods
-Configuring Cluster-Wide Worker Pod Resource Usage
-Configuring Granular Worker Pod Resource Usage
-Worker Pod Resource Usage Configuration Priority
-Configuring Metric Sidecar Resource Usage for Worker Pods
-- Configuring Cluster-Wide Worker Pod Resource Usage
-- Configuring Granular Worker Pod Resource Usage
-- Worker Pod Resource Usage Configuration Priority
-- Configuring Metric Sidecar Resource Usage for Worker Pods
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Resource Requirements
-Veeam Kasten's resource requirements are almost always related to
-the number of applications in your Kubernetes cluster and the kind
-of data management operations being performed (e.g., snapshots
-vs. backups).
-Some of the resource requirements are static (base resource
-requirements) while other resources are only required when certain
-work is done (dynamic resource requirements). The auto-scaling nature
-of Veeam Kasten ensures that resources consumed by dynamic
-requirements will always scale down to zero when no work is being
-performed.
-While the below recommendations for both requests and limits should be
-applicable to most clusters, it is important to note that the final
-requirement will be a function of your cluster and application scale,
-total amount of data, file size distribution, and data churn rate. You
-can always use Prometheus or Kubernetes Vertical Pod Autoscaling (VPA)
-with updates disabled to check your particular requirements.
-### Requirement Types
-- Base Requirements: These are the core resources needed for Veeam
-Kasten's internal scheduling and cleanup services, which are
-mostly driven by monitoring and catalog scale requirements.
-The resource footprint for these base requirements is usually
-static and generally does not noticeably grow with either a
-growth in catalog size (number of   Kubernetes resources protected)
-or number of applications protected.
-- Disaster Recovery: These are the resources needed to perform a
-DR of the Veeam Kasten install and are predominantly used to compress,
-deduplicate, encrypt, and transfer the Veeam Kasten catalog to object
-storage. Providing additional resources can also speed up the DR
-operation. The DR resource footprint is dynamic and scales down to
-zero when a DR is not being performed.
-- Backup Requirements: Resources for backup are required when data
-is transferred from volume snapshots to object storage or NFS file storage.
-While the backup requirements depend on your data, churn rate, and
-file system layout, the requirements are not unbounded and can easily
-fit in   a relatively narrow band. Providing additional resources can also
-speed up backup operations. To prevent unbounded parallelism when
-protecting a large number of workloads, Veeam Kasten bounds the number of
-simultaneous backup jobs (default 9). The backup resource footprint
-is dynamic and scales down to zero when a backup is not being
-performed.
-### Requirement Guidelines
-The below table lists the resource requirements for a Veeam Kasten install
-protecting 100 applications or namespaces.
-It should be noted that DR jobs are also included in the maximum
-parallelism limit (N) and therefore you can only have N
-simultaneous backup jobs or N-1 simultaneous backup jobs
-concurrently with 1 DR job.
-Type
-Requested CPU (Cores)
-Limit CPU (Cores)
-Requested Memory (GB)
-Limit Memory (GB)
-Base
-1
-2
-4
-DR
-0.3
-Dynamic (per parallel job)
-0.4
-Total
-3
-1.8
-4.8
-Note
-Kasten temporarily consumes approximately
-3GB of ephemeral storage on a worker node for each
-concurrent volume export or restore operation.
-Default worker node storage configuration can
-vary based on distribution. Configuring worker nodes
-with 100GB of storage is recommended to
-prevent interruptions to Kasten operations.
-### Configuring Veeam Kasten Resource Usage for Core Pods
-Using Helm values, resource requests and limits can be set for
-the core Pods that make up Veeam Kasten's base requirements. Kubernetes
-resource management is at the container level, so in order
-to set resource values, you will need to provide both the deployment
-and container names. Custom resource usage can be set through
-Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-resources:
-  <deployment-name>:
-    <container-name>:
-      requests:
-        memory: <value>
-        cpu: <value>
-      limits:
-        memory: <value>
-        cpu: <value>
-Note
-See Resource units in Kubernetes
-for details on how to specify valid memory and CPU values.
-For example, this file will modify the settings for the
-catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
-which runs in the pod created by the catalog-svc deployment:
-resources:
-  catalog-svc:
-    catalog-svc:
-      requests:
-        memory: "1.5Gi"
-        cpu: "300m"
-      limits:
-        memory: "3Gi"
-        cpu: "1"
-    upgrade-init:
-      requests:
-        memory: "120Mi"
-        cpu: "100m"
-      limits:
-        memory: "360Mi"
-        cpu: "300m"
-    kanister-sidecar:
-      requests:
-        memory: "800Mi"
-        cpu: "250m"
-      limits:
-        memory: "950Mi"
-        cpu: "900m"
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=resources.<deployment-name>.<container-name>.[requests|limits].[memory|cpu]=<value>
-For the equivalent behavior of the example above, the following values
-can be provided:
---set=resources.catalog-svc.catalog-svc.requests.memory=1.5Gi \
---set=resources.catalog-svc.catalog-svc.requests.cpu=300m \
---set=resources.catalog-svc.catalog-svc.limits.memory=3Gi \
---set=resources.catalog-svc.catalog-svc.limits.cpu=1 \
---set=resources.catalog-svc.upgrade-init.requests.memory=120Mi \
---set=resources.catalog-svc.upgrade-init.requests.cpu=100m \
---set=resources.catalog-svc.upgrade-init.limits.memory=360Mi \
---set=resources.catalog-svc.upgrade-init.limits.cpu=300m \
---set=resources.catalog-svc.kanister-sidecar.requests.memory=800Mi \
---set=resources.catalog-svc.kanister-sidecar.requests.cpu=250m \
---set=resources.catalog-svc.kanister-sidecar.limits.memory=950Mi \
---set=resources.catalog-svc.kanister-sidecar.limits.cpu=900m
-Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-See Resource units in Kubernetes
-for details on how to specify valid memory and CPU values.
-For example, this file will modify the settings for the
-catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
-which runs in the pod created by the catalog-svc deployment:
-Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
-For the equivalent behavior of the example above, the following values
-can be provided:
-When adjusting a container's resource limits or requests, if any setting
-is left empty, the Helm chart will assume it should be unspecified. Likewise,
-providing empty settings for a container will result in no limits/requests
-being applied.
-For example, the following Helm values file will yield no specified resource
-requests or limits for the kanister-sidecar container and only a CPU
-limit for the jobs-svc container, which runs in the pod
-created by the jobs-svc deployment:
-### Prometheus Pod's Resources
-Resource requests and limits can be added to the Prometheus
-pod through Prometheus child Helm charts values.
-Custom resource usage can be set through Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-prometheus:
-  server:
-    resources:
-      requests:
-        memory: <value>
-        cpu: <value>
-      limits:
-        memory: <value>
-        cpu: <value>
-  configmapReload:
-    prometheus:
-      resources:
-        requests:
-          memory: <value>
-          cpu: <value>
-        limits:
-          memory: <value>
-          cpu: <value>
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=prometheus.server.resources.[requests|limits].[memory|cpu]=<value> \
---set=prometheus.configmapReload.prometheus.resources.[requests|limits].[memory|cpu]=<value>
-### Configuring Veeam Kasten Resource Usage for Worker Pods
-By default, Veeam Kasten does not assign resource requests or limits
-to temporary worker Pods. This allows Pods responsible for data
-movement during backup or restore operations to scale up as needed
-to ensure timely completion. If explicit resource settings are required
-in the environment, see the available methods below.
-### Configuring Cluster-Wide Worker Pod Resource Usage
-Using Helm values, resource requests and limits can be set for the
-temporary worker Pods created by Veeam Kasten to perform operations.
-This method will set the same requests and limits for all injected
-Kanister sidecar containers used for Generic Volume Backup,
-as well as all other temporary worker Pods provisioned by Veeam Kasten.
-As it may be undesirable to configure the same requests and limits for
-all temporary worker Pods across all applications, a granular alternative is
-described in the following section.
-Veeam Kasten affinity-pvc-group- Pods have fixed
-resource requests and limits that cannot be modified. These Pods
-are used only for PVC/node placement prior to data restore and
-do not require customization based on workload.
-If namespace level resource limitations have been configured
-using LimitRange or ResourceQuota, the values below may be prevented
-from being applied or result in failure of the operation. Make sure
-resources are specified taking those restrictions into consideration.
-Cluster-wide resource requests and limits for Veeam Kasten worker Pods
-can be applied through Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-genericVolumeSnapshot:
-  resources:
-    requests:
-      memory: <value>
-      cpu: <value>
-    limits:
-      memory: <value>
-      cpu: <value>
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=genericVolumeSnapshot.resources.[requests|limits].[memory|cpu]=<value>
-### Configuring Granular Worker Pod Resource Usage
-The following approach allows for specifying granular resource requests
-and limits for different types of Veeam Kasten worker Pods, as well as
-allowing configuration on a per application basis. The purpose is to
-accommodate "right-sizing" across different application profiles within
-a single cluster, rather than sizing all worker Pods based on the
-data mover requirements of the largest applications.
-Granular resource configuration uses the Veeam Kasten-specific custom
-resources, ActionPodSpec and ActionPodSpecBinding. An ActionPodSpec
-specifies the Pod categories and their associated request and limit values.
-An ActionPodSpec resource may be applied to a specific namespace using
-an ActionPodSpecBinding, or may be applied via reference within a policy.
-An ActionPodSpec can be created in any namespace and
-may be cross referenced from other namespaces.
-An ActionPodSpecBinding must be created in application namespace to
-which the referenced ActionPodSpec is being applied.
-To enable granular resource control,
-set the Helm flag workerPodCRDs.enabled to true.
-You can also define a default ActionPodSpec during installation.
-This will have the lowest priority and will be used if there
-is no ActionPodSpec defined for the namespace or action.
-### Examples
-An ActionPodSpec with an explicit resource configuration
-for the export-volume-to-repository Pod type and a default
-configuration for all other temporary worker Pods:
-An ActionPodSpecBinding applying an ActionPodSpec to
-the temporary worker Pods within a specific namespace:
-Alternatively, a Policy referencing an ActionPodSpec to
-affect temporary worker Pod resources provisioned as part of the
-backup action:
-### Action Pod Types
-This list contains Pod types that are affected by the specified settings.
-Typically, Pod types are associated with specific operations;
-however, on rare occasions,
-a single Pod type may be used for several similar operations.
-Pod type can also be found in the k10.kasten.io/actionPodType
-annotation on worker Pods.
-Pod Type Value
-Pod Type Description
-*
-Wildcard value to configure any worker Pods types not explicitly specified
-check-repository
-Performs checks on a repository during the export process
-create-repository
-Initializes a backup repository in an export location
-delete-block-data-from-repository
-Deletes backup data exported using block mode
-delete-collection
-Deletes the application manifest data associated with a backup
-delete-data-from-repository
-Deletes backup data exported using the default filesystem mode
-export-block-volume-to-repository
-Exports a snapshot using block mode
-export-volume-to-repository
-Exports a snapshot using the default filesystem mode
-image-copy
-Exports and restores container images from ImageStreams
-kanister-job
-Created by Blueprint actions to perform custom operations
-list-data-from-repository
-Lists data in the repository when retiring backups
-repository-operations
-Performs background operations such as repository scans and maintenance
-repository-server
-API server used for multiple operations including export, restore, and import
-restore-block-volume-from-repository
-Restores a volume exported using block mode
-restore-data-dr
-Restores Veeam Kasten from a Disaster Recovery backup
-restore-data-from-repository
-Restores a volume exported using the default filesystem mode
-upgrade-repository
-Upgrades the repository
-validate-repository
-Validates a remote repository when restoring a Disaster Recovery backup
-### Worker Pod Resource Usage Configuration Priority
-The cluster-wide genericVolumeSnapshot Helm setting holds the
-lowest priority and will be overridden by any applied ActionPodSpec.
-ActionPodSpec resources that are bound to a namespace using an
-ActionPodSpecBinding hold a lower priority than an ActionPodSpec
-explicitly specified as part of a policy. ActionPodSpec
-configurations from multiple sources are not merged;
-therefore, it is not possible to apply namespace-bound
-resources to one type of Pod and policy-specific resources to another.
-It is possible to override resources of worker pods globally through the
-Kanister Pod Override,
-but this approach is not recommended.
-### Configuring Metric Sidecar Resource Usage for Worker Pods
-By default, Veeam Kasten provisions a sidecar container on temporary
-worker Pods used to collect metrics to monitor resource utilization.
-Using Helm, resource requests and limits can be added to the metric sidecar
-container added to worker Pods. This setting is independent of either
-method previously detailed for configuring worker Pod resources.
-Custom resource requests and limits can be set through Helm in two ways:
-- Providing the path to one or more YAML files during
-helm install or helm upgrade with the --values flag:
-workerPodMetricSidecar:
-  resources:
-    requests:
-      memory: <value>
-      cpu: <value>
-    limits:
-      memory: <value>
-      cpu: <value>
-- Modifying the resource values one at a time with the
---set flag during helm install or helm upgrade:
---set=workerPodMetricSidecar.resources.[requests|limits].[memory|cpu]=<value>
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_siem.md
-## Integrating Security Information and Event Management (SIEM) Systems
-- Veeam Kasten Disaster Recovery
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-Detecting Veeam Kasten SIEM Scenarios
-Enabling Agent-based Veeam Kasten Event Capture
-Enabling Agent-less Veeam Kasten Event Capture
-Datadog Cloud SIEM
-Configuring Ingest
-Adding Detection Rules
-Microsoft Sentinel
-Configuring Ingest
-Importing Analytics Rules
-- Detecting Veeam Kasten SIEM Scenarios
-- Enabling Agent-based Veeam Kasten Event Capture
-- Enabling Agent-less Veeam Kasten Event Capture
-- Datadog Cloud SIEM
-Configuring Ingest
-Adding Detection Rules
-- Configuring Ingest
-- Adding Detection Rules
-- Microsoft Sentinel
-Configuring Ingest
-Importing Analytics Rules
-- Importing Analytics Rules
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-Inhibiting data protection software and deleting backup data are examples
-of actions that may be taken by a malicious actor before proceeding to the
-next stage of an attack, such as file encryption. Prompt notification of such
-potentially malicious behavior can help mitigate the impact of an attack.
-To provide activity correlation and analysis, Veeam Kasten can integrate
-with SIEM solutions. SIEMs ingest and aggregate data from an environment,
-including logs, alerts, and events, for the purpose of providing real-time
-threat detection and analysis, and assisting in investigations.
-As an application built upon Kubernetes CRDs and API Aggregation, Veeam
-Kasten events (e.g., creating a Location Profile resource) can be captured
-through the Kubernetes audit log.
-These events can then be ingested by a SIEM system. However, there are
-situations where you may not have direct control over the Kubernetes audit
-policy configuration for a cluster (or the kube-apiserver), especially when
-using a cloud-hosted managed Kubernetes service. This limitation can impact the
-detail available in Kubernetes API server responses that can be collected for
-audit events and the customization of log transmission.
-For this reason, Veeam Kasten provides an extended audit mechanism to
-enable direct ingestion of Veeam Kasten events into a SIEM system,
-independently of Kubernetes cluster audit policy configurations.
-Furthermore, this extended mechanism allows more fine-tuned control
-over how to store these logs, including options like file-based and
-cloud-based storage.
-The audit policy applied to Veeam Kasten's aggregated-apiserver is the
-following:
-This section provides documentation on configuring each of these mechanisms
-and includes example rules that a SIEM system can enable. Sample
-integrations are provided for Datadog Cloud SIEM and Microsoft Sentinel, though
-similar detection rules can be adapted to any SIEM platform capable of
-ingesting Kubernetes audit and container logs.
-### Detecting Veeam Kasten SIEM Scenarios
-Below are multiple scenarios which could be used to drive SIEM detection and
-alerts based on Veeam Kasten user activity:
-Resource
-Action
-RestorePoints
-Excessive Deletion
-RestorePointContents
-ClusterRestorePoints
-CancelAction
-Excessive Create
-RetireAction
-Passkeys
-Excessive Update/Delete/Get
-### Enabling Agent-based Veeam Kasten Event Capture
-By default, Veeam Kasten is deployed to write these new audit event logs to
-stdout (standard output) from the aggregatedapis-svc pod. These logs
-can be ingested using an agent installed in the cluster. Examples for
-Datadog Cloud SIEM and
-Microsoft Sentinel are provided below.
-To disable, configure the Veeam Kasten deployment with
---set siem.logging.cluster.enabled=false.
-### Enabling Agent-less Veeam Kasten Event Capture
-Many SIEM solutions support ingestion of stdout log data from Kubernetes
-applications using an agent deployed to the cluster. If an agent-based
-approach is not available or not preferred, Veeam Kasten offers the
-option to send these audit events to a Location Profile. SIEM-specific
-tools can then be used to ingest the log data from the object store.
-Note
-Currently, only AWS S3 Location Profiles are supported as a target for
-Veeam Kasten audit events.
-By default, Veeam Kasten is deployed with the ability to send these new
-audit event logs to available cloud object stores. However, enabling this
-feature is just the first step. The action of sending the logs depends on
-the creation or update of an applicable
-K10 AuditConfig that points to a
-valid Location Profile. An example for Datadog is shown
-below.
-To disable the sending of these logs to AWS S3, you can configure the
-Veeam Kasten deployment with the following command:
---set siem.logging.cloud.awsS3.enabled=false.
-To begin, you should first determine the name of your target Location
-Profile.
-Next, define and apply an AuditConfig manifest to your Veeam Kasten
-namespace. In the example below, make sure to replace the target values
-for spec.profile.name and spec.profile.namespace before applying.
-If the spec.profile.namespace is left blank, the default value
-will be the namespace of the AuditConfig.
-Veeam Kasten event logs will now be sent to the target Location Profile bucket
-under the k10audit/ directory. If you wish to change the destination path
-of the logs within the bucket, configure the Veeam Kasten deployment with
---set siem.logging.cloud.path=<DIRECTORY PATH WITHIN BUCKET>.
-### Datadog Cloud SIEM
-Veeam Kasten integrates with Datadog Cloud SIEM to provide high-fidelity signal
-data that can be used to detect suspicious activity and support security operators.
-### Configuring Ingest
-Review each of the sections below to understand how Veeam Kasten event data can
-be sent to Datadog. Both methods can be configured per cluster.
-### Setting up the Datadog Agent on a Kubernetes Cluster
-The Datadog Agent can be installed on the Kubernetes cluster and used to
-collect application logs, metrics, and traces.
-Refer to Datadog Kubernetes
-documentation for complete instructions on installing the Agent on the
-cluster.
-For Datadog to ingest Veeam Kasten event logs, the Agent must be configured
-with log collection enabled
-and an include_at_match global processing rule to match the Veeam Kasten
-specific pattern, (?i).*K10Event.*.
-Here is an example of a values.yaml file for installing the Datadog Agent
-using Helm:
-Refer to the Datadog
-processing rules
-documentation for instructions on alternative methods for configuring
-processing rules.
-### Setting up the Datadog Forwarder with AWS
-The Datadog Forwarder is an AWS Lambda function used to ingest Veeam
-Kasten event logs sent to an AWS S3 bucket.
-Refer to the Datadog
-cloudformation
-documentation to install the Forwarder in the same AWS region as the target S3
-bucket.
-After deploying the Forwarder, follow the to Datadog
-S3 trigger
-documentation to add an S3 Trigger using the settings below:
-Field
-Value
-Bucket
-<TARGET S3 BUCKET>
-Event type
-Object Created (All)
-Prefix
-<TARGET S3 BUCKET PREFIX> (defaults to k10audit/)
-Suffix
-<BLANK>
-### Adding Detection Rules
-Detection Rules define how Datadog analyzes ingested data and when to
-generate a signal. Using these rules, Veeam Kasten event data can be
-used to alert organizations to specific activity that could indicate
-an ongoing security breach. This section provides the details required
-to add example Veeam Kasten rules to Datadog Cloud SIEM.
-Open the Datadog Cloud SIEM user
-interface and select Detection Rules from the toolbar.
-At the top right corner of the page, click the New Rule button.
-Complete the form using the details below for each rule.
-Each rule should be configured to notify the appropriate services
-and/or users. Since the specific configurations are unique to each
-environment, they are not covered in the examples provided below.
-### Veeam Kasten RestorePoints Manually Deleted
-The purpose of this rule is to detect deletions of Veeam Kasten
-RestorePoint resources initiated by a user.
-Typically, the removal of this type of resource would be the result of backup
-data no longer being needed based on a policy's retention schedule and
-performed directly by Veeam Kasten.
-Removal of a Kubernetes namespace containing RestorePoints may also
-trigger this signal.
-Rule Name
-Kasten RestorePoints Manually Deleted
-Rule Type
-Log Detection
-Detection Method
-Threshold
-Query
-Trigger
-deleted_k10_rps > 0
-Severity
-Low
-Tags
-tactic:TA0040-impact
-Use the following notification body to provide an informative alert:
-### Kasten RestorePointContents Manually Deleted
-The purpose of this rule is to detect deletions of Veeam Kasten
-RestorePointContent resources initiated by a
-user. The removal of this type of resource should only be the result of backup
-data no longer being needed based on a policy's retention schedule and
-performed directly by Veeam Kasten.
-Kasten RestorePointContents Manually Deleted
-deleted_k10_rpcs > 0
-High/Critical
-tactic:TA0040-impact,
-technique:T1490-inhibit-system-recovery
-Use of the cluster-name tag in both the query and notification
-body requires capturing Veeam Kasten event logs via Datadog Agent.
-### Veeam Kasten ClusterRestorePoints Manually Deleted
-The purpose of this rule is to detect deletions of Veeam Kasten
-ClusterRestorePoint resources initiated by a
-user. The removal of this type of resource should only be the result of backup
-data no longer being needed based on a policy's retention schedule and
-performed directly by Veeam Kasten.
-Kasten ClusterRestorePoints Manually Deleted
-deleted_k10_crps > 0
-### Microsoft Sentinel
-Veeam Kasten integrates with Microsoft Sentinel to provide high-fidelity
-signal data that can be used to detect suspicious activity and support
-security operators.
-### Configuring Ingest
-The Azure Monitor agent can be installed on Azure Kubernetes Service (AKS) and
-Azure Arc-managed Kubernetes clusters for collecting logs and metrics.
-Refer to the Azure Monitor documentation for instructions on enabling Container Insights. Container Insights
-must be configured to send container logs to the Log Analytics
-workspace associated with Sentinel.
-To minimize the cost associated with log collection, individual namespaces
-may be excluded from Azure Monitor using a ConfigMap as documented here.
-### Importing Analytics Rules
-Analytics Rules define how Sentinel analyzes ingested data and when to
-generate an alert. Using these rules, Veeam Kasten event data can be
-used to alert organizations to specific activity that could indicate an
-ongoing security breach. This section provides the details required to
-add example Veeam Kasten rules to Sentinel.
-Download the provided rules:
-kasten_sentinel_rules.json
-1. Open a Sentinel instance from the Azure Portal user interface.
-2. Select Analytics from the sidebar.
-1. Select Import from the toolbar.
-2. Choose the previously downloaded file named kasten_sentinel_rules.jsonto import the rules.
-to import the rules.
-### Kasten RestorePoint Resources Manually Deleted
-The purpose of this rule is to detect deletions of Veeam Kasten
-RestorePoint, RestorePointContents, ClusterRestorePoint,
-and ClusterRestorePointContents resources initiated by a user.
-The removal of these resource types should only occur as a
-result of backup data no longer being needed based on a policy's
-retention schedule and performed directly by Veeam Kasten.
-Each rule should be configured to notify the appropriate services
-and/or users. Since each environment has its own configurations, these are not covered in the examples provided below. See
-the  Sentinel documentation
-for details on creating automation rules to manage notifications and
-responses.
-© Copyright 2017-2024, Kasten, Inc.
-### latest_operating_dr.md
-## Veeam Kasten Disaster Recovery
-- Veeam Kasten Disaster Recovery
-Configuring Veeam Kasten Disaster Recovery Mode
-Comparing Legacy DR and Quick DR
-Enabling Veeam Kasten Disaster Recovery
-Managing the Veeam Kasten Disaster Recovery Policy
-Disabling Veeam Kasten Disaster Recovery
-Recovering Veeam Kasten from a Disaster via UI
-Recovering Veeam Kasten from a Disaster via CLI
-Recovering Veeam Kasten From a Disaster via Helm
-Specifying a Disaster Recovery Passphrase
-Reinstalling Veeam Kasten
-Configuring Location Profile
-Restoring Veeam Kasten with k10restore
-Restoring Veeam Kasten Backup with Iron Bank Kasten Images
-Restoring Veeam Kasten Backup in FIPS Mode
-Restoring Veeam Kasten Backup in Air-Gapped environment
-Restoring Veeam Kasten Backup with Google Workload Identity Federation
-Uninstalling k10restore
-Recovering with the Operator
-Using the Restored Veeam Kasten in Place of the Original
-- Configuring Veeam Kasten Disaster Recovery Mode
-Comparing Legacy DR and Quick DR
-- Comparing Legacy DR and Quick DR
-- Enabling Veeam Kasten Disaster Recovery
-- Managing the Veeam Kasten Disaster Recovery Policy
-- Disabling Veeam Kasten Disaster Recovery
-- Recovering Veeam Kasten from a Disaster via UI
-- Recovering Veeam Kasten from a Disaster via CLI
-- Recovering Veeam Kasten From a Disaster via Helm
-Specifying a Disaster Recovery Passphrase
-Reinstalling Veeam Kasten
-Configuring Location Profile
-Restoring Veeam Kasten with k10restore
-Restoring Veeam Kasten Backup with Iron Bank Kasten Images
-Restoring Veeam Kasten Backup in FIPS Mode
-Restoring Veeam Kasten Backup in Air-Gapped environment
-Restoring Veeam Kasten Backup with Google Workload Identity Federation
-Uninstalling k10restore
-- Specifying a Disaster Recovery Passphrase
-- Reinstalling Veeam Kasten
-- Configuring Location Profile
-- Restoring Veeam Kasten with k10restore
-- Restoring Veeam Kasten Backup with Iron Bank Kasten Images
-- Restoring Veeam Kasten Backup in FIPS Mode
-- Restoring Veeam Kasten Backup in Air-Gapped environment
-- Restoring Veeam Kasten Backup with Google Workload Identity Federation
-- Uninstalling k10restore
-- Recovering with the Operator
-- Using the Restored Veeam Kasten in Place of the Original
-- API and Command Line
-- Monitoring
-- Auditing Veeam Kasten
-- Integrating Security Information and Event Management (SIEM) Systems
-- Reporting
-- Garbage Collector
-- Resource Requirements
-- Security Requirements
-- Support and Troubleshooting
-- Uninstalling Veeam Kasten
-- Veeam Kasten Tools
--
-- Operating Veeam Kasten
-- Veeam Kasten Disaster Recovery
-As Veeam Kasten is a stateful application running on the
-cluster, it must be responsible for backing up its own data to enable
-recovery in the event of disaster - this is enabled by the
-Veeam Kasten Disaster Recovery (KDR) policy. In particular, KDR
-provides the ability to recover the Veeam Kasten platform
-from a variety of disasters, such as the unintended deletion of
-Veeam Kasten or its restore points, the failure of the underlying
-storage used by Veeam Kasten, or even the accidental
-destruction of the Kubernetes cluster on which Veeam Kasten is deployed.
-### Configuring Veeam Kasten Disaster Recovery Mode
-The KDR mode specifies how internal Veeam Kasten resources are protected. The
-mode can be set either before or after enabling the KDR policy. Changes
-to the KDR mode only apply to future KDR policy runs.
-All installations default to Legacy DR mode. Quick DR mode is available
-and recommended for installations using snapshot-capable storage.
-Warning
-Quick DR mode should only be enabled if the storage provisioner
-used for Veeam Kasten PVCs supports both the creation of snapshots
-and the ability to restore the existing volume from a snapshot.
-- To enable Quick DR mode, install or upgrade Veeam Kasten
-with the --set kastenDisasterRecovery.quickMode.enabled=true Helm value.
-- To enable Legacy DR mode, install or upgrade Veeam Kasten
-with the --set kastenDisasterRecovery.quickMode.enabled=false Helm value.
-### Comparing Legacy DR and Quick DR
-Refer to the details below to understand the key differences between
-each mode.
-Quick DR
-- Snapshot-capable storage for Veeam Kasten PVCs required
-- Incrementally exports only necessary data from the catalog database
-and creates a local snapshot of the catalog PVC on each policy run
-- Enables recovery of exported restore points on any cluster
-- Enables recovery of local restore points, exported
-restore points, and action history only where the local catalog
-snapshot is available (i.e. in-place recovery on the
-original cluster)
-- Faster KDR backup and recovery versus Legacy DR
-- Consumes less location profile storage versus Legacy DR
-- Protects additional Veeam Kasten resource types versus Legacy DR
-Legacy DR
-- No dependency on snapshot-capable storage for Veeam
-Kasten PVCs
-- Exports a full dump of the catalog database
-on each policy run
-- Enables recovery of local restore points, exported
-restore points, and action history
-KDR Protected Resource Matrix
-Veeam Kasten Resource
-Actions
-Yes(1)
-Yes
-Local Restore Points
-Exported Restore Points
-Policies
-Basic User Policies
-No
-Profiles
-Blueprints
-Blueprint Bindings
-Policy Presets
-Transform Sets
-Multi-Cluster Primary
-Multi-Cluster Secondary
-Reports
-ActionPodSpecs
-AuditConfig
-StorageSecurityContext
-StorageSecurityContextBinding
-Note
-For Quick DR, resources marked with (1) can only be
-restored if a local KDR snapshot is available.
-### Enabling Veeam Kasten Disaster Recovery
-Enabling Veeam Kasten Disaster Recovery (KDR) creates a dedicated
-policy within Veeam Kasten to back up its resources and catalog data
-to an external location profile.
-Veeam Repository location profiles cannot
-be used as a destination for KDR backups.
-It is strongly recommended to use a location profile
-that supports immutable backups to ensure
-restore point catalog data can be recovered in the event of
-incidents including ransomware and accidental deletion.
-The Veeam Kasten Disaster Recovery settings are accessible via the
-Setup Kasten DR page under the Settings menu in the
-navigation sidebar. For new installations, these settings are
-also accessible using the link located within the alerts panel.
-Select the Setup Kasten DR page under the Settings menu in the
-navigation sidebar.
-Enabling KDR requires selecting a Location
-Profile for the exported KDR backups and providing
-a passphrase to encrypt the data using AES-256-GCM.
-The passphrase can be provided as a raw string
-or as reference to a secret in HashiCorp Vault or AWS Secrets Manager.
-Enable KDR by selecting a valid location profile and providing
-either a raw passphrase or secret management credentials, then clicking
-the Enable Kasten DR button.
-If providing a raw passphrase,
-save it securely outside the cluster.
-Using HashiCorp Vault requires that
-Kasten is configured to access Vault.
-Using AWS Secrets Manager requires that an
-AWS Infrastructure Profile exists
-with the adequate permissions
-A confirmation message with the cluster ID will be displayed
-when KDR is enabled. This ID is used as a prefix to
-the object storage or NFS file storage location where Veeam Kasten
-saves its exported backup data.
-After enabling Veeam Kasten Disaster Recovery, it is essential
-to retain the following to successfully recover Veeam Kasten
-from a disaster:
-1. The source cluster ID
-2. The KDR passphrase (or external secret manager details)
-3. The KDR location profile details and credential
-Without this information, restore point catalog recovery will not be possible.
-The cluster ID value can also be accessed by using the
-following kubectl command.
-### Managing the Veeam Kasten Disaster Recovery Policy
-A policy named k10-disaster-recovery-policy that implements
-Veeam Kasten Disaster Recovery (KDR) will automatically be created when
-KDR is enabled. This policy can be viewed through the Policies
-page in the navigation sidebar.
-Click Run Once on the k10-disaster-recovery-policy to start a
-manual backup.
-Click Edit to modify the frequency and retention settings. It is
-recommended that the KDR policy match the frequency of the lowest RPO
-policy on the cluster.
-### Disabling Veeam Kasten Disaster Recovery
-Veeam Kasten Disaster Recovery can be disabled by clicking
-the Disable Kasten DR button on the Setup Kasten DR page,
-which is found under the Settings menu in the navigation sidebar.
-It is not recommended to run Veeam Kasten without KDR enabled.
-### Recovering Veeam Kasten from a Disaster via UI
-To recover from a KDR backup using the UI, follow these steps:
-1. On a new cluster, install a fresh Veeam Kasten instance in the same
-namespace as the original Veeam Kasten instance.
-2. On the new cluster, create a location profile by providing the
-bucket information and credentials for the object storage
-location or NFS file storage location where previous Veeam
-Kasten backups are stored.
-3. On the new cluster, navigate to the Restore Kasten
-page under the Settings menu in the navigation sidebar.
-4. In the Profile drop-down, select the location profile created
-in step 3.
-1. For Cluster ID, provide the ID of the original cluster with
-Veeam Kasten Disaster Recovery enabled. This ID can be found
-on the Setup Kasten DR page of the original cluster that
-currently has Veeam Kasten Disaster Recovery enabled.
-- Raw passphrase: Provide the passphrase used when enabling
-Disaster Recovery.
-- HashiCorp Vault: Provide the Key Value Secrets Engine Version,
-Mount, Path, and Passphrase Key stored in a HashiCorp Vault secret.
-- AWS Secrets Manager: Provide the secret name, its associated region,
-and the key.
-For immutable location profiles, a previous
-point in time can be provided to filter out any restore points
-newer than the specified time in the next step. If no specific
-date is chosen, it will display all available restore points,
-with the most recent ones appearing first.
-1. Click the Next button to start the validation process.
-If validation succeeds, a drop-down containing the available
-restore points will be displayed.
-All times are displayed in the local timezone of the
-client's browser.
-1. Select the desired restore point and click the Next button.
-2. Review the summary and click the Start Restore button to
-begin the restore process.
-1. Upon completion of a successful restoration, navigation to the
-dashboard and information about ownership and deletion of
-the configmap is displayed.
-Following recovery of the Veeam Kasten restore point catalog,
-restore cluster-scoped resources and
-applications as required.
-### Recovering Veeam Kasten from a Disaster via CLI
-In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
-API or CLI using DR API Resources.
-Recovering from a KDR backup using CLI involves the following
-sequence of steps:
-1. Create a Kubernetes Secret, k10-dr-secret, using the passphrase
-provided while enabling Disaster Recovery as described in
-Specifying a Disaster Recovery Passphrase.
-2. Install a fresh Veeam Kasten instance in the same namespace as the above
-Secret.
-3. Provide bucket information and credentials for the object storage
-location or NFS file storage location where previous Veeam Kasten backups
-are stored.
-4. Create KastenDRReview resource providing
-the source cluster information.
-5. Create KastenDRRestore resource
-referring to the KastenDRReview resource and choosing one of the restore
-points provided in the KastenDRReview status.
-6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be
-created directly with the source cluster information.
-7. Delete the KastenDRReview and KastenDRRestore resources after restore
-completes.
-### Recovering Veeam Kasten From a Disaster via Helm
-The k10restore Helm chart is deprecated with Veeam Kasten v7.5.0
-release and will be removed in a future release.
-Recovering from a KDR backup using k10restore involves the
-following sequence of actions:
-1. Create a Kubernetes Secret, k10-dr-secret, using the passphrase
-provided while enabling Disaster Recovery
-2. Install a fresh Veeam Kasten instance in the same namespace as the above
-Secret
-3. Provide bucket information and credentials for the object storage
-location or NFS file storage location where previous Veeam Kasten backups
-are stored
-4. Restoring the Veeam Kasten backup
-5. Uninstalling the Veeam Kasten restore instance after recovery is
-recommended
-If Kasten was previously installed in FIPS mode, ensure the fresh
-Veeam Kasten instance is also installed in FIPS mode.
-If Veeam Kasten backup is stored using an
-NFS File Storage Location, it is
-important that the same NFS share is reachable from the recovery cluster
-and is mounted on all nodes where Veeam Kasten is installed.
-### Specifying a Disaster Recovery Passphrase
-Currently, Veeam Kasten Disaster Recovery encrypts all artifacts via the
-use of the AES-256-GCM algorithm. The passphrase entered while enabling
-Disaster Recovery is used for this encryption. On the cluster used for
-Veeam Kasten recovery, the Secret k10-dr-secret needs to be
-therefore created using that same passphrase in the Veeam Kasten
-namespace (default kasten-io)
-The passphrase can be provided as a raw string or reference
-a secret in HashiCorp Vault or AWS Secrets Manager.
-Specifying the passphrase as a raw string:
-Specifying the passphrase as a HashiCorp Vault secret:
-The supported values for vault-kv-version are KVv1 and KVv2.
-Using a passphrase from HashiCorp Vault also requires enabling
-HashiCorp Vault authentication when installing the kasten/k10restore
-helm chart. Refer: Enabling HashiCorp Vault using
-Token Auth or
-Kubernetes Auth.
-Specifying the passphrase as an AWS Secrets Manager secret:
-### Reinstalling Veeam Kasten
-When reinstalling Veeam Kasten on the same cluster, it is
-important to clean up the namespace in which Veeam Kasten was
-previously installed before the above passphrase creation.
-Veeam Kasten must be reinstalled before recovery. Please follow
-the instructions here.
-### Configuring Location Profile
-Create a Location Profile with the object
-storage location or NFS file storage location where Veeam Kasten
-KDR backups are stored.
-### Restoring Veeam Kasten with k10restore
-Requirements:
-- Source cluster ID
-- Name of Location Profile from the previous step
-If Veeam Kasten Quick Disaster Recovery is enabled, the Veeam Kasten restore
-helm chart should be installed with the following helm value:
-The overrideResources flag must be set to true when using
-Quick Disaster Recovery. Since the Disaster Recovery operation involves
-creating or replacing resources, confirmation should be provided
-by setting this flag.
-Veeam Kasten provides the ability to apply labels and annotations to all
-temporary worker pods created during Veeam Kasten recovery as part of its
-operation. The labels and annotations can be set through the podLabels and
-podAnnotations Helm flags, respectively. For example, if using a
-values.yaml file:
-Alternatively, the Helm parameters can be configured using the --set flag:
-The restore job always restores the restore point catalog and artifact
-information. If the restore of other resources (options include profiles,
-policies, secrets) needs to be skipped, the skipResource flag can be used.
-The timeout of the entire restore process can be configured by the helm field
-restore.timeout. The type of this field is int and the value is
-in minutes.
-If the Disaster Recovery Location Profile was configured for
-Immutable Backups, Veeam Kasten can be
-restored to an earlier point in time. The protection period chosen when
-creating the profile determines how far in the past the point-in-time
-can be. Set the pointInTime helm value to the desired time stamp.
-See Immutable Backups Workflow for additional
-information.
-### Restoring Veeam Kasten Backup with Iron Bank Kasten Images
-The general instructions found in
-Restoring Veeam Kasten with k10restore
-can be used for restoring Veeam Kasten using Iron Bank
-hardened images with a few changes.
-Specific helm values are used to ensure that the Veeam Kasten
-restore helm chart only uses Iron Bank images.
-The values file must be downloaded by running:
-This file is protected and should not be modified. It is necessary
-to specify all other values using the corresponding helm flags, such as
---set, --values, etc.
-Credentials for Registry1 must be provided in order to successfully pull
-the images. These should already have been created as part of re-deploying a
-new Veeam Kasten instance; therefore, only the name of the secret should be
-used here.
-The following set of flags should be added to the instructions found in
-Restoring Veeam Kasten with k10restore to use
-Iron Bank images for Veeam Kasten recovery:
-### Restoring Veeam Kasten Backup in FIPS Mode
-The general instructions found in
-Restoring Veeam Kasten with k10restore
-can be used for restoring Veeam Kasten in FIPS mode with a few changes.
-To ensure that certified cryptographic modules are utilized, you must install
-the k10restore chart with additional Helm values that can be found here: FIPS
-values. These should be added to the
-instructions found in
-Restoring Veeam Kasten with k10restore
-for Veeam Kasten disaster recovery:
-### Restoring Veeam Kasten Backup in Air-Gapped environment
-In case of air-gapped installations, it's assumed that k10offline tool is
-used to push the images to a private container registry.
-Below command can be used to instruct k10restore to run in air-gapped mode.
-### Restoring Veeam Kasten Backup with Google Workload Identity Federation
-Veeam Kasten can be restored from a Google Cloud Storage bucket using the
-Google Workload Identity Federation. Please follow the instructions
-provided here to restore Veeam Kasten with
-this option.
-### Uninstalling k10restore
-The K10restore instance can be uninstalled with the helm uninstall command.
-### Enabling HashiCorp Vault using Token Auth
-Create a Kubernetes secret with the Vault token.
-This may cause the token to be stored in shell history.
-Use these additional parameters when installing the kasten/k10restore
-helm chart.
-### Enabling HashiCorp Vault using Kubernetes Auth
-Refer to Configuring Vault Server For Kubernetes Auth prior to installing the kasten/k10restore helm chart.
-Use these additional parameters when installing the
-kasten/k10restore helm chart.
-vault.role is the name of the Vault Kubernetes authentication role binding
-the Veeam Kasten service account and namespace to the Vault policy.
-vault.serviceAccountTokenPath is optional and defaults to
-/var/run/secrets/kubernetes.io/serviceaccount/token.
-### Recovering with the Operator
-If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
-the k10restore tool can be deployed via the Operator as described below.
-However, it is recommended to use either the
-Recovering Veeam Kasten from a Disaster via UI or
-Recovering Veeam Kasten from a Disaster via CLI
-process.
-Recovering from a Veeam Kasten backup involves the following sequence of
-actions:
-1. Install a fresh Veeam Kasten instance.
-2. Configure a Location Profile from
-where the Veeam Kasten backup will be restored.
-3. Create a Kubernetes Secret named k10-dr-secret in the same namespace
-as the Veeam Kasten install, with the passphrase given when disaster
-recovery    was enabled on the previous Veeam Kasten instance.
-The commands are detailed here.
-4. Create a K10restore instance. The required values are
-Cluster ID - value given when disaster recovery was enabled
-on the previous Veeam Kasten instance.
-Profile name - name of the Location Profile configured in Step 2.
-and the optional values are
-Point in time - time (RFC3339) at which to evaluate restore data.
-Example "2022-01-02T15:04:05Z".
-Resources to skip - can be used to skip restore of specific resources.
-Example "profile,policies".
-After recovery, deleting the k10restore instance is recommended.
-5. Cluster ID - value given when disaster recovery was enabled
-on the previous Veeam Kasten instance.
-6. Profile name - name of the Location Profile configured in Step 2.
-7. Point in time - time (RFC3339) at which to evaluate restore data.
-Example "2022-01-02T15:04:05Z".
-8. Resources to skip - can be used to skip restore of specific resources.
-Example "profile,policies".
-Create a K10restore instance. The required values are
-and the optional values are
-After recovery, deleting the k10restore instance is recommended.
-Operator K10restore form view with Enable HashiCorp Vault set to False
-Operator K10restore form view with Enable HashiCorp Vault set to True
-### Using the Restored Veeam Kasten in Place of the Original
-The newly restored Veeam Kasten includes a safety mechanism to prevent
-it from performing critical background maintenance operations on backup
-data in storage. These operations are exclusive, meaning that there
-is only one Veeam Kasten instance should perform them one at a time.
-The DR-restored Veeam Kasten initially assumes that it does not have
-permission to perform these maintenance tasks. This assumption is
-made in case the original source, Veeam Kasten, is still running,
-especially during scenarios like testing the DR restore procedure in
-a secondary test cluster while the primary production Veeam Kasten is
-still active.
-If no other Veeam Kasten instances are accessing the same sets of backup
-data (i.e., the original Veeam Kasten has been uninstalled and only the new
-DR-restored Veeam Kasten remains), it can be signaled that the new Veeam
-Kasten is now eligible to take over the maintenance duties by deleting
-the following resource:
-It is critical that you delete this resource only when you are prepared
-to make the permanent cutover to the new DR-restored Veeam Kasten instance.
-Running multiple Veeam Kasten instances simultaneously, each assuming
-ownership, can corrupt backup data.
 © Copyright 2017-2024, Kasten, Inc.
 ### latest_operating_external_tools_datadog.md
 ## Exporting Metrics to Datadog
