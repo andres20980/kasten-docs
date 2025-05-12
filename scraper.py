@@ -150,7 +150,7 @@ def scrape_page(url):
 def scrape_all():
     main_links = get_main_links()
     if not main_links:
-        return {}
+        return {}, 0
 
     logger.info(f"\n🔗 Se detectaron {len(main_links)} enlaces principales para procesar.")
 
