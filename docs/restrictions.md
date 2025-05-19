@@ -92,9 +92,9 @@ It is important to note that importing non-FIPS compliant data into a
 
 ## Running without a cluster-admin ClusterRole â
 
-Veeam Kasten requires a ServiceAccount bound with the ClusterRole cluster-admin in order to properly backup and restore resources within your
-  cluster. The default ServiceAccount used by Veeam Kasten, k10-k10 , already
-  comes preconfigured with this ClusterRole.
+Veeam Kasten configures some of its ServiceAccount to be bound with the
+  kubernetes ClusterRole cluster-admin so that Kasten can properly backup and
+  restore resources within your cluster.
 
 Installing Veeam Kasten without the cluster-admin ClusterRole bound to a
   provided ServiceAccount is not supported .

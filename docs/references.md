@@ -569,7 +569,7 @@ To generate the bundle, Syft is run
   comprehensive view of an image's contents, but does not indicate Veeam
   Kasten's dependency needs.
 
-Download SBOM bundle sbom-7.5.10.tar.gz
+Download SBOM bundle sbom-8.0.0.tar.gz
 
 Veeam Kasten repackages and distributes the following 3rd-party
   open-source images:

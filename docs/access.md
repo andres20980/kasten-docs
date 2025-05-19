@@ -1223,10 +1223,7 @@ To run with an older version of Dex, use the following values:
 > k10-admin
 > . If the namespace where Veeam Kasten was installed is
 > kasten-io
-> and the Veeam Kasten ServiceAccount in that namespace is
-    named
-> k10-k10
-> , then the ClusterRoleBinding would be named
+> then the ClusterRoleBinding would be named
 > kasten-io-k10-k10-admin
 > .
 
@@ -1244,8 +1241,7 @@ The helm option below can be used to reduce the number of groups in
     JWT. It represents a list of groups that are allowed admin access to
     Veeam Kasten's dashboard. These groups will be appended to the list
     of subjects in the default ClusterRoleBinding that is created when
-    Veeam Kasten is installed to bind them to the ClusterRole named k10-admin . If the namespace where Veeam Kasten was installed is kasten-io and the Veeam Kasten ServiceAccount in that namespace is
-    named k10-k10 , then the ClusterRoleBinding would be named kasten-io-k10-k10-admin .
+    Veeam Kasten is installed to bind them to the ClusterRole named k10-admin . If the namespace where Veeam Kasten was installed is kasten-io then the ClusterRoleBinding would be named kasten-io-k10-k10-admin .
 
 ```
 --set auth.groupAllowList[0]="group1"--set auth.groupAllowList[1]="group2"
@@ -1273,11 +1269,7 @@ The helm option below can be used to reduce the number of groups in
 > . If the
     namespace where Veeam Kasten was installed is
 > kasten-io
-> and the
-    Veeam Kasten ServiceAccount in that namespace is named
-> k10-k10
-> , then
-    the ClusterRoleBinding would be named
+> the ClusterRoleBinding would be named
 > kasten-io-k10-k10-admin
 > .
 
@@ -1290,9 +1282,7 @@ Suppose the auth.groupAllowList helm option is defined with a list
 Instead of the groups in auth.groupAllowList , only the groups in auth.k10AdminGroups will be appended to the list of subjects in the
     default ClusterRoleBinding that is created when Veeam Kasten is
     installed to bind them to the ClusterRole named k10-admin . If the
-    namespace where Veeam Kasten was installed is kasten-io and the
-    Veeam Kasten ServiceAccount in that namespace is named k10-k10 , then
-    the ClusterRoleBinding would be named kasten-io-k10-k10-admin .
+    namespace where Veeam Kasten was installed is kasten-io the ClusterRoleBinding would be named kasten-io-k10-k10-admin .
 
 ```
 --set auth.k10AdminGroups[0]="group1"--set auth.k10AdminGroups[1]="group2"
@@ -1310,11 +1300,7 @@ Instead of the groups in auth.groupAllowList , only the groups in auth.k10AdminG
 > . If the
     namespace where Veeam Kasten was installed is
 > kasten-io
-> and the
-    Veeam Kasten ServiceAccount in that namespace is named
-> k10-k10
-> , then
-    the ClusterRoleBinding would be named
+> the ClusterRoleBinding would be named
 > kasten-io-k10-k10-admin
 > .
 
@@ -1322,9 +1308,7 @@ This helm option can be used to define a list of users who are granted
     admin level access to Veeam Kasten's dashboard. The users in auth.k10AdminUsers will be appended to the list of subjects in the
     default ClusterRoleBinding that is created when Veeam Kasten is
     installed to bind them to the ClusterRole named k10-admin . If the
-    namespace where Veeam Kasten was installed is kasten-io and the
-    Veeam Kasten ServiceAccount in that namespace is named k10-k10 , then
-    the ClusterRoleBinding would be named kasten-io-k10-k10-admin .
+    namespace where Veeam Kasten was installed is kasten-io the ClusterRoleBinding would be named kasten-io-k10-k10-admin .
 
 ```
 --set auth.k10AdminUsers[0]="user1"--set auth.k10AdminUsers[1]="user2"
@@ -1717,13 +1701,11 @@ If you are running on GKE and do not have kubectl installed locally,
 For facilitating role-based access for users, Veeam Kasten leverages
   Kubernetes ClusterRoles and Bindings.
 
-## Default Veeam Kasten ClusterRoles â
+Each Veeam Kasten deployment includes default
+  Kubernetes ClusterRoles and Roles for authorization of both
+  full and partial administrator personas.
 
-Every Veeam Kasten deployment comes installed with three default Veeam
-  Kasten ClusterRoles: k10-admin], [k10-basic ,
-  and k10-config-view .
-
-### K10-Admin â
+## K10-Admin â
 
 The k10-admin ClusterRole is useful for administrators who
   want uninterrupted access to all Veeam Kasten operations.
@@ -1732,71 +1714,68 @@ The k10-admin user is allowed to work with all Veeam
   Kasten APIs including profiles, policies, policy presets, actions,
   restore points, transform sets and blueprint bindings.
 
-k10-admin will be installed under the name
-    [<release_name>-admin]
+k10-admin will be installed under the name <release_name>-admin .
 
-The following is an example of the k10-admin ClusterRole:
+### K10-Admin ClusterRole â
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-adminrules:- apiGroups:  - actions.kio.kasten.io  - apps.kio.kasten.io  - config.kio.kasten.io  - reporting.kio.kasten.io  - vault.kio.kasten.io  resources:  - '*'  verbs:  - '*'- apiGroups:  - cr.kanister.io  resources:  - '*'  verbs:  - '*'- apiGroups:  - ""  resources:  - namespaces  verbs:  - create  - get  - list
 ```
 
-#### K10-Admin Binding â
+### K10-Admin Binding â
 
-The k10-admin ClusterRole needs a ClusterRoleBinding. The
-  admin access needs to be cluster-wide.
+The k10-admin ClusterRole requires a ClusterRoleBinding to
+  provide cluster-wide access.
 
-Veeam Kasten creates a ClusterRoleBinding for a default Group k10:admins . Admin users can be added to this k10:admin Group and will be able to use the above k10-admin ClusterRole.
+Veeam Kasten creates a ClusterRoleBinding for a default Group k10:admins . Admin users can be added to this k10:admins Group and will be able to use the above k10-admin ClusterRole.
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name: k10-k10-adminroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-adminsubjects:- apiGroup: rbac.authorization.k8s.io  kind: Group  name: k10:admins
 ```
 
-For individual users and service accounts, the k10-admin ClusterRole needs a ClusterRoleBinding. The admin access needs to be
-  cluster-wide.
+For individual users and service accounts, the k10-admin ClusterRole requires a ClusterRoleBinding.
 
 To bind the k10-admin ClusterRole, use the following
-  command
+  command:
 
 ```
-$ kubectl create clusterrolebinding <name> --clusterrole=k10-admin --user=<name>
+kubectl create clusterrolebinding <name> --clusterrole=k10-admin --user=<name>
 ```
 
-The above kubectl command will create the following ClusterRoleBinding
-  object
+The previous command will create the following ClusterRoleBinding
+  object:
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name: k10-k10-adminroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-adminsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: k10-admin
 ```
 
-Alternatively, you can also bind the ClusterRole to a ServiceAccount.
+Alternatively, the ClusterRole may be bound to a ServiceAccount:
 
 ```
-$ kubectl create clusterrolebinding <name> --clusterrole=k10-admin \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
+kubectl create clusterrolebinding <name> --clusterrole=k10-admin \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
 ```
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name: k10-k10-adminroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-adminsubjects:- kind: ServiceAccount  name: k10-admin  namespace: kasten-io
 ```
 
-If you want k10-admin access given to existing users and
-  do not want to create new clusterrole bindings, you can add the rules] from above [k10-admin role to existing
-  cluster roles.
+## K10-Namespace-Admin â
 
-#### K10-Namespace-Admin â
+In addition to the k10-admin ClusterRole, administrators
+  also require the k10-ns-admin Role for Secret and
+  ConfigMap access within the Veeam Kasten install namespace.
 
-The k10-ns-admin] Role is added for [secrets , configmaps access in the Veeam Kasten release namespace.
+k10-ns-admin will be installed under the name <release_name>-ns-admin .
 
-k10-ns-admin will be installed under the name
-    [<release_name>-ns-admin]
-
-The following is an example of the k10-ns-admin Role:
+### K10-NS-Admin Role â
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: Rolemetadata:  name: k10-ns-admin  namespace: <release_ns>rules:- apiGroups:  - ""  - "apps"  resources:  - deployments  - pods  verbs:  - get  - list- apiGroups:  - ""  resources:  - secrets  verbs:  - create  - delete  - get  - list  - update- apiGroups:  - ""  resources:  - configmaps  verbs:  - create  - delete  - get  - list  - update- apiGroups:  - "batch"  resources:  - jobs  verbs:  - get
 ```
 
-The k10-ns-admin Role needs a RoleBinding in the release
+### K10-NS-Admin Binding â
+
+The k10-ns-admin Role requires a RoleBinding in the release
   namespace.
 
 Veeam Kasten creates a RoleBinding for a default Group k10:admins in the Veeam Kasten release namespace. Admin
@@ -1806,147 +1785,151 @@ Veeam Kasten creates a RoleBinding for a default Group k10:admins in the Veeam K
 apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-ns-admin  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: Role  name: k10-ns-adminsubjects:- apiGroup: rbac.authorization.k8s.io  kind: Group  name: k10:admins
 ```
 
-To bind the k10-ns-admin Role, use the following command
+To bind the k10-ns-admin Role, use the following command:
 
 ```
-$ kubectl create rolebinding <name> --role=k10-ns-admin \    --namespace=<release_ns> \    --user=<name>
+kubectl create rolebinding <name> --role=k10-ns-admin \    --namespace=<release_ns> \    --user=<name>
 ```
 
-The above kubectl command will create the following RoleBinding object
+The previous command will create the following RoleBinding object:
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-ns-admin  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: Role  name: k10-ns-adminsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: k10-ns-admin
 ```
 
-Alternatively, you can also bind the Role to a ServiceAccount.
+Alternatively, the Role may be bound to a ServiceAccount:
 
 ```
-$ kubectl create rolebinding <name> --role=k10-ns-admin \    --namespace=<release_ns> \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
+kubectl create rolebinding <name> --role=k10-ns-admin \    --namespace=<release_ns> \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
 ```
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-ns-admin  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: Role  name: k10-ns-adminsubjects:- kind: ServiceAccount  name: k10-ns-admin  namespace: kasten-io
 ```
 
-### K10-Basic â
+## K10-VirtualMachine-Admin â
 
-#### K10-Basic ClusterRole â
+The K10-virtualmachines-admin ClusterRole is useful for the users who
+  want to manage Virtual Machines through the Veeam Kasten dashboard.
 
-The k10-basic ClusterRole is useful for administrators who
-  want to give some operational Veeam Kasten access to users in specific
+This ClusterRole is created by default with the installation of Veeam
+  Kasten and can be later associated with any group or user.
+
+k10-virtualmachines-admin will be installed under the name <release_name>-ns-admin .
+
+### K10-VirtualMachines-Admin ClusterRole â
+
+```
+kind: ClusterRoleapiVersion: rbac.authorization.k8s.io/v1metadata:  name: k10-virtualmachines-adminrules:- apiGroups:  - kubevirt.io  resources:  - virtualmachines  verbs:  - get  - list  - patch
+```
+
+Associating the ClusterRole k10-virtualmachines-admin with a user/group allows permission to patch/edit
+    VirtualMachine resources. This is required to annotate the
+    VirtualMachines, controlling whether or not Veeam Kasten
+    freezes a guest filesystem during snapshot operations.
+
+### K10-VirtualMachines-Admin Binding â
+
+The k10-virtualmachines-admin ClusterRole requires a ClusterRoleBinding to
+  view and manage Virtual Machines across all namespaces.
+
+To bind the k10-virtualmachines-admin ClusterRole cluster-wide,
+  use the following command:
+
+```
+kubectl create clusterrolebinding manage-vms-clusterwide \  --clusterrole k10-virtualmachines-admin \  --user <user>
+```
+
+The previous command will create the following ClusterRoleBinding object:
+
+```
+apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name: manage-vms-clusterwideroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-virtualmachines-adminsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: <user>
+```
+
+Alternatively, a RoleBinding may be used to provide the
+  ability to view and manage Virtual Machines within a specific
+  namespace:
+
+```
+kubectl create rolebinding manage-vms-default \  --clusterrole k10-virtualmachines-admin --user <user> -n default
+```
+
+```
+apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: manage-vms-default  namespace: defaultroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-virtualmachines-adminsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: <user>
+```
+
+## K10-Basic â
+
+The k10-basic ClusterRole is useful for providing
+  operational Veeam Kasten access to users in specific
   namespaces.
 
-A user with the k10-basic ClusterRole is allowed to backup
-  and restore applications in the namespaces they have access to. This
-  user can create policies in the application's namespace to backup and
-  export the application. The k10-basic ClusterRole also
-  gives access to view applications, actions, and restore point details in
-  their namespaces. A user with the k10-basic ClusterRole is
-  also allowed to cancel actions in the namespaces they have
-  access to.
+Within assigned namespaces, a user with the k10-basic ClusterRole
+  is allowed to:
 
-k10-basic will be installed under the name
-    [<release_name>-basic]
+- Manually backup and restore applications
+- Create and modify Kasten policies
+- View Kasten application, action, and restore point details
+- Cancel Kasten actions
 
-The following is an example of the k10-basic ClusterRole:
+k10-basic will be installed under the name <release_name>-basic .
+
+### K10-Basic ClusterRole â
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-basicrules:- apiGroups:  - actions.kio.kasten.io  resources:  - backupactions  - backupactions/details  - restoreactions  - restoreactions/details  - exportactions  - exportactions/details  - cancelactions  - runactions  - runactions/details  verbs:  - '*'- apiGroups:  - apps.kio.kasten.io  resources:  - restorepoints  - restorepoints/details  - applications  - applications/details  verbs:  - '*'- apiGroups:  - ""  resources:  - namespaces  verbs:  - get- apiGroups:  - config.kio.kasten.io  resources:  - policies  verbs:  - '*'
 ```
 
-#### K10-Basic Binding â
+### K10-Basic Binding â
 
 The k10-basic ClusterRole needs a RoleBinding in the
-  namespace(s) the user needs access to.
+  namespace(s) to which the user requires access.
 
 To bind the k10-basic ClusterRole, use the following
   command
 
 ```
-$ kubectl create rolebinding <name> --namespace=<namespace> --clusterrole=k10-basic --user=<name>
+kubectl create rolebinding <name> --namespace=<namespace> \    --clusterrole=k10-basic \    --user=<name>
 ```
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-basic  namespace: nsroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-basicsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: k10-basic
 ```
 
+Alternatively, the ClusterRole may be bound to a ServiceAccount.
+
 ```
-$ kubectl create rolebinding <name> --namespace=<namespace> --clusterrole=k10-basic \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
+kubectl create rolebinding <name> --namespace=<namespace> \    --clusterrole=k10-basic \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
 ```
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-basic  namespace: nsroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-basicsubjects:- kind: ServiceAccount  name: k10-basic  namespace: kasten-io
 ```
 
-If you want k10-basic access given to existing users and
-  do not want to create new role bindings, you can add the rules] from above [k10-basic role to existing
-  roles.
+## K10-Config-View â
 
-#### K10-Basic-Config ClusterRole â
+The k10-config-view ClusterRole may be used to provide
+  read-only access to all Kasten configuration resources to
+  operators without full k10-admin and k10-ns-admin privileges.
 
-The k10-basic-config ClusterRole can be used by
-  administrators to give basic users access to specific location profiles
-  or blueprints in Veeam Kasten's namespace.
+k10-config-view will be installed under the name <release_name>-config-view .
 
-An example of the k10-basic-config ClusterRole:
-
-```
-apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-basic-configrules:- apiGroups:  - config.kio.kasten.io  resourceNames:  - profile1  resources:  - profiles  verbs:  - get  - list- apiGroups:  - cr.kanister.io  resourceNames:  - mysql-blueprint  resources:  - blueprints  verbs:  - get  - list
-```
-
-#### K10-Basic-Config Binding â
-
-The k10-basic-config ClusterRole needs a RoleBinding in
-  K10's namespace to give access to basic users to specific location
-  profiles or blueprints.
-
-To bind the k10-basic-config ClusterRole, use the
-  following command
-
-```
-$ kubectl create rolebinding <name> --namespace=kasten-io --clusterrole=k10-basic-config --user=<name>
-```
-
-```
-apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-basic-config  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-basic-configsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: k10-basic
-```
-
-```
-$ kubectl create rolebinding <name> --namespace=kasten-io --clusterrole=k10-basic-config \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
-```
-
-```
-apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-basic-config  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-basic-configsubjects:- kind: ServiceAccount  name: k10-basic  namespace: kasten-io
-```
-
-### K10-Config-View â
-
-The k10-config-view ClusterRole is useful for
-  administrators who want to give K10 config view access to some users.
-
-The k10-config-view ClusterRole gives a user read-only
-  access to K10 config information, including profiles, policies, policy
-  presets, transform sets and blueprint bindings on the dashboard.
-
-k10-config-view will be installed under the name
-    [<release_name>-config-view]
-
-The following is an example of the k10-config-view ClusterRole:
+### K10-Config-View ClusterRole â
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-config-viewrules:- apiGroups:  - config.kio.kasten.io  resources:  - profiles  - policies  - policypresets  - transformsets  - blueprintbindings  - storagesecuritycontext  - storagesecuritycontextbinding  verbs:  - get  - list
 ```
 
-#### K10-Config-View Binding â
+### K10-Config-View Binding â
 
-The k10-config-view ClusterRole needs a
-  ClusterRoleBinding. The config-view access needs to be cluster-wide.
+The k10-config-view ClusterRole requires a ClusterRoleBinding to
+  provide cluster-wide access.
 
 To bind the k10-config-view ClusterRole, use the following
-  command
+  command:
 
 ```
-$ kubectl create clusterrolebinding <anme> --clusterrole=k10-config-view --user=<name>
+kubectl create clusterrolebinding k10-k10-config-view \    --clusterrole=k10-config-view \    --user=<name>
 ```
 
 ```
@@ -1954,38 +1937,69 @@ apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name:
 ```
 
 ```
-$ kubectl create clusterrolebinding <name>--clusterrole=k10-config-view \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
+kubectl create clusterrolebinding k10-k10-config-view \    --clusterrole=k10-config-view \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
 ```
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name: k10-k10-config-viewroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-config-viewsubjects:- kind: ServiceAccount  name: k10-config-view  namespace: kasten-io
 ```
 
-If you want k10-config-view access given to existing users
-  and do not want to create new clusterrole bindings, you can add the rules] from above [k10-config-view role to
-  existing cluster roles.
+## K10-Basic-Config â
 
-## RBAC Permissions â
+It may be necessary to extend access to specific resources
+  within the Veeam Kasten install namespace to operators without
+  full k10-admin and k10-ns-admin privileges.
 
-For viewing Kubernetes RBAC objects on the K10 Dashboard UI, additional
-  RBAC permissions are required for users.
+The example below demonstrates the required permissions and
+  binding required to provide read-only access to the profile1 location profile and mysql-blueprint blueprint:
 
-The following Cluster Role will give access to list Kubernetes RBAC
-  objects across the cluster.
+```
+apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-basic-configrules:- apiGroups:  - config.kio.kasten.io  resourceNames:  - profile1  resources:  - profiles  verbs:  - get  - list- apiGroups:  - cr.kanister.io  resourceNames:  - mysql-blueprint  resources:  - blueprints  verbs:  - get  - list
+```
+
+The k10-basic-config ClusterRole needs a RoleBinding in
+  the install namespace.
+
+To bind the example k10-basic-config ClusterRole, use the
+  following command:
+
+```
+kubectl create rolebinding <name> --namespace=kasten-io \    --clusterrole=k10-basic-config \    --user=<name>
+```
+
+```
+apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-basic-config  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-basic-configsubjects:- apiGroup: rbac.authorization.k8s.io  kind: User  name: k10-basic
+```
+
+```
+kubectl create rolebinding <name> --namespace=kasten-io \    --clusterrole=k10-basic-config \    --serviceaccount=<serviceaccount_namespace>:<serviceaccount_name>
+```
+
+```
+apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-basic-config  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: k10-basic-configsubjects:- kind: ServiceAccount  name: k10-basic  namespace: kasten-io
+```
+
+## RBAC Dashboard Permissions â
+
+Viewing and managing Kasten-specific Kubernetes RBAC resources, including
+  Roles, ClusterRoles, RoleBindings, and ClusterRoleBindings,
+  from the dashboard user interface requires additional
+  permissions.
+
+As an example, the following ClusterRole will permit a read-only
+  view of Kubernetes RBAC resources:
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: rbac-all-cluster-rolerules:- apiGroups:  - rbac.authorization.k8s.io  resources:  - '*'  verbs:  - list  - get
 ```
 
-Although you can grant additional verbs such as create, update, and
-    delete this will allow users to escalate their own privileges. This
-    allows them to grant themselves administrative privileges.
-
-Please refer to Kubernetes
+Additional verbs such as create, update, and delete should
+    be added with caution as this will allow those users to escalate
+    their own privileges. Please refer to Kubernetes
 documentation for more details.
 
-The corresponding Cluster Role Binding is needed to bind the Cluster
-  Role to users and groups.
+The corresponding ClusterRoleBinding is needed to bind the
+  ClusterRole to users and groups:
 
 ```
 apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRoleBindingmetadata:  name: rbac-all-cluster-role-bindingroleRef:  apiGroup: rbac.authorization.k8s.io  kind: ClusterRole  name: rbac-all-cluster-rolesubjects:- kind: User  name: rbac-user

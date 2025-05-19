@@ -37,7 +37,7 @@ For example, the following Blueprint defines a hook which updates a
   label on the namespace that was snapshotted.
 
 ```
-apiVersion: cr.kanister.io/v1alpha1kind: Blueprintmetadata:  name: hook-blueprint  namespace: kasten-ioactions:  post-export:    kind: Namespace    phases:    - func: KubeTask      name: hookPhase      args:        podOverride:          serviceAccountName: "k10-k10"        image: bitnami/kubectl        command:        - /bin/sh        - -c        - |          kubectl patch namespace "{{ .Namespace.Name }}" --type json -p='[{"op": "remove", "path": "/metadata/labels/migrate"}]'
+apiVersion: cr.kanister.io/v1alpha1kind: Blueprintmetadata:  name: hook-blueprint  namespace: kasten-ioactions:  post-export:    kind: Namespace    phases:    - func: KubeTask      name: hookPhase      args:        podOverride:          serviceAccountName: "kanister-svc"        image: bitnami/kubectl        command:        - /bin/sh        - -c        - |          kubectl patch namespace "{{ .Namespace.Name }}" --type json -p='[{"op": "remove", "path": "/metadata/labels/migrate"}]'
 ```
 
 The following Blueprint defines a hook which checks if a particular pod
@@ -102,7 +102,7 @@ documentation for a complete list of functions that support args.podOverride .
 For example, the following section should be added to the phase's args section to make it run as the user 1000 :
 
 ```
-...podOverride:  serviceAccountName: "k10-k10"  ## Add the securityContext section here to use it in Kanister Hook.  securityContext:    runAsUser: 1000    runAsNonRoot: true...
+...podOverride:  serviceAccountName: "kanister-svc"  ## Add the securityContext section here to use it in Kanister Hook.  securityContext:    runAsUser: 1000    runAsNonRoot: true...
 ```
 
 ---

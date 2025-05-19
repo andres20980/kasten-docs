@@ -1,6 +1,6 @@
 # Usage Documentation
 
-## Usage App Scoped Policies
+## Usage App Scoped Policies 
 
 Users who are not administrators can create Veeam Kasten policies in an
   application's namespace for protecting only that specific application.
@@ -45,7 +45,7 @@ When the policy runs, the BackupActions and Restore Points will be
 
 If the policy is configured to export Restore Points to object storage,
   the ExportAction will be created in the application's namespace. The
-  image below show an ExportAction. The originating policy indicates that
+  image below shows an ExportAction. The originating policy indicates that
   the policy named tl-pol in the namespace named timelogger created
   this ExportAction.
 
@@ -67,8 +67,117 @@ In the Optional Restore Settings section of the restore form, the user
   can select Kanister blueprint actions that will run after a successful
   restore. The users of application-scoped policies require read-only
   access to such blueprints. They depend on the administrator for creation
-  of blueprints. Refer to this page for setting up RBAC to provide access to blueprints in
-  Veeam Kasten's namespace for non-admin users.
+  of blueprints. Refer to this page
+  for setting up RBAC to provide access to blueprints in Veeam Kasten's namespace
+  for non-admin users.
+
+## Imports â
+
+To ensure Imports function correctly for non-admin users, the Kubernetes
+    ValidatingAdmissionPolicy must be enabled in the cluster.
+    For more information, visit the Kasten Policy Permissions VAP documentation.
+
+A non-admin user can create a policy using the 'Import and Restore' policy form,
+  which automatically restores after import and does not allow restoring
+  cluster-scoped resources. The policy must include both an Import action to bring
+  in RestorePointContents (RPCs) of an application and a Restore action to
+  immediately restore from them, as RPCs are cluster-wide resources that non-admin
+  users cannot restore directly.
+
+The image below shows how the 'Create Policy' form will appear for a non-admin
+  user, with the 'Import and Restore' option expanded.
+
+The user does not have the ability to specify in-line transforms, but can
+  reference existing transform sets to which they have access, as shown in the
+  image below.
+
+On creating the policy, its validation occurs in the application namespace and
+  can be viewed in the Policies page. In the image below, the Import and Restore
+  policy named test-import succeeded validation.
+
+When the policy runs, the Import and Restore Actions will be created in the
+  application's namespace and they can be viewed both in the Actions dashboard
+  as well as in the Action Details page on expanding on the action. In the
+  following image, the status of the completed Import and Restore policy can be
+  seen in the non-admin user's view of the Kasten dashboard.
+
+The image below shows how the 'Create Policy' form will appear for a non-admin
+  user if the VAP Helm Value has been disabled. The 'Import' option will not be
+  expanded to display a form and a tooltip showing 'Insufficient permissions to
+  perform imports' will be displayed on hovering over the option.
+
+---
+
+## Usage App Scoped Policies Vap
+
+Kasten introduces support for Kubernetes ValidatingAdmissionPolicies (VAP) to
+  deliver more robust user permission controls and secure data operations across
+  clusters. This new feature helps minimize administrative overhead, empowers
+  namespace and application owners, and maintains strict compliance with
+  organizational standards. The result is a more secure, flexible, and efficient
+  workflow that aligns with modern Kubernetes best practices. For more details,
+  visit the Kubernetes VAP documentation .
+
+By implementing VAP, Kasten enables namespace owners and application-scoped
+  users to securely manage critical workflows such as disaster recovery (DR),
+  development/testing, and general data migrations. VAPs are configurable using
+  the Helm values under the vap section of the Kasten Helm Chart .
+
+Validating admission policies use Common Expression Language (CEL) to declare
+  the validation rules of a policy.
+
+## Common Expression Language (CEL) â
+
+The spec.validations[i].expression in the VAP represents the expression that
+  will be evaluated by CEL. For more details on CEL syntax, refer to the
+  Kubernetes documentation on Validation Expressions.
+
+## Prerequisites and Restrictions â
+
+### Kubernetes 1.31 â
+
+Full GA support for VAP without additional configuration.
+
+## Kasten VAPs â
+
+It is not recommended to modify the existing CEL rules in the VAPs installed
+    by Kasten. Modifying the rules will change the security posture of Kasten.
+
+### Kasten Policy Permissions VAP â
+
+The kasten.policy.permissions VAP evaluates permissions for a non-admin user
+  while creating a Kasten policy. This prevents unauthorized access to sensitive
+  resources and maintains a high level of security compliance across all
+  Kasten-driven data operations.
+
+The kasten.policy.permissions.binding VAP binding narrows the scope of the
+  VAP to non-admin users who are creating policies outside of the kasten-io namespace.
+
+To enable installation of the VAP and VAP binding, set the vap.kastenPolicyPermissions.enabled value in the Kasten Helm chart to true .
+
+The VAP ensures that the following requirements are maintained for any policy
+  created by such a user:
+
+1. The user has access to every Kasten resource (e.g. blueprints, location profiles, transform sets, etc) referenced in any policy.
+2. The policy has no in-line transforms.
+3. The Import and Restore policy restores only to the application namespace where it is run.
+4. The Import and Restore policy does not set the flag to restore cluster resources.
+
+For more information on Import and Restore application-scoped policies created
+  by non-admin users, refer to the Imports section under Application-Scoped Policies.
+
+To view the complete set of the CELs in the VAP and the referenced resources
+  which they protect, admin users can run the following command:
+
+```
+kubectl describe validatingadmissionpolicy kasten.policy.permissions
+```
+
+Similarly, to view the logic for the VAP binding, run the following command:
+
+```
+kubectl describe validatingadmissionpolicybinding kasten.policy.permissions.binding
+```
 
 ---
 
@@ -198,7 +307,7 @@ Location Profile creation can be accessed from the Location page of
 Location profiles are used to create backups from snapshots, move
   applications and their data across clusters and potentially across
   different clouds, and to subsequently import these backups or exports
-  into another cluster. To create a location profile, click New Profile on the profiles page.
+  into another cluster. To create a location profile, click Create New Profile on the profiles page.
 
 ### Object Storage Location â
 
@@ -299,42 +408,49 @@ By default, Veeam Kasten will use the root user to access the NFS Filestore loca
   refer to the directory located within the PVC specified in the Claim Name . The group specified in the Supplemental Group field must
   have read, write, and execute access to this directory.
 
+To avoid issues on NFS servers with limited storage, new exports are
+  prevented from starting when storage is 95% full. Veeam Kasten
+  automatically recovers storage as it cleans up expired snapshots, but
+  reaching this state may signal a need to update retention settings
+  of affected policies, or to expand storage.
+
 ### Veeam Repository Location â
 
-A Veeam Repository can
-  be used for exported vSphere CSI provisioned volume snapshot data when
-  using a supported vSphere cluster. To create such a location profile, click New Profile on the profiles page and choose the Veeam provider type in the dialog which results in a form similar to the
-  following:
+A Veeam Repository may be used as the destination for persistent
+  volume snapshot data in compatible environments. See Storage Integration for additional details.
+
+Prior to creating a Veeam Repository location profile within
+  Veeam Kasten, a Kasten instance must first be configured on the
+  target VBR backup server. See Veeam Kasten Integration Guide for additional details.
+
+To create a Veeam Repository location profile, select Create New Profile and specify Veeam Repository as the
+  provider type.
 
 Provide the DNS name or the IP address of the Veeam backup server in the Veeam Backup Server field. The Veeam Backup Server API Port field is
   pre-configured with the installation default value and may be changed if
   necessary. Specify the name of a backup repository on this server in the Backup Repository field.
 
-If you have an immutable Veeam Repository, follow the instructions to
-  set it up in Veeam Kasten.
-
-Please be aware that using more than one unique VBR host in location
-    profiles is not supported and may cause synchronization issues between
-    Veeam Kasten and VBR. You can create as many location profiles as you
-    need, but they should use the same server. If you try to save a host
-    which is not used in other profiles you will get a warning, it's
-    possible to proceed, but you should use this option only for temporary
-    product reconfiguration cases.
+Using more than one unique VBR backup server per Veeam Kasten instance
+    is not supported and may cause synchronization issues between
+    Veeam Kasten and VBR. Creating multiple location profiles connecting
+    to different instances of VBR will produce a warning and should only
+    be performed during temporary reconfiguration of an environment.
 
 Provide access credentials in the Username and Password fields.
 
-Make sure that Access Permissions are granted for this account or its
-    group on Veeam backup repositories where you want to keep backups
-    exported by Veeam Kasten policies. Check Veeam User
-Guide for the details.
+Ensure Access Permissions are granted within VBR for the specified
+    account (or related security group) and backup repository. See Veeam Kasten
+Integration Guide for details.
 
 Upon clicking Submit , the dialog will validate the input data.
   Communication with the server uses SSL and requires that the server's
-  certificate be trusted by Veeam Kasten. If such trust is not established
-  but you trust your environment, you may check the Skip certificate chain and hostname verification option to disable
+  certificate be trusted by Veeam Kasten. Alternatively, enabling the Skip certificate chain and hostname verification option disables
   certificate validation.
 
-### Location Settings for Migration â
+If using an immutable Veeam Repository, follow these instructions to
+  ensure proper configuration within Veeam Kasten.
+
+## Location Settings for Migration â
 
 If the location profile is used for exporting an application for
   cross-cluster migration, it will be used to store application restore
@@ -347,7 +463,7 @@ In case of NFS File Storage Location, the exported NFS share must be
     reachable from the destination cluster and mounted on all the nodes
     where Veeam Kasten is installed.
 
-### Read-Only Location Profile â
+## Read-Only Location Profile â
 
 Veeam Kasten supports read-only location profiles for import and restore operations. These profiles require no write permissions, as the system performs only read operations during these phases.
 
@@ -508,6 +624,21 @@ To set up immutability in Google take into account the following requirements:
 - Enable object retention lock on the bucket.
 - If using minimal permissions with the credentials, storage.objects.setRetention permission is also required.
 
+## Location Profiles page â
+
+The Location Profiles page can be accessed by clicking on Location under the
+  the Profiles menu in the navigation sidebar.
+
+### Filtering â
+
+The Location Profiles page supports filtering based on the following properties:
+
+- Name : The name assigned to the location profile.
+- Target : The destination for exported snapshots: bucket name (Amazon S3, GCP), container name (Azure), or persistent volume claim name (NFS).
+- Validation : The current validation status of the location profile.
+- Storage Provider : The third-party storage provider associated with the profile.
+- Immutability : Indicates whether immutability is enabled for the profile.
+
 ---
 
 ## Usage Failover
@@ -650,16 +781,16 @@ For the purpose of this example, an AWS S3 bucket has been used and
   location profiles have been created for it both on primary and standby
   instances of Veeam Kasten:
 
-For the purpose of this demonstration, a backup + export policy has been
+For the purpose of this demonstration, a Snapshot + Export policy has been
   configured on the primary cluster.
 
 For the purpose of this demonstration, the "on-demand" frequency has
     been used and the policy has been run on demand.
 
-This step requires an import + restore policy to be configured on the
+This step requires an Import + Restore policy to be configured on the
   standby cluster.
 
-For the purpose of this demonstration, an import + restore policy has
+For the purpose of this demonstration, an Import + Restore policy has
   been configured without a schedule, and has been run on demand.
 
 Since both clusters have different ingress controllers, Ingress
@@ -671,10 +802,10 @@ Since both clusters have different ingress controllers, Ingress
 
 ### Step 5: Run-once backup â
 
-An initial backup + export has to be successfully performed on the
+An initial Snapshot + Export has to be successfully performed on the
   primary cluster.
 
-This can be achieved via the Run Once button on the Policies page:
+This can be achieved via clicking the Run Once menu option on the Policies page:
 
 Before moving to the next step it's required to ensure that a
   corresponding policy run is completed:
@@ -682,7 +813,7 @@ Before moving to the next step it's required to ensure that a
 ### Step 6: Run-once restore â
 
 After a backup is completed on the primary cluster a restore on the
-  standby cluster should be initiated by clicking the Run Once button on
+  standby cluster should be initiated by clicking the Run Once menu option on
   the import policy previously created.
 
 An import policy run should be completed before moving to the next step:
@@ -1492,7 +1623,7 @@ In the particular case of migrating snapshot data from a Veeam Repository Locati
 ## Usage Overview
 
 The Veeam Kasten dashboard is broken up into a number of different
-  sections. A brief description is provided in the sections below.
+  sections. A brief description about each is provided below.
 
 It is also possible to perform an interactive walkthrough of the Veeam
   Kasten dashboard via a Guided Tour. The tour is available when the Veeam
@@ -1512,6 +1643,7 @@ After filtering to only include applications that have stateful services
 - Unmanaged : There are no protection policies that cover this object
 - Non-compliant : A policy applies to this object but the actions associated with the policy are failing (e.g., due to underlying storage slowness, configuration problems, etc.) or the actions haven't been invoked yet (e.g., right after policy creation)
 - Compliant : Objects that both policies apply to and the policy SLAs are being respected
+- Removed : Objects that are removed.
 
 ## Applications, Namespaces, and Workloads â
 
@@ -1524,8 +1656,9 @@ The Veeam Kasten platform by default equates namespaces to applications
 
 Assuming you have already installed applications, clicking on the
   Applications card on the dashboard will take you to the following view.
-  Note that if you clicked on one of the Compliant/Non-Compliant/Unmanaged
-  buttons, it would automatically filter the below view for you.
+  Choosing one of the Compliant/Non-Compliant/Unmanaged/Removed
+  buttons, it would automatically filter the applications.
+  The cluster-scoped Options lists down the options that can be performed on the cluster scoped resources.
 
 Veeam Kasten classifies Pods, VirtualMachines, StatefulSets, Deployments and DeploymentConfigs as workloads.
 
@@ -1536,19 +1669,35 @@ An application, in turn, is made up of multiple Kubernetes resources and
   get more information about the application by clicking on the details
   icon.
 
+## Restore Points â
+
+The Veeam Kasten UI has a centralized view for listing all the restore points created or imported by the cluster.
+  It is accessed by clicking on the Restore Points item in the left side menu.
+
+Clicking on a specific restore point will provide additional details. From there, the Application can be
+  restored by clicking on the Restore button:
+
+Additionally, local restore points can be exported by clicking on the Export option in the dropdown menu:
+
+Restore points can be deleted, either in bulk by selecting them first, or individually by using the
+  action dropdown menu:
+
+The Restore Points page provides rich filtering capabilities. They can be filtered based on the Application,
+  the originating Policy, the Profile used for import/export and the creation date/time. Under the Application filter,
+  the cluster-scoped option can be selected to view Restore Points that include cluster-scoped resources.
+  Additionally, the Restore Points can be filtered by their type - Snapshot, Exported or Imported.
+  Selecting Include manual runs only will only list the restore points that were created
+  by manually snapshotting or exporting an application, or by manually executing a policy.
+  Selecting No expiration will only list the restore points that do not have an expiration,
+  allowing for simple identification and removal of orphaned backup data.
+
 ## Policies â
 
-Within Veeam Kasten, policies are used to automate your data management
-  workflows. Going back to the main dashboard, you will find a section on
-  how to manage policies right next to the Applications card. To achieve
-  this, they combine actions you want to take (e.g., snapshot), a
-  frequency or schedule for how often you want to take that action, and
-  selection criteria for the resources you want to manage.
+Within Veeam Kasten, policies define a selection of Kubernetes resources and one or more data management actions that are configured to occur on a periodic or event-driven basis.
 
-If you click on the Policies card, you will notice in the above
-  screenshot that no default policies are created at install time but a
-  policy can be either created from this page or from the application page
-  shown earlier.
+On the main dashboard, the Policies card provides an overview of configured policy types. Selecting via the sidebar or the Policies card navigates to the Policies page, which lists all policies that have been created in the system. At the time of installation, no policies are created by default.
+
+A policy can be created on the Policies page by clicking the Create New Policy button, or by navigating to the Applications page and selecting the menu option to Create a Policy for a specific application.
 
 ## Settings â
 
@@ -1620,7 +1769,7 @@ With manual snapshots it is possible to set an expiration date for the
 Protecting an application with Veeam Kasten, usually accomplished by
   creating a policy, requires the understanding and use of three concepts:
 
-- Snapshots and Backups : Depending on your environment and requirement, you might need just one or both of these data capture mechanisms
+- Snapshots and Exports : Depending on the environment and requirements, one or both of these data capture mechanisms will be used
 - Scheduling : Specification of application capture frequency and snapshot/backup retention objectives
 - Selection : This defines not just which applications are protected by a policy but, whenever finer-grained control is needed, resource filtering can be used to select what is captured on a per-application basis
 
@@ -1634,32 +1783,19 @@ This section demonstrates how to use these concepts in the context of a
   v3, and all persistent storage resources (e.g., PersistentVolumeClaims
   and PersistentVolumes) associated with the workloads.
 
-While you can always create a policy from scratch from the policies
-  page, the easiest way to define policies for unprotected applications is
-  to click on the Applications card on the main dashboard. This will take
-  you to a page where you can see all applications in your Kubernetes
-  cluster.
+Creating a new policy may be performed via either the Policies or Applications page. Initiating policy creation from the Applications page will pre-populate fields for policy name and namespace selection.
 
-To protect any unmanaged application, simply click Create Policy and,
-  as shown below, that will take you to the policy creation section with
-  an auto-populated policy name that you can change. The concepts
-  highlighted above will be described in the below sections in the context
-  of the policy creation workflow.
+First, go to the Applications page by clicking on the Applications card on the main dashboard or using the Applications navigation link the sidebar.
 
-## Snapshots and Backups â
+Next, find any unmanaged application in the Application table and select the Create a Policy menu option to navigate to the policy creation form, where the auto-populated policy name will be provided and can be modified as needed.
+
+## Snapshots and Exports â
 
 All policies center around the execution of actions and, for
   protecting applications, you start by selecting the snapshot action with
-  an optional backup (currently called export) option to that action.
+  an optional export action to produce a durable backup.
 
 ### Snapshots â
-
-A number of public cloud providers (e.g., AWS, Azure, Google Cloud)
-    actually store snapshots in object storage and they are retained
-    independent of the lifecycle of the primary volume. However, this is not
-    true of all public clouds (e.g., IBM Cloud) and you might also need to
-    enable backups in public clouds for safety. Please check with your cloud
-    provider's documentation for more information.
 
 Snapshots are the basis of persistent data capture in Veeam Kasten. They
   are usually used in the context of disk volumes (PVC/PVs) used by the
@@ -1679,16 +1815,16 @@ However, storage snapshots usually also suffer from constraints such as
   storage systems, a snapshot's lifecycle is tied to the source volume.
   So, if the volume is deleted, all related snapshots might automatically
   be garbage collected at the same time. It is therefore highly
-  recommended that you create backups of your application snapshots too.
+  recommended that durable backups be created by exporting data.
 
-### Backups â
+A number of public cloud providers (e.g., AWS, Azure, Google Cloud)
+    actually store snapshots in object storage and they are retained
+    independent of the lifecycle of the primary volume. However, this is not
+    true of all public clouds (e.g., IBM Cloud) and you might also need to
+    enable exports in public clouds for safety. Please check with your cloud
+    provider's documentation for more information.
 
-In most cases, when application-level capture mechanisms (e.g., logical
-    database dumps via Kanister )
-    are used, these artifacts are directly sent to an object store or an NFS
-    file store. Backups should not be needed in those scenarios unless a mix
-    of application and volume-level data is being captured or in case of a
-    more specific use case.
+### Exports â
 
 Given the limitations of snapshots, it is often advisable to set up
   backups of your application stack. However, even if your snapshots are
@@ -1699,7 +1835,18 @@ Given the limitations of snapshots, it is often advisable to set up
 
 Backup operations convert application and volume snapshots into backups
   by transforming them into an infrastructure-independent format and then
-  storing them in a target location. To convert your snapshots into
+  storing them in a target location.
+
+The resulting exported data is organized into
+    storage repositories that are exclusively controlled and maintained by
+    the Veeam Kasten instance. Independently using, interacting, connecting, modifying,
+    copying, upgrading, or in any way accessing/manipulating a Veeam Kasten
+    storage repository is unsupported and might cause data corruption/loss
+    to some or all of the restore points. Users must never attempt to
+    perform any such action themselves unless under constant, active
+    supervision by a member of Veeam support or engineering teams.
+
+To convert snapshots into
   backups, select Enable Backups via Snapshot Exports during policy
   creation. Additional settings for the destination location and control
   over the export of snapshot data versus just a reference will also be
@@ -1707,157 +1854,79 @@ Backup operations convert application and volume snapshots into backups
   clusters and more information on them can be found in the Exporting Applications section. These settings are available when creating a
   policy, and when manually exporting a restore point.
 
-The data exported in a Backup operation consists of metadata on the
+The backup produced by an export action consists of metadata of the
   application and snapshot data for the application volumes. The
   destination for the metadata export is an Object Storage Location or an NFS File Storage Location that is specified in the Export Location Profile field.
-  Users without list permissions on profiles can manually enter the name
-  of the profile to export to if they have been given that information and
-  have permissions to create policies.
 
-The exported data resulting from a Backup operation is organized into
-    storage repositories that are exclusively controlled and maintained by
-    Veeam Kasten. Independently using, interacting, connecting, modifying,
-    copying, upgrading, or in any way accessing/manipulating a Veeam Kasten
-    storage repository is unsupported and might cause data corruption/loss
-    to some or all of the restore points. Users must never attempt to
-    perform any such action themselves unless under constant, active
-    supervision by a member of Veeam support or engineering teams.
+There are two options by which Veeam Kasten exports snapshot data: Filesystem Mode Export or Block Mode Export .
 
-There are two mechanisms by which snapshot data get exported: Filesystem Mode Export or Block Mode Export . Each mechanism defines the process of uploading,
+Each mechanism defines the process of uploading,
   downloading, and managing snapshot data in a specific destination
-  location. The export mechanism is normally selected automatically on a
+  location. The default export mechanism is selected automatically on a
 per-volume basis , based on the Volume
 Mode used to mount the volume in a Pod:
 
-- The Filesystem Mode Export mechanism is used to export snapshot data of volumes with a Filesystem Volume Mode .
-- The Block Mode Export mechanism is used to export snapshot data of volumes with a Block Volume Mode .
+- The Filesystem Mode Export mechanism is used to export snapshot data of volumes with a Filesystem volume mode .
+- The Block Mode Export mechanism is used to export snapshot data of volumes with a Block volume mode .
 
-With automatic selection, both the metadata and the snapshot data are
-  sent to the same destination. In a VMware vSphere environment, there is an option to use the Block Mode Export mechanism for all volume snapshots , regardless of the Volume
-Mode .
-  This option enables the specification of a Veeam Repository Location as the destination for snapshot data (only), along with a
-  separate location for the associated metadata.
+Additionally, there are scenarios in which Filesystem mode volumes may be exported
+  using the Block Mode Export mechanism. See Block Mode Export for details.
 
 The two export mechanisms are described below:
 
 #### Filesystem Mode Export â
 
-This is the default mode of export for a volume mounted in Filesystem Volume
-Mode .
-  Such volumes are attached via the volumeMounts property of a Pod
-  container specification.
+This is the default mode of export for a volume mounted in Filesystem volume mode. Such volumes are attached via the volumeMounts property of a Pod container specification.
 
 A filesystem mode export assumes that the format of the data on the
   application disk is a filesystem. During upload, this export
-  mechanism creates another PersistentVolume from the volume snapshot; this is then mounted in a pod using
-  filesystem Volume
-Mode and the mounted filesystem is copied with implicit support to
-  deduplicate, compress and encrypt the data. During download the
-  target volume is mounted in a pod using filesystem Volume
-Mode and the filesystem restored.
-
-The destination for both snapshot data and metadata is the Object Storage Location or NFS File Storage Location that is specified in the Export Location Profile field, though the two types of data are stored separately.
-
-A volume normally exported in filesystem mode may be exported in
-    block mode if desired, provided its StorageClass meets the
-    requirements and is annotated as described in the Block Mode Export section below. To enable this behavior, it is necessary to
-    request it on a per-volume basis by setting one of the following
-    annotations on its PersistentVolumeClaim:
-
-```
-$ kubectl annotate pvc -n ${NAMESPACE} ${PVC_NAME} k10.kasten.io/pvc-export-volume-in-block-mode=preferred$ kubectl annotate pvc -n ${NAMESPACE} ${PVC_NAME} k10.kasten.io/pvc-export-volume-in-block-mode=force
-```
-
-When the annotation value is set to preferred , it gives priority to
-    block mode export but has the flexibility to switch to filesystem mode
-    export if that is not possible. If the annotation value is set to force , an error will be reported/raised if block mode cannot be
-    used/executed.
+  mechanism creates a clone of the source PersistentVolume from the volume snapshot produced by the Veeam Kasten policy. This volume is then mounted in a temporary Pod
+  which deduplicates, compresses, encrypts, and uploads the data to the repository.
+  During restore operations the
+  target volume is similarly mounted in a temporary Pod using filesystem volume mode
+  and the exported data is restored.
 
 #### Block Mode Export â
 
-This is the default mode of export for a volume mounted in Block Volume
-Mode .
-  Such volumes are attached via the volumeDevices property of a Pod
-  container specification.
+This is the default mode of export for a volume mounted in Block volume mode. Such volumes are attached via the volumeDevices property
+  of a Pod container specification.
 
 A block mode export accesses the content of the disk snapshot at the
   block level. If changed block tracking (CBT) data is available
-  for the disk volume and is supported in Veeam Kasten for the
-  provisioner concerned, then Veeam Kasten will export just the
-  incremental changes to the export location if possible. If an
-  incremental upload is not possible then the entire content of the
-  volume snapshot will be uploaded each export.
+  for the volume and is supported in Veeam Kasten for the
+  provisioner concerned, Veeam Kasten will export the
+  incremental changes to the repository without needing to perform
+  client-side fingerprinting and deduplication. If CBT is
+  unavailable, Veeam Kasten will read the entire source volume
+  upon export in order to produce an incremental backup.
 
-Filesystem PVCs are considered Block Mode PVCs if specific flags
-    indicating Generic Block Mode settings are present, but only in
-    cases where the application does not have a Kanister blueprint with
-    a Backup action. When a blueprint exists, it supersedes all other
-    configurations, giving Kanister control over the backup process.
-
-During the upload process, the export mechanism will use storage
-  provisioner specific network data transfer APIs if available and
-  supported by Veeam Kasten, to directly fetch the volume snapshot
-  data from the upload pod. Alternatively, if these APIs are not
-  available, the export mechanism will create a PersistentVolume with the volume snapshot data. This PersistentVolume is then mounted in the upload pod using Block Volume
-Mode ,
+During the export process, the temporary datamover Pod will use
+  provisioner-specific network data transfer APIs to read
+  volume snapshot data, if available and
+  supported by Veeam Kasten. Alternatively, if these APIs are not
+  available, a clone of the source PersistentVolume will be created from the volume snapshot produced by the Veeam Kasten policy. This
+  volume is then mounted in the temporary Pod using Block volume mode,
   and the data will be read from the raw volume.
 
-Similarly, during the download process, the mechanism will use
+Similarly, during the restore process, the mechanism will use
   storage provisioner specific network data transfer APIs if
   available and supported by Veeam Kasten, to directly write the data
-  to the target PersistentVolume .
-  Alternatively, if these APIs are not available, the target PersistentVolume will be mounted in the download pod using Block Volume
-Mode and the data written to the raw volume.
+  to the target volume. Alternatively, if these APIs are not available, the target
+  volume will be mounted in the temporary Pod using Block volume mode
+  and the data will be written to the raw volume.
 
-Veeam Kasten will export snapshot data of a volume mounted with a Block VolumeMode, or import/restore downloaded block mode snapshot
-    data to a volume, only if the following annotation is present on the
-    volume's StorageClass:
+When block mode export is used, the organization of
+  exported data is based on the type of location profile
+  configured in the policy:
 
-```
-$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/sc-supports-block-mode-exports=true
-```
-
-An exception is made for snapshots of PersistentVolumes provisioned by
-    the csi.vsphere.vmware.com provisioner. Volumes of this provisioner
-    are already recognized internally to support block mode exports and do
-    not need this annotation in their StorageClasses.
-
-See Veeam Kasten Primer Block Mount Check for a checker to verify if a StorageClass can be annotated
-    in this manner.
-
-The presence of this annotation in a StorageClass does not affect
-    volumes of that StorageClass that are mounted with the Filesystem Volume
-Mode unless their PersistentVolumeClaims are annotated in the manner
-    described above to indicate that the volume should be exported in block
-    mode.
-
-By default, Veeam Kasten uses provisioner-specific network data
-    transfer APIs for both block mode data upload and download, if
-    available. If there is a need for more precise control over the use of
-    these APIs, you can add one of the following annotations to a
-    volume's StorageClass:
-
-```
-$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=disable$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=download-only$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=enable$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=upload-only
-```
-
-The default setting, if this annotation is not specified, is
-    "enable". However, it is important to note that the API is always
-    used for the csi.vsphere.vmware.com provisioner and the annotation
-    will be ignored if present.
-
-When the Block Mode Export mechanism is used, the organization of
-  snapshot data in the destination location is based on the type of
-  location:
-
-- When the destination is an Object Storage Location or an NFS File Storage Location , snapshot data will be uploaded in a Veeam Kasten specific format which provides deduplication, compression and encryption support in the specified destination. Automatic compaction will be performed periodically on snapshot data, to ensure that the chain of incremental backups that follows a full backup will not grow too long. Compaction synthesizes a full backup by applying the chain of incremental backups to the base full backup and saving the result as a new full backup; no block data is uploaded during compaction as only references to data blocks are manipulated by the operation. Metadata will also be sent to the same destination location, though it is stored separately from the snapshot data.
-- When the destination is a Veeam Repository Location then snapshot data is uploaded to a Veeam Repository in its specific format. A Veeam Repository Location does not provide metadata storage, which must be specified separately as described below.
+- When the destination is an Object Storage Location or an NFS File Storage Location , snapshot data will be uploaded in a Veeam Kasten specific format which provides deduplication, compression and encryption support in the specified destination. Automatic compaction will be performed periodically on volume data, to ensure that the chain of incremental backups that follows a full backup will not grow too long. Compaction synthesizes a full backup by applying the chain of incremental backups to the base full backup and saving the result as a new full backup; no block data is uploaded during compaction as only references to data blocks are manipulated by the operation. Metadata will also be sent to the same destination location, though it is stored separately from the snapshot data.
+- When the destination is a Veeam Repository Location then snapshot data is uploaded to a Veeam Repository in its specific format. A Veeam Repository Location does not provide metadata storage, which must be specified separately within the policy.
 
 When the destination is an Object Storage Location or an NFS File Storage Location , snapshot data will be uploaded in a Veeam Kasten
       specific format which provides deduplication, compression and
       encryption support in the specified destination.
 
-Automatic compaction will be performed periodically on snapshot
+Automatic compaction will be performed periodically on volume
       data, to ensure that the chain of incremental backups that follows
       a full backup will not grow too long. Compaction synthesizes a
 full backup by applying the chain of incremental backups to the
@@ -1871,36 +1940,91 @@ Metadata will also be sent to the same destination location,
 When the destination is a Veeam Repository Location then snapshot data is uploaded to a Veeam Repository in its specific format.
 
 A Veeam Repository Location does not provide metadata storage, which must be
-      specified separately as described below.
+      specified separately within the policy.
 
-In VMware vSphere environments it is possible to optionally enable the use
+#### Enabling Block Mode Export â
+
+To enable block mode exports and restores, first use the Veeam Kasten Primer Block Mount Check to validate the storage provisioner is compatible with block mode.
+
+Next, apply the following annotation to the StorageClass
+  of any compatible provisioner where block mode export will be required:
+
+```
+$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/sc-supports-block-mode-exports=true
+```
+
+The annotation above is not required for StorageClasses using
+    the csi.vsphere.vmware.com provisioner.
+
+#### Exporting Filesystem Volumes in Block Mode â
+
+A Filesystem volume normally exported in filesystem mode may be exported in
+  block mode if desired, provided its StorageClass meets the
+  requirements and is annotated as described in Enabling Block Mode Export . To enable this behavior, it is necessary to
+  request it on a per-volume basis by setting one of the following
+  annotations on its PersistentVolumeClaim:
+
+```
+$ kubectl annotate pvc -n ${NAMESPACE} ${PVC_NAME} k10.kasten.io/pvc-export-volume-in-block-mode=preferred$ kubectl annotate pvc -n ${NAMESPACE} ${PVC_NAME} k10.kasten.io/pvc-export-volume-in-block-mode=force
+```
+
+When the annotation value is set to preferred , it gives priority to
+  block mode export but has the flexibility to fallback to filesystem mode
+  export if block mode export cannot be performed. If the annotation value is set to force , an error will be raised if block mode cannot be
+  performed.
+
+#### Configuring Block Mode Export Storage API Use â
+
+By default, Veeam Kasten uses provisioner-specific network data
+  transfer APIs for both block mode data upload and download, if
+  available. If there is a need for more precise control over the use of
+  these APIs, you can add one of the following annotations to a
+  volume's StorageClass:
+
+```
+$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=disable$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=download-only$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=enable$ kubectl annotate storageclass ${STORAGE_CLASS_NAME} k10.kasten.io/block-mode-uses-storage-api=upload-only
+```
+
+The annotation above is ignored for StorageClasses using
+    the csi.vsphere.vmware.com provisioner and network data transfer
+    APIs are always used.
+
+#### Configuring Block Mode Export in VMware vSphere â
+
+When exporting data
+  in VMware vSphere environments it is possible to optionally enable the use
   of the Block Mode Export mechanism for all of the volume
-  snapshots of the applications affected by a Backup Policy , regardless of Volume
-Mode ,
-  as it is the preferred way to export snapshot data in a VMware cluster
-  with volumes provisioned by the csi.vsphere.vmware.com provisioner.
-  This setting is mandatory in order to specify a Veeam Repository Location profile as the destination for snapshot data.
+  snapshots created by a policy, regardless of the Volume
+Mode of each persistent volume.This is the preferred way to export snapshot data
+  in a cluster with volumes provisioned by the csi.vsphere.vmware.com provisioner.
+  Additionally, when exporting volume data to a Veeam Repository Location ,
+  Block Mode Export must be enabled for all volume snapshots associated with the policy.
 
 Using the Block Mode Export mechanism for all volume snapshots
   is enabled by explicitly selecting the Export snapshot data in block mode option in the export properties
-  of the Backup Policy and then
+  of the policy and then
   selecting an Object Storage Location , an NFS File Storage or a Veeam Repository Location profile as the destination for snapshot data in the Location Profile Supporting Block Mode field.
 
 The location for metadata is specified by the Export Location Profile field, a required field in the dialog. When
   the Location Profile Supporting Block Mode field is an Object Storage Location or an NFS File Storage Location , then both values are required to be the same to
   ensure that both metadata and snapshot data are sent to the same
-  location; the policy will become invalid if this is not the case. The
-  values can be different only in the case of a Veeam Repository Location as it cannot be used for metadata storage.
+  location.
 
-The policy card provides an indication that the block mode export
-  mechanism is used for all exported snapshots (see Export snapshot data in block mode ... below):
+#### Configuring Block Mode Export to VBR â
 
-If such an indication is not present then snapshot data is exported
-  with a mechanism based on the VolumeMode of each individual volume.
+To export snapshot data to a Veeam Repository Location from a compatible cluster it is required to use
+  the Block Mode Export mechanism for all of the volume
+  snapshots created by a policy, regardless of the Volume
+Mode of each persistent volume.
 
-In the particular case of migrating snapshot data from a Veeam Repository Location , an identically named location profile as used as the
-  export block mode destination must exist in the importing cluster.
-  :::
+First, ensure any required StorageClasses have enabled Block Mode Export .
+
+Using the Block Mode Export mechanism for all volume snapshots
+  is enabled by explicitly selecting the Export volume snapshot data to VBR option in the export properties
+  of the policy and then
+  selecting an available Veeam Repository Location profile as the destination.
+
+The location for metadata is specified by the Export Location Profile field, which requires the selection of a separate Object Storage Location or an NFS File Storage Location .
 
 ## Scheduling â
 
@@ -2316,45 +2440,39 @@ Each policy created using a preset does not copy its configuration but
 
 ### Viewing Policy Activity â
 
-Once you have created a policy and have navigated back to the main
-  dashboard, you will see the selected applications quickly switch from
-  unmanaged to non-compliant (i.e., a policy covers the objects but no
-  action has been taken yet). They will switch to compliant as snapshots
-  and backups are run as scheduled or manually and the application enters
-  a protected state. You can also scroll down on the page to see the
-  activity, how long each snapshot took, and the generated artifacts. Your
-  page will now look similar to this:
+After creating a policy and navigating back to the dashboard, the application status is updated from Unmanaged to Non-Compliant , indicating a policy exists but has not successfully run within the specified frequency. This status will change to Compliant upon successful completion of a scheduled or manual run of the policy. The page will now look similar to this:
 
-More detailed job information can be obtained by clicking on the
+Scrolling down on the page provides visibility into individual action activity. More detailed information can be obtained by clicking on the
   in-progress or completed jobs.
 
 ### Manual Policy Runs â
 
-It is possible to manually create a policy run by going to the policy
-  page and clicking the run once button on the desired policy. Note that
-  any artifacts created by this action will not be eligible for automatic
-  retirement and will need to be manually cleaned up.
+It is possible to manually run a policy by going to the Policies page and clicking the Run Once menu option on the desired policy. Note that
+  unless an expiration time is specified, any artifacts created by this action will not be eligible for automatic retirement and will need to be manually removed.
+
+It is also possible to run a policy manually on the Policy View page. First, navigate to the Policy View page by clicking on the policy row or clicking the View menu option on the desired policy. Then, click the Run Once button on the Policy View page.
 
 ### Pausing Policies â
 
-It is possible to pause new runs of a policy by going to the policy page
-  and clicking the pause button on the desired policy. Once a policy is
-  resumed by clicking the resume button, the next policy run will be at
-  the next scheduled time after the policy is resumed.
+It is possible to pause new scheduled runs of a policy by going to the Policies page
+  and clicking the Pause menu option on the desired policy.
+
+Once a policy is paused, it can be resumed by clicking the Resume menu option on the desired policy. Resuming a policy will allow begin running on it's scheduled frequency again.
+
+Policies can also be paused and resumed from the Policy View page. First, navigate to the Policy View page by clicking on the policy row or clicking the View menu option on the desired policy. Then, click the Pause or Resume button on the Policy View page.
 
 Paused policies do not generate skipped jobs and are ignored for the
-  purposes of compliance. Applications that are only protected by paused
-  policies are marked as unmanaged.
+    purposes of compliance. Applications that are only protected by paused
+    policies are marked as unmanaged.
 
 ### Revalidating Policies â
 
 Revalidation is useful when a Policy becomes invalid. Policies that are
-  invalid will not run and can result in a breach of compliance.
+  invalid will not run and can result in a breach of compliance. To revalidate a policy, go to the Policies page and click the Revalidate menu option on the desired policy.
 
 ### Editing Policies â
 
-It is also possible to edit created policies by clicking the edit button
-  on the policies page.
+Editing a policy is possible from the Policies page using the Edit menu option, or from the Policy View page by clicking the Edit button. This opens a dialog to modify the schedule, retention, and other configuration details.
 
 Policies, a Kubernetes Custom Resource (CR), can also be edited directly
   by manually modifying the CR's YAML through the dashboard or command
@@ -2414,22 +2532,13 @@ If an independent retention schedule existed for export, editing the
 
 ### Deleting A Policy â
 
-You can easily delete a policy from the policies page or using the API.
-  However, in the interests of safety, deleting a policy will not delete
-  all the restore points that were generated by it. Restore points from
-  deleted policies can be manually deleted from the Application restore
-  point view or via the API.
+A policy may be deleted from the Policies page, Policy View page, or through the API. However, for safety, deleting a policy does not remove the restore points it generated. Restore points from deleted policies must be manually deleted from the Application restore point view or via the API.
 
 ### Upgrading a Policy â
 
-You can upgrade an eligible policy either through the policies page or
-  by using the UpgradeAction API. When you upgrade a Policy , it
-  automatically upgrades all associated StorageRepositories .
-  Additionally, with the periodic release of new Veeam Kasten versions,
-  you can expect enhancements to improve backup robustness and
-  performance. Upgrading policies not only facilitates the implementation
-  of these enhancements but also prepares the ground for Veeam Kasten to
-  introduce new data management features or operations.
+Periodic releases of Veeam Kasten include enhancements to improve backup data robustness and performance. In order to prepare the repository to take advantage of these enhancements, an upgrade may be required via each policy.
+
+An eligible policy may be upgraded through the Upgrade menu option on the Policies page or by using the UpgradeAction API. Upgrading a Policy automatically upgrades all associated StorageRepositories .
 
 Depending on the specific Veeam Kasten release and the amount of data
   protected through a policy, an upgrade workflow may take anywhere from a
@@ -2471,13 +2580,16 @@ To speed up the Restore process and account for failures during the
 ## Restoring Existing Applications â
 
 Restoring an application is accomplished via the Applications page. One
-  needs to simply click the Restore icon.
+  needs to simply click the Restore option in the dropdown.
+
+Alternatively, the Restore Points Page can be used to find a
+  specific Restore Points and initiate the Restore using it:
 
 While the UI uses the Export term for backups, no Import policy is
     needed to restore from a backup. Import policies are only needed when
     you want to restore the application into a different cluster.
 
-At that point, one has the option to pick a restore point, a grouped
+At this point, one has the option to pick a restore point, a grouped
   collection of data artifacts belonging to the application, to restore
   from. As seen above, this view distinguishes manually generated restore
   points from automated policy-generated ones.
