@@ -2,83 +2,1229 @@
 
 ## Operating Dr
 
-By default, Generic Storage Backup will be disabled for all new
-    deployments of Veeam Kasten and for existing deployments when upgraded
-    to version 6.5.0 or later. For more details, refer to this page.
+As Veeam Kasten is a stateful application running on the
+  cluster, it must be responsible for backing up its own data to enable
+  recovery in the event of disaster. This backup is enabled by the
+  Veeam Kasten Disaster Recovery (KDR) policy. In particular, KDR
+  provides the ability to recover the Veeam Kasten platform
+  from a variety of disasters, such as the unintended deletion of
+  Veeam Kasten or its restore points, the failure of the underlying
+  storage used by Veeam Kasten, or even the accidental
+  destruction of the Kubernetes cluster on which Veeam Kasten is deployed.
 
-The Veeam Kasten data management platform, purpose-built for Kubernetes,
-  provides enterprise operations teams an easy-to-use, scalable, and
-  secure system for backup/restore, disaster recovery, and mobility of
-  Kubernetes applications.
+## Configuring Veeam Kasten Disaster Recovery Mode â
 
-Veeam Kasten's application-centric approach and deep integrations with
-  relational and NoSQL databases, Kubernetes distributions, and all clouds
-  provide teams with the freedom of infrastructure choice without
-  sacrificing operational simplicity. Policy-driven and extensible, Veeam
-  Kasten provides a native Kubernetes API and includes features such as
-  full-spectrum consistency, database integrations, automatic application
-  discovery, multi-cloud mobility, and a powerful web-based user
-  interface.
+The KDR mode specifies how internal Veeam Kasten resources are protected. The
+  mode can be set either before or after enabling the KDR policy. Changes
+  to the KDR mode only apply to future KDR policy runs.
 
-Given Veeam Kasten's extensive ecosystem support you have the
-  flexibility to choose environments (public/ private/ hybrid cloud/
-  on-prem) and Kubernetes distributions (cloud vendor managed or self
-  managed) in support of three principal use cases:
+Starting in Veeam Kasten v8.0.0, all installations default to Quick DR (Local Catalog Snapshot) mode.
 
-- Backup and Restore
-- Disaster Recovery
-- Application Mobility
+Quick DR (Local Catalog Snapshot) mode should only be enabled if the storage provisioner
+    used for Veeam Kasten PVCs supports both the creation of storage snapshots
+    and the ability to restore the existing volume from a storage snapshot. See Comparing Available KDR Modes for details on alternate
+    configuration options.
 
-## Veeam Kasten Editions (Free and Enterprise) â
+- To enable Legacy DR mode, install or upgrade Veeam Kasten with the --set kastenDisasterRecovery.quickMode.enabled=false Helm value.
+- To enable Quick DR mode, install or upgrade Veeam Kasten with the --set kastenDisasterRecovery.quickMode.enabled=true Helm value.
+- See Enabling Veeam Kasten Disaster Recovery via UI or Enabling Veeam Kasten Disaster Recovery via CLI for details on configuring catalog snapshot behavior for Quick DR mode.
 
-Veeam Kasten is available in two editions. The default Starter edition,
-  provided at no charge and intended for evaluation or for use in small
-  non-production clusters, is functionally the same as the Enterprise
-  edition but limited from a support and scale perspective. Customers
-  choosing to upgrade to the Enterprise edition can obtain a license key
-  from Kasten or install from cloud marketplaces. Please see the product
-page for a comparison of the editions.
+## Comparing Available KDR Modes â
+
+Refer to the details below to understand the key differences between
+  each mode:
+
+### Legacy DR â
+
+Recommended Usage
+
+- Supported for backwards-compatibility only
+
+Actions Performed Per KDR Policy Run
+
+- Exports a full copy of the catalog database
+
+Resources Available to Recover
+
+- Enables recovery of specified Veeam Kasten custom resources
+- Enables recovery of local restore points, exported restore points, and action history on any cluster Note It is expected that local restore points will be non-restorable when a KDR recovery of the exported catalog snapshot is performed on a different cluster, as applicable storage snapshot references are typically unavailable.
+
+Enables recovery of specified Veeam Kasten custom resources
+
+Enables recovery of local restore points, exported
+      restore points, and action history on any cluster
+
+It is expected that local restore points will be non-restorable when a
+        KDR recovery of the exported catalog snapshot is performed on a different cluster, as
+        applicable storage snapshot references are typically unavailable.
+
+### Quick DR (Local Catalog Snapshot) â
+
+- Recommended when storage used for Veeam Kasten PVCs supports both the creation of storage snapshots and the ability to provision a volume using a storage snapshot
+
+- Creates a local snapshot of the catalog PVC
+- Incrementally exports minimally required data only from the catalog database
+
+- Enables recovery of specified Veeam Kasten custom resources
+- Enables recovery of exported restore points on any cluster
+- Enables recovery of local restore points, exported restore points, and action history only where the local catalog snapshot is available for restore (i.e. in-place recovery on the original cluster)
+
+Compared to Legacy DR
+
+- Offers faster KDR policy runs by reducing amount of exported data
+- Consumes less repository storage by reducing amount of exported data
+- Offers faster KDR recovery when leveraging local storage snapshot
+- Protects additional Veeam Kasten custom resource types
+
+### Quick DR (Exported Catalog Snapshot) â
+
+- Recommended when storage used for Veeam Kasten PVCs supports the creation of storage snapshots but cannot provision a volume using a storage snapshot
+- Recommended when there is a need to reduce retention of local storage snapshots without impacting retention of exported backups
+- This mode may be selected for any snapshot-capable storage in order to provide the highest level of resilience
+
+- Creates a local snapshot of the catalog PVC
+- Incrementally exports minimally required data only from the catalog database
+- Performs an incremental export of the catalog PVC snapshot data
+
+- Offers comparable KDR policy run completion times
+- Consumes less repository storage by exporting incremental catalog data
+- Offers faster KDR recovery when leveraging local storage snapshot
+- Offers comparable KDR recovery when leveraging exported storage snapshot
+- Protects additional Veeam Kasten resource types
+
+### Quick DR (No Catalog Snapshot) â
+
+- Recommended when no available cluster storage supports snapshot creation (i.e. only Generic Storage Backup is used)
+- Alternatively, this mode may be selected if there is no requirement to recover local restore points or action history
+
+- Incrementally exports minimally required data only from the catalog database
+
+- Enables recovery of specified Veeam Kasten custom resources
+- Enables recovery of exported restore points on any cluster
+
+- Offers faster KDR policy runs by reducing amount of exported data
+- Consumes less repository storage by reducing amount of exported data
+- Offers faster KDR recovery by reducing amount of imported data
+- Protects additional Veeam Kasten custom resource types
+- Does not support recovery of local restore points and action history
+
+### KDR Protected Resource Matrix â
+
+| Veeam Kasten Resource | Quick DR | Legacy DR | Actions | Yes(1) | Yes |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| Actions | Yes(1) | Yes |
+| Local Restore Points | Yes(1) | Yes |
+| Exported Restore Points | Yes | Yes |
+| Policies | Yes | Yes |
+| Basic User Policies | Yes | No |
+| Profiles | Yes | Yes |
+| Blueprints | Yes | Yes |
+| Blueprint Bindings | Yes | No |
+| Policy Presets | Yes | No |
+| Transform Sets | Yes | No |
+| Multi-Cluster Primary | Yes | No |
+| Multi-Cluster Secondary | Yes | No |
+| Reports | No | No |
+| ActionPodSpecs | No | No |
+| AuditConfig | No | No |
+| StorageSecurityContext | Yes | No |
+| StorageSecurityContextBinding | Yes | No |
+
+For Quick DR, resources marked with (1) can only be
+    restored if a local or exported catalog snapshot is available
+    to be restored.
+
+## Enabling Veeam Kasten Disaster Recovery via UI â
+
+Enabling Veeam Kasten Disaster Recovery (KDR) creates a dedicated
+  policy within Veeam Kasten to back up its resources and catalog data
+  to an external location profile .
+
+The Veeam Kasten Disaster Recovery settings are accessible via the Setup Kasten DR page under the Settings menu in the navigation
+  sidebar.
+
+- Specify a location profile to which KDR backups will be exported. It is strongly recommended to use a location profile that supports immutable backups to ensure restore point catalog data can be recovered in the event of incidents including ransomware and accidental deletion. Note Veeam Repository location profiles cannot be used as a destination for KDR backups.
+- Select and configure the desired passphrase method that will be used to encrypt KDR backups: Passphrase warning It is critical that this unmanaged passphrase be stored securely outside of the cluster as it will be required to perform any future recoveries. HashiCorp Vault Note Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault . AWS Secrets Manager Note Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+- If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations. Note Updating the catalog snapshot configuration may be performed by disabling and re-enabling KDR.
+- Select Enable Kasten DR . A confirmation with the configuration and cluster ID will be displayed when KDR is enabled. This ID is used as a prefix to the object or file storage location where Veeam Kasten saves its exported backup data. Tip The Cluster ID value for a given cluster can also be accessed using the following kubectl command: # Extract UUID of the `default` namespace kubectl get namespace default -o jsonpath = "{.metadata.uid}{' \n '}" warning After enabling KDR it is critical to retain the following to successfully recover Veeam Kasten from a disaster: The source Cluster ID The KDR passphrase (or external secret manager details) The KDR location profile details and credential Without this information, restore point catalog recovery will not be possible.
+
+Specify a location profile to which KDR backups will be exported.
+
+It is strongly recommended to use a location profile
+      that supports immutable backups to ensure
+      restore point catalog data can be recovered in the event of
+      incidents including ransomware and accidental deletion.
+
+Veeam Repository location profiles cannot be used as a destination for KDR backups.
+
+Select and configure the desired passphrase method that will be used to encrypt KDR backups:
+
+Passphrase
+
+It is critical that this unmanaged passphrase be stored securely outside
+        of the cluster as it will be required to perform any future recoveries.
+
+HashiCorp Vault
+
+Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault .
+
+AWS Secrets Manager
+
+Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+
+If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations.
+
+Updating the catalog snapshot configuration may be performed by disabling and re-enabling KDR.
+
+Select Enable Kasten DR .
+
+A confirmation with the configuration and cluster ID will be displayed when KDR is enabled.
+      This ID is used as a prefix to the object or file storage location where Veeam Kasten
+      saves its exported backup data.
+
+The Cluster ID value for a given cluster can also be accessed using the following kubectl command:
+
+```
+# Extract UUID of the `default` namespacekubectl get namespace default -o jsonpath="{.metadata.uid}{'\n'}"
+```
+
+After enabling KDR it is critical to retain the following to successfully recover Veeam Kasten
+        from a disaster:
+
+- The source Cluster ID
+- The KDR passphrase (or external secret manager details)
+- The KDR location profile details and credential
+
+Without this information, restore point catalog recovery will not be possible.
+
+## Enabling Veeam Kasten Disaster Recovery via CLI â
+
+As KDR backups are performed via a Veeam Kasten policy, configuration
+  of KDR may be automated via CLI or GitOps tools. Each of the following
+  examples assume deployment to the kasten-io namespace and must be
+  modified to reflect environment specific details including location
+  profile name, frequency, and retention.
+
+- Create the k10-dr-secret Secret with the passphrase to be used to encrypt KDR backups: kubectl create secret generic k10-dr-secret --namespace kasten-io --from-literal key = < PASSPHRASE >
+- Modify and apply one of the following k10-disaster-recovery-policy Policy examples. See comparison for available mode details and recommendations. Quick DR (Local Catalog Snapshot) - Default apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io kdrSnapshotConfiguration : takeLocalCatalogSnapshot : true Quick DR (Exported Catalog Snapshot) apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io - action : export exportParameters : exportData : enabled : true profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io kdrSnapshotConfiguration : exportCatalogSnapshot : true takeLocalCatalogSnapshot : true Quick DR (No Catalog Snapshot) apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io kdrSnapshotConfiguration : { } Legacy DR (Full Catalog Export) apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io
+
+Create the k10-dr-secret Secret with the passphrase to be used to encrypt KDR backups:
+
+```
+kubectl create secret generic k10-dr-secret  --namespace kasten-io  --from-literal key=<PASSPHRASE>
+```
+
+Modify and apply one of the following k10-disaster-recovery-policy Policy examples. See comparison for available mode details and recommendations.
+
+Quick DR (Local Catalog Snapshot) - Default
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - kasten-io  kdrSnapshotConfiguration:    takeLocalCatalogSnapshot: true
+```
+
+Quick DR (Exported Catalog Snapshot)
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   - action: export    exportParameters:      exportData:        enabled: true      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration:    exportCatalogSnapshot: true    takeLocalCatalogSnapshot: true
+```
+
+Quick DR (No Catalog Snapshot)
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration: {}
+```
+
+Legacy DR (Full Catalog Export)
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io
+```
+
+## Managing the Veeam Kasten Disaster Recovery Policy â
+
+A policy named k10-disaster-recovery-policy that implements
+  KDR functionality will automatically be created when
+  KDR is enabled. This policy can be viewed through the Policies page in the navigation sidebar.
+
+Click Run Once on the k10-disaster-recovery-policy to start a
+  manual backup.
+
+Click Edit to modify the frequency and retention settings. It is
+  recommended that the KDR policy match the frequency of the lowest RPO
+  policy on the cluster.
+
+## Disabling Veeam Kasten Disaster Recovery â
+
+Veeam Kasten Disaster Recovery can be disabled by clicking the Disable Kasten DR button on the Setup Kasten DR page, which is found
+  under the Settings menu in the navigation sidebar.
+
+It is not recommended to run Veeam Kasten without KDR enabled.
+
+## Recovering Veeam Kasten from a Disaster via UI â
+
+To recover from a KDR backup using the UI, follow these steps:
+
+1. On a new cluster, install a fresh Veeam Kasten instance in the same namespace as the original Veeam Kasten instance.
+2. On the new cluster, create a location profile by providing the bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+3. On the new cluster, navigate to the Restore Kasten page under the Settings menu in the navigation sidebar.
+4. In the Profile drop-down, select the location profile created in step 3.
+
+1. For Cluster ID, provide the ID of the original cluster with Veeam Kasten Disaster Recovery enabled. This ID can be found on the Setup Kasten DR page of the original cluster that currently has Veeam Kasten Disaster Recovery enabled.
+
+- Raw passphrase: Provide the passphrase used when enabling Disaster Recovery.
+
+- HashiCorp Vault: Provide the Key Value Secrets Engine Version, Mount, Path, and Passphrase Key stored in a HashiCorp Vault secret.
+
+- AWS Secrets Manager: Provide the secret name, its associated region, and the key.
+
+For immutable location profiles, a previous point in time can be
+    provided to filter out any restore points newer than the specified
+    time in the next step. If no specific date is chosen, it will display
+    all available restore points, with the most recent ones appearing
+    first.
+
+1. Click the Next button to start the validation process. If validation succeeds, a drop-down containing the available restore points will be displayed.
+
+All times are displayed in the local timezone of the client's
+    browser.
+
+1. Select the desired restore point and click the Next button.
+2. Review the summary and click the Start Restore button to begin the restore process.
+
+1. Upon completion of a successful restoration, navigation to the dashboard and information about ownership and deletion of the configmap is displayed.
+
+Following recovery of the Veeam Kasten restore point catalog,
+  restore cluster-scoped resources and applications as required.
+
+## Recovering Veeam Kasten from a Disaster via CLI â
+
+In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
+  API or CLI using DR API Resources .
+  Recovering from a KDR backup using CLI involves the following
+  sequence of steps:
+
+1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery as described in Specifying a Disaster Recovery Passphrase .
+2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret.
+3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+4. Create KastenDRReview resource providing the source cluster information.
+5. Create KastenDRRestore resource referring to the KastenDRReview resource and choosing one of the restore points provided in the KastenDRReview status.
+6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be created directly with the source cluster information.
+7. Delete the KastenDRReview and KastenDRRestore resources after restore completes. Following recovery of the Veeam Kasten restore point catalog, restore cluster-scoped resources and applications as required.
+
+## Recovering Veeam Kasten From a Disaster via Helm â
+
+The k10restore Helm chart is deprecated with Veeam Kasten v7.5.0
+    release and will be removed in a future release.
+
+Recovering from a KDR backup using k10restore involves the
+  following sequence of actions:
+
+1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery
+2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret
+3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored
+4. Restoring the Veeam Kasten backup
+5. Uninstalling the Veeam Kasten restore instance after recovery is recommended
+
+If Kasten was previously installed in FIPS mode, ensure the fresh Veeam
+    Kasten instance is also installed in FIPS mode.
+
+If Veeam Kasten backup is stored using an NFS File Storage Location , it is important that the same NFS share is reachable from
+    the recovery cluster and is mounted on all nodes where Veeam Kasten is
+    installed.
+
+### Specifying a Disaster Recovery Passphrase â
+
+Currently, Veeam Kasten Disaster Recovery encrypts all artifacts via the
+  use of the AES-256-GCM algorithm. The passphrase entered while enabling
+  Disaster Recovery is used for this encryption. On the cluster used for
+  Veeam Kasten recovery, the Secret k10-dr-secret needs to be therefore
+  created using that same passphrase in the Veeam Kasten namespace
+  (default kasten-io )
+
+The passphrase can be provided as a raw string or reference a secret in
+  HashiCorp Vault or AWS Secrets Manager.
+
+Specifying the passphrase as a raw string:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal key=<passphrase>
+```
+
+Specifying the passphrase as a HashiCorp Vault secret:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=vault \   --from-literal vault-kv-version=<version-of-key-value-secrets-engine> \   --from-literal vault-mount-path=<path-where-key-value-engine-is-mounted> \   --from-literal vault-secret-path=<path-from-mount-to-passphrase-key> \   --from-literal key=<name-of-passphrase-key># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=vault \   --from-literal vault-kv-version=KVv1 \   --from-literal vault-mount-path=secret \   --from-literal vault-secret-path=k10 \   --from-literal key=passphrase
+```
+
+The supported values for vault-kv-version are KVv1 and KVv2 .
+
+Using a passphrase from HashiCorp Vault also requires enabling HashiCorp
+    Vault authentication when installing the kasten/k10restore helm chart.
+    Refer: Enabling HashiCorp Vault using Token Auth or Kubernetes Auth .
+
+Specifying the passphrase as an AWS Secrets Manager secret:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=<aws-region-for-secret> \   --from-literal key=<aws-secret-name># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=us-east-1 \   --from-literal key=k10/dr/passphrase
+```
+
+### Reinstalling Veeam Kasten â
+
+When reinstalling Veeam Kasten on the same cluster, it is important to
+    clean up the namespace in which Veeam Kasten was previously installed
+    before the above passphrase creation.
+
+```
+# Delete the kasten-io namespace.$ kubectl delete namespace kasten-io
+```
+
+Veeam Kasten must be reinstalled before recovery. Please follow the
+  instructions here .
+
+### Configuring Location Profile â
+
+Create a Location Profile with the object storage location or NFS file storage
+  location where Veeam Kasten KDR backups are stored.
+
+### Restoring Veeam Kasten with k10restore â
+
+Requirements:
+
+- Source cluster ID
+- Name of Location Profile from the previous step
+
+```
+# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job# Assumes that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
+```
+
+If Veeam Kasten Quick Disaster Recovery is enabled, the Veeam Kasten
+  restore helm chart should be installed with the following helm value:
+
+```
+--set quickMode.enabled=true \--set quickMode.overrideResources=true
+```
+
+The [overrideResources] flag must be set to true when using
+    Quick Disaster Recovery. Since the Disaster Recovery operation involves
+    creating or replacing resources, confirmation should be provided by
+    setting this flag.
+
+Veeam Kasten provides the ability to apply labels and annotations to all
+  temporary worker pods created during Veeam Kasten recovery as part of
+  its operation. The labels and annotations can be set through the podLabels and podAnnotations Helm flags, respectively. For example,
+  if using a values.yaml file:
+
+```
+podLabels:   app.kubernetes.io/component: "database"   topology.kubernetes.io/region: "us-east-1"podAnnotations:   config.kubernetes.io/local-config: "true"   kubernetes.io/description: "Description"
+```
+
+Alternatively, the Helm parameters can be configured using the --set flag:
+
+```
+--set podLabels.labelKey1=value1 --set podLabels.labelKey2=value2 \--set podAnnotations.annotationKey1="Example annotation" --set podAnnotations.annotationKey2=value2
+```
+
+The restore job always restores the restore point catalog and artifact
+  information. If the restore of other resources (options include
+  profiles, policies, secrets) needs to be skipped, the skipResource flag can be used.
+
+```
+# e.g. to skip restore of profiles and policies, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set skipResource="profiles\,policies"
+```
+
+The timeout of the entire restore process can be configured by the helm
+  field restore.timeout . The type of this field is int and the value
+  is in minutes.
+
+```
+# e.g. to specify the restore timeout, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set restore.timeout=<timeout-in-minutes>
+```
+
+If the Disaster Recovery Location Profile was configured for Immutable Backups ,
+  Veeam Kasten can be restored to an earlier point in time. The protection
+  period chosen when creating the profile determines how far in the past
+  the point-in-time can be. Set the pointInTime helm value to the
+  desired time stamp.
+
+```
+# e.g. to restore Kasten to 15:04:05 UTC on Jan 2, 2022:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set pointInTime="2022-01-02T15:04:05Z"
+```
+
+See Immutable Backups Workflow for additional information.
+
+### Restoring Veeam Kasten Backup with Iron Bank Kasten Images â
+
+The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten using Iron Bank
+  hardened images with a few changes.
+
+Specific helm values are used to ensure that the Veeam Kasten
+  restore helm chart only uses Iron Bank images.
+  The values file must be downloaded by running:
+
+```
+$ curl -sO https://docs.kasten.io/ironbank/k10restore-ironbank-values.yaml
+```
+
+This file is protected and should not be modified. It is necessary
+    to specify all other values using the corresponding helm flags, such as --set , --values , etc.
+
+Credentials for Registry1 must be provided in order to successfully pull
+  the images. These should already have been created as part of re-deploying a
+  new Veeam Kasten instance; therefore, only the name of the secret should be
+  used here.
+
+The following set of flags should be added to the instructions found in Restoring Veeam Kasten with k10restore to use
+  Iron Bank images for Veeam Kasten recovery:
+
+```
+...   --values=<PATH TO DOWNLOADED k10restore-ironbank-values.yaml> \   --set-json 'imagePullSecrets=[{"name": "k10-ecr"}]' \   ...
+```
+
+### Restoring Veeam Kasten Backup in FIPS Mode â
+
+The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten in FIPS mode with a few changes.
+
+To ensure that certified cryptographic modules are utilized, you must install
+  the k10restore chart with additional Helm values that can be found here: FIPS values . These should be added to the
+  instructions found in Restoring Veeam Kasten with k10restore for Veeam Kasten disaster recovery:
+
+```
+...   --values=https://docs.kasten.io/latest/fips/fips-restore-values.yaml   ...
+```
+
+### Restoring Veeam Kasten Backup in Air-Gapped environment â
+
+In case of air-gapped installations, it's assumed that k10offline tool is used to push the images to a private container registry.
+  Below command can be used to instruct k10restore to run in air-gapped mode.
+
+```
+# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job.# Assume that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set airgapped.repository=repo.example.com \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
+```
+
+### Restoring Veeam Kasten Backup with Google Workload Identity Federation â
+
+Veeam Kasten can be restored from a Google Cloud Storage bucket using
+  the Google Workload Identity Federation. Please follow the instructions
+  provided here to
+  restore Veeam Kasten with this option.
+
+### Uninstalling k10restore â
+
+The K10restore instance can be uninstalled with the helm uninstall command.
+
+```
+# e.g. to uninstall K10restore from the kasten-io namespace   $ helm uninstall k10-restore --namespace=kasten-io
+```
+
+#### Enabling HashiCorp Vault using Token Auth â
+
+Create a Kubernetes secret with the Vault token.
+
+```
+kubectl create secret generic vault-creds \       --namespace kasten-io \       --from-literal vault_token=<vault-token>
+```
+
+This may cause the token to be stored in shell history.
+
+Use these additional parameters when installing the kasten/k10restore helm chart.
+
+```
+--set vault.enabled=true \   --set vault.address=<vault-server-address> \   --set vault.secretName=<name-of-secret-with-vault-creds>
+```
+
+#### Enabling HashiCorp Vault using Kubernetes Auth â
+
+Refer to Configuring Vault Server For Kubernetes Auth prior to installing the kasten/k10restore helm chart.
+
+```
+--set vault.enabled=true \    --set vault.address=<vault-server-address> \    --set vault.role=<vault-kubernetes-authentication-role_name> \    --set vault.serviceAccountTokenPath=<service-account-token-path> # optional
+```
+
+vault.role is the name of the Vault Kubernetes authentication role binding
+  the Veeam Kasten service account and namespace to the Vault policy.
+
+vault.serviceAccountTokenPath is optional and defaults to /var/run/secrets/kubernetes.io/serviceaccount/token .
+
+## Recovering with the Operator â
+
+If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
+  the k10restore tool can be deployed via the Operator as described below.
+  However, it is recommended to use either the Recovering Veeam Kasten from a Disaster via UI or Recovering Veeam Kasten from a Disaster via CLI process.
+
+Recovering from a Veeam Kasten backup involves the following sequence of
+  actions:
+
+1. Install a fresh Veeam Kasten instance.
+2. Configure a Location Profile from where the Veeam Kasten backup will be restored.
+3. Create a Kubernetes Secret named k10-dr-secret in the same namespace as the Veeam Kasten install, with the passphrase given when disaster recovery was enabled on the previous Veeam Kasten instance. The commands are detailed here .
+4. Create a K10restore instance. The required values are Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance. Profile name - name of the Location Profile configured in Step 2. and the optional values are Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z". Resources to skip - can be used to skip restore of specific resources. Example "profile,policies". After recovery, deleting the k10restore instance is recommended.
+
+Install a fresh Veeam Kasten instance.
+
+Configure a Location Profile from where the Veeam Kasten backup will be restored.
+
+Create a Kubernetes Secret named k10-dr-secret in the same
+      namespace as the Veeam Kasten install, with the passphrase given
+      when disaster recovery was enabled on the previous Veeam Kasten
+      instance. The commands are detailed here .
+
+Create a K10restore instance. The required values are
+
+- Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance.
+- Profile name - name of the Location Profile configured in Step 2.
+
+and the optional values are
+
+- Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z".
+- Resources to skip - can be used to skip restore of specific resources. Example "profile,policies".
+
+After recovery, deleting the k10restore instance is recommended.
+
+Operator K10restore form view with Enable HashiCorp Vault set to False
+
+Operator K10restore form view with Enable HashiCorp Vault set to True
+
+### Using the Restored Veeam Kasten in Place of the Original â
+
+The newly restored Veeam Kasten includes a safety mechanism to prevent
+  it from performing critical background maintenance operations on backup
+  data in storage. These operations are exclusive, meaning that there
+  is only one Veeam Kasten instance should perform them one at a time.
+  The DR-restored Veeam Kasten initially assumes that it does not have
+  permission to perform these maintenance tasks. This assumption is
+  made in case the original source, Veeam Kasten, is still running,
+  especially during scenarios like testing the DR restore procedure in
+  a secondary test cluster while the primary production Veeam Kasten is
+  still active.
+
+If no other Veeam Kasten instances are accessing the same sets of backup
+  data (i.e., the original Veeam Kasten has been uninstalled and only the new
+  DR-restored Veeam Kasten remains), it can be signaled that the new Veeam
+  Kasten is now eligible to take over the maintenance duties by deleting
+  the following resource:
+
+```
+# Delete the k10-dr-remove-to-get-ownership configmap in the Kasten namespace.$ kubectl delete configmap --namespace=kasten-io k10-dr-remove-to-get-ownership
+```
+
+It is critical that you delete this resource only when you are prepared
+    to make the permanent cutover to the new DR-restored Veeam Kasten instance.
+    Running multiple Veeam Kasten instances simultaneously, each assuming
+    ownership, can corrupt backup data.
 
 ---
 
 ## Operating Dr
 
-By default, Generic Storage Backup will be disabled for all new
-    deployments of Veeam Kasten and for existing deployments when upgraded
-    to version 6.5.0 or later. For more details, refer to this page.
+As Veeam Kasten is a stateful application running on the
+  cluster, it must be responsible for backing up its own data to enable
+  recovery in the event of disaster. This backup is enabled by the
+  Veeam Kasten Disaster Recovery (KDR) policy. In particular, KDR
+  provides the ability to recover the Veeam Kasten platform
+  from a variety of disasters, such as the unintended deletion of
+  Veeam Kasten or its restore points, the failure of the underlying
+  storage used by Veeam Kasten, or even the accidental
+  destruction of the Kubernetes cluster on which Veeam Kasten is deployed.
 
-The Veeam Kasten data management platform, purpose-built for Kubernetes,
-  provides enterprise operations teams an easy-to-use, scalable, and
-  secure system for backup/restore, disaster recovery, and mobility of
-  Kubernetes applications.
+## Configuring Veeam Kasten Disaster Recovery Mode â
 
-Veeam Kasten's application-centric approach and deep integrations with
-  relational and NoSQL databases, Kubernetes distributions, and all clouds
-  provide teams with the freedom of infrastructure choice without
-  sacrificing operational simplicity. Policy-driven and extensible, Veeam
-  Kasten provides a native Kubernetes API and includes features such as
-  full-spectrum consistency, database integrations, automatic application
-  discovery, multi-cloud mobility, and a powerful web-based user
-  interface.
+The KDR mode specifies how internal Veeam Kasten resources are protected. The
+  mode can be set either before or after enabling the KDR policy. Changes
+  to the KDR mode only apply to future KDR policy runs.
 
-Given Veeam Kasten's extensive ecosystem support you have the
-  flexibility to choose environments (public/ private/ hybrid cloud/
-  on-prem) and Kubernetes distributions (cloud vendor managed or self
-  managed) in support of three principal use cases:
+Starting in Veeam Kasten v8.0.0, all installations default to Quick DR (Local Catalog Snapshot) mode.
 
-- Backup and Restore
-- Disaster Recovery
-- Application Mobility
+Quick DR (Local Catalog Snapshot) mode should only be enabled if the storage provisioner
+    used for Veeam Kasten PVCs supports both the creation of storage snapshots
+    and the ability to restore the existing volume from a storage snapshot. See Comparing Available KDR Modes for details on alternate
+    configuration options.
 
-## Veeam Kasten Editions (Free and Enterprise) â
+- To enable Legacy DR mode, install or upgrade Veeam Kasten with the --set kastenDisasterRecovery.quickMode.enabled=false Helm value.
+- To enable Quick DR mode, install or upgrade Veeam Kasten with the --set kastenDisasterRecovery.quickMode.enabled=true Helm value.
+- See Enabling Veeam Kasten Disaster Recovery via UI or Enabling Veeam Kasten Disaster Recovery via CLI for details on configuring catalog snapshot behavior for Quick DR mode.
 
-Veeam Kasten is available in two editions. The default Starter edition,
-  provided at no charge and intended for evaluation or for use in small
-  non-production clusters, is functionally the same as the Enterprise
-  edition but limited from a support and scale perspective. Customers
-  choosing to upgrade to the Enterprise edition can obtain a license key
-  from Kasten or install from cloud marketplaces. Please see the product
-page for a comparison of the editions.
+## Comparing Available KDR Modes â
+
+Refer to the details below to understand the key differences between
+  each mode:
+
+### Legacy DR â
+
+Recommended Usage
+
+- Supported for backwards-compatibility only
+
+Actions Performed Per KDR Policy Run
+
+- Exports a full copy of the catalog database
+
+Resources Available to Recover
+
+- Enables recovery of specified Veeam Kasten custom resources
+- Enables recovery of local restore points, exported restore points, and action history on any cluster Note It is expected that local restore points will be non-restorable when a KDR recovery of the exported catalog snapshot is performed on a different cluster, as applicable storage snapshot references are typically unavailable.
+
+Enables recovery of specified Veeam Kasten custom resources
+
+Enables recovery of local restore points, exported
+      restore points, and action history on any cluster
+
+It is expected that local restore points will be non-restorable when a
+        KDR recovery of the exported catalog snapshot is performed on a different cluster, as
+        applicable storage snapshot references are typically unavailable.
+
+### Quick DR (Local Catalog Snapshot) â
+
+- Recommended when storage used for Veeam Kasten PVCs supports both the creation of storage snapshots and the ability to provision a volume using a storage snapshot
+
+- Creates a local snapshot of the catalog PVC
+- Incrementally exports minimally required data only from the catalog database
+
+- Enables recovery of specified Veeam Kasten custom resources
+- Enables recovery of exported restore points on any cluster
+- Enables recovery of local restore points, exported restore points, and action history only where the local catalog snapshot is available for restore (i.e. in-place recovery on the original cluster)
+
+Compared to Legacy DR
+
+- Offers faster KDR policy runs by reducing amount of exported data
+- Consumes less repository storage by reducing amount of exported data
+- Offers faster KDR recovery when leveraging local storage snapshot
+- Protects additional Veeam Kasten custom resource types
+
+### Quick DR (Exported Catalog Snapshot) â
+
+- Recommended when storage used for Veeam Kasten PVCs supports the creation of storage snapshots but cannot provision a volume using a storage snapshot
+- Recommended when there is a need to reduce retention of local storage snapshots without impacting retention of exported backups
+- This mode may be selected for any snapshot-capable storage in order to provide the highest level of resilience
+
+- Creates a local snapshot of the catalog PVC
+- Incrementally exports minimally required data only from the catalog database
+- Performs an incremental export of the catalog PVC snapshot data
+
+- Offers comparable KDR policy run completion times
+- Consumes less repository storage by exporting incremental catalog data
+- Offers faster KDR recovery when leveraging local storage snapshot
+- Offers comparable KDR recovery when leveraging exported storage snapshot
+- Protects additional Veeam Kasten resource types
+
+### Quick DR (No Catalog Snapshot) â
+
+- Recommended when no available cluster storage supports snapshot creation (i.e. only Generic Storage Backup is used)
+- Alternatively, this mode may be selected if there is no requirement to recover local restore points or action history
+
+- Incrementally exports minimally required data only from the catalog database
+
+- Enables recovery of specified Veeam Kasten custom resources
+- Enables recovery of exported restore points on any cluster
+
+- Offers faster KDR policy runs by reducing amount of exported data
+- Consumes less repository storage by reducing amount of exported data
+- Offers faster KDR recovery by reducing amount of imported data
+- Protects additional Veeam Kasten custom resource types
+- Does not support recovery of local restore points and action history
+
+### KDR Protected Resource Matrix â
+
+| Veeam Kasten Resource | Quick DR | Legacy DR | Actions | Yes(1) | Yes |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| Actions | Yes(1) | Yes |
+| Local Restore Points | Yes(1) | Yes |
+| Exported Restore Points | Yes | Yes |
+| Policies | Yes | Yes |
+| Basic User Policies | Yes | No |
+| Profiles | Yes | Yes |
+| Blueprints | Yes | Yes |
+| Blueprint Bindings | Yes | No |
+| Policy Presets | Yes | No |
+| Transform Sets | Yes | No |
+| Multi-Cluster Primary | Yes | No |
+| Multi-Cluster Secondary | Yes | No |
+| Reports | No | No |
+| ActionPodSpecs | No | No |
+| AuditConfig | No | No |
+| StorageSecurityContext | Yes | No |
+| StorageSecurityContextBinding | Yes | No |
+
+For Quick DR, resources marked with (1) can only be
+    restored if a local or exported catalog snapshot is available
+    to be restored.
+
+## Enabling Veeam Kasten Disaster Recovery via UI â
+
+Enabling Veeam Kasten Disaster Recovery (KDR) creates a dedicated
+  policy within Veeam Kasten to back up its resources and catalog data
+  to an external location profile .
+
+The Veeam Kasten Disaster Recovery settings are accessible via the Setup Kasten DR page under the Settings menu in the navigation
+  sidebar.
+
+- Specify a location profile to which KDR backups will be exported. It is strongly recommended to use a location profile that supports immutable backups to ensure restore point catalog data can be recovered in the event of incidents including ransomware and accidental deletion. Note Veeam Repository location profiles cannot be used as a destination for KDR backups.
+- Select and configure the desired passphrase method that will be used to encrypt KDR backups: Passphrase warning It is critical that this unmanaged passphrase be stored securely outside of the cluster as it will be required to perform any future recoveries. HashiCorp Vault Note Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault . AWS Secrets Manager Note Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+- If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations. Note Updating the catalog snapshot configuration may be performed by disabling and re-enabling KDR.
+- Select Enable Kasten DR . A confirmation with the configuration and cluster ID will be displayed when KDR is enabled. This ID is used as a prefix to the object or file storage location where Veeam Kasten saves its exported backup data. Tip The Cluster ID value for a given cluster can also be accessed using the following kubectl command: # Extract UUID of the `default` namespace kubectl get namespace default -o jsonpath = "{.metadata.uid}{' \n '}" warning After enabling KDR it is critical to retain the following to successfully recover Veeam Kasten from a disaster: The source Cluster ID The KDR passphrase (or external secret manager details) The KDR location profile details and credential Without this information, restore point catalog recovery will not be possible.
+
+Specify a location profile to which KDR backups will be exported.
+
+It is strongly recommended to use a location profile
+      that supports immutable backups to ensure
+      restore point catalog data can be recovered in the event of
+      incidents including ransomware and accidental deletion.
+
+Veeam Repository location profiles cannot be used as a destination for KDR backups.
+
+Select and configure the desired passphrase method that will be used to encrypt KDR backups:
+
+Passphrase
+
+It is critical that this unmanaged passphrase be stored securely outside
+        of the cluster as it will be required to perform any future recoveries.
+
+HashiCorp Vault
+
+Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault .
+
+AWS Secrets Manager
+
+Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+
+If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations.
+
+Updating the catalog snapshot configuration may be performed by disabling and re-enabling KDR.
+
+Select Enable Kasten DR .
+
+A confirmation with the configuration and cluster ID will be displayed when KDR is enabled.
+      This ID is used as a prefix to the object or file storage location where Veeam Kasten
+      saves its exported backup data.
+
+The Cluster ID value for a given cluster can also be accessed using the following kubectl command:
+
+```
+# Extract UUID of the `default` namespacekubectl get namespace default -o jsonpath="{.metadata.uid}{'\n'}"
+```
+
+After enabling KDR it is critical to retain the following to successfully recover Veeam Kasten
+        from a disaster:
+
+- The source Cluster ID
+- The KDR passphrase (or external secret manager details)
+- The KDR location profile details and credential
+
+Without this information, restore point catalog recovery will not be possible.
+
+## Enabling Veeam Kasten Disaster Recovery via CLI â
+
+As KDR backups are performed via a Veeam Kasten policy, configuration
+  of KDR may be automated via CLI or GitOps tools. Each of the following
+  examples assume deployment to the kasten-io namespace and must be
+  modified to reflect environment specific details including location
+  profile name, frequency, and retention.
+
+- Create the k10-dr-secret Secret with the passphrase to be used to encrypt KDR backups: kubectl create secret generic k10-dr-secret --namespace kasten-io --from-literal key = < PASSPHRASE >
+- Modify and apply one of the following k10-disaster-recovery-policy Policy examples. See comparison for available mode details and recommendations. Quick DR (Local Catalog Snapshot) - Default apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io kdrSnapshotConfiguration : takeLocalCatalogSnapshot : true Quick DR (Exported Catalog Snapshot) apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io - action : export exportParameters : exportData : enabled : true profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io kdrSnapshotConfiguration : exportCatalogSnapshot : true takeLocalCatalogSnapshot : true Quick DR (No Catalog Snapshot) apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io kdrSnapshotConfiguration : { } Legacy DR (Full Catalog Export) apiVersion : config.kio.kasten.io/v1alpha1 kind : Policy metadata : name : k10 - disaster - recovery - policy namespace : kasten - io spec : actions : - action : backup backupParameters : filters : { } profile : name : <NAME OF LOCATION PROFILE > namespace : kasten - io frequency : '@hourly' retention : daily : 1 hourly : 4 monthly : 1 weekly : 1 yearly : 1 selector : matchExpressions : - key : k10.kasten.io/appNamespace operator : In values : - kasten - io
+
+Create the k10-dr-secret Secret with the passphrase to be used to encrypt KDR backups:
+
+```
+kubectl create secret generic k10-dr-secret  --namespace kasten-io  --from-literal key=<PASSPHRASE>
+```
+
+Modify and apply one of the following k10-disaster-recovery-policy Policy examples. See comparison for available mode details and recommendations.
+
+Quick DR (Local Catalog Snapshot) - Default
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - kasten-io  kdrSnapshotConfiguration:    takeLocalCatalogSnapshot: true
+```
+
+Quick DR (Exported Catalog Snapshot)
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   - action: export    exportParameters:      exportData:        enabled: true      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration:    exportCatalogSnapshot: true    takeLocalCatalogSnapshot: true
+```
+
+Quick DR (No Catalog Snapshot)
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration: {}
+```
+
+Legacy DR (Full Catalog Export)
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io
+```
+
+## Managing the Veeam Kasten Disaster Recovery Policy â
+
+A policy named k10-disaster-recovery-policy that implements
+  KDR functionality will automatically be created when
+  KDR is enabled. This policy can be viewed through the Policies page in the navigation sidebar.
+
+Click Run Once on the k10-disaster-recovery-policy to start a
+  manual backup.
+
+Click Edit to modify the frequency and retention settings. It is
+  recommended that the KDR policy match the frequency of the lowest RPO
+  policy on the cluster.
+
+## Disabling Veeam Kasten Disaster Recovery â
+
+Veeam Kasten Disaster Recovery can be disabled by clicking the Disable Kasten DR button on the Setup Kasten DR page, which is found
+  under the Settings menu in the navigation sidebar.
+
+It is not recommended to run Veeam Kasten without KDR enabled.
+
+## Recovering Veeam Kasten from a Disaster via UI â
+
+To recover from a KDR backup using the UI, follow these steps:
+
+1. On a new cluster, install a fresh Veeam Kasten instance in the same namespace as the original Veeam Kasten instance.
+2. On the new cluster, create a location profile by providing the bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+3. On the new cluster, navigate to the Restore Kasten page under the Settings menu in the navigation sidebar.
+4. In the Profile drop-down, select the location profile created in step 3.
+
+1. For Cluster ID, provide the ID of the original cluster with Veeam Kasten Disaster Recovery enabled. This ID can be found on the Setup Kasten DR page of the original cluster that currently has Veeam Kasten Disaster Recovery enabled.
+
+- Raw passphrase: Provide the passphrase used when enabling Disaster Recovery.
+
+- HashiCorp Vault: Provide the Key Value Secrets Engine Version, Mount, Path, and Passphrase Key stored in a HashiCorp Vault secret.
+
+- AWS Secrets Manager: Provide the secret name, its associated region, and the key.
+
+For immutable location profiles, a previous point in time can be
+    provided to filter out any restore points newer than the specified
+    time in the next step. If no specific date is chosen, it will display
+    all available restore points, with the most recent ones appearing
+    first.
+
+1. Click the Next button to start the validation process. If validation succeeds, a drop-down containing the available restore points will be displayed.
+
+All times are displayed in the local timezone of the client's
+    browser.
+
+1. Select the desired restore point and click the Next button.
+2. Review the summary and click the Start Restore button to begin the restore process.
+
+1. Upon completion of a successful restoration, navigation to the dashboard and information about ownership and deletion of the configmap is displayed.
+
+Following recovery of the Veeam Kasten restore point catalog,
+  restore cluster-scoped resources and applications as required.
+
+## Recovering Veeam Kasten from a Disaster via CLI â
+
+In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
+  API or CLI using DR API Resources .
+  Recovering from a KDR backup using CLI involves the following
+  sequence of steps:
+
+1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery as described in Specifying a Disaster Recovery Passphrase .
+2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret.
+3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+4. Create KastenDRReview resource providing the source cluster information.
+5. Create KastenDRRestore resource referring to the KastenDRReview resource and choosing one of the restore points provided in the KastenDRReview status.
+6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be created directly with the source cluster information.
+7. Delete the KastenDRReview and KastenDRRestore resources after restore completes. Following recovery of the Veeam Kasten restore point catalog, restore cluster-scoped resources and applications as required.
+
+## Recovering Veeam Kasten From a Disaster via Helm â
+
+The k10restore Helm chart is deprecated with Veeam Kasten v7.5.0
+    release and will be removed in a future release.
+
+Recovering from a KDR backup using k10restore involves the
+  following sequence of actions:
+
+1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery
+2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret
+3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored
+4. Restoring the Veeam Kasten backup
+5. Uninstalling the Veeam Kasten restore instance after recovery is recommended
+
+If Kasten was previously installed in FIPS mode, ensure the fresh Veeam
+    Kasten instance is also installed in FIPS mode.
+
+If Veeam Kasten backup is stored using an NFS File Storage Location , it is important that the same NFS share is reachable from
+    the recovery cluster and is mounted on all nodes where Veeam Kasten is
+    installed.
+
+### Specifying a Disaster Recovery Passphrase â
+
+Currently, Veeam Kasten Disaster Recovery encrypts all artifacts via the
+  use of the AES-256-GCM algorithm. The passphrase entered while enabling
+  Disaster Recovery is used for this encryption. On the cluster used for
+  Veeam Kasten recovery, the Secret k10-dr-secret needs to be therefore
+  created using that same passphrase in the Veeam Kasten namespace
+  (default kasten-io )
+
+The passphrase can be provided as a raw string or reference a secret in
+  HashiCorp Vault or AWS Secrets Manager.
+
+Specifying the passphrase as a raw string:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal key=<passphrase>
+```
+
+Specifying the passphrase as a HashiCorp Vault secret:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=vault \   --from-literal vault-kv-version=<version-of-key-value-secrets-engine> \   --from-literal vault-mount-path=<path-where-key-value-engine-is-mounted> \   --from-literal vault-secret-path=<path-from-mount-to-passphrase-key> \   --from-literal key=<name-of-passphrase-key># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=vault \   --from-literal vault-kv-version=KVv1 \   --from-literal vault-mount-path=secret \   --from-literal vault-secret-path=k10 \   --from-literal key=passphrase
+```
+
+The supported values for vault-kv-version are KVv1 and KVv2 .
+
+Using a passphrase from HashiCorp Vault also requires enabling HashiCorp
+    Vault authentication when installing the kasten/k10restore helm chart.
+    Refer: Enabling HashiCorp Vault using Token Auth or Kubernetes Auth .
+
+Specifying the passphrase as an AWS Secrets Manager secret:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=<aws-region-for-secret> \   --from-literal key=<aws-secret-name># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=us-east-1 \   --from-literal key=k10/dr/passphrase
+```
+
+### Reinstalling Veeam Kasten â
+
+When reinstalling Veeam Kasten on the same cluster, it is important to
+    clean up the namespace in which Veeam Kasten was previously installed
+    before the above passphrase creation.
+
+```
+# Delete the kasten-io namespace.$ kubectl delete namespace kasten-io
+```
+
+Veeam Kasten must be reinstalled before recovery. Please follow the
+  instructions here .
+
+### Configuring Location Profile â
+
+Create a Location Profile with the object storage location or NFS file storage
+  location where Veeam Kasten KDR backups are stored.
+
+### Restoring Veeam Kasten with k10restore â
+
+Requirements:
+
+- Source cluster ID
+- Name of Location Profile from the previous step
+
+```
+# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job# Assumes that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
+```
+
+If Veeam Kasten Quick Disaster Recovery is enabled, the Veeam Kasten
+  restore helm chart should be installed with the following helm value:
+
+```
+--set quickMode.enabled=true \--set quickMode.overrideResources=true
+```
+
+The [overrideResources] flag must be set to true when using
+    Quick Disaster Recovery. Since the Disaster Recovery operation involves
+    creating or replacing resources, confirmation should be provided by
+    setting this flag.
+
+Veeam Kasten provides the ability to apply labels and annotations to all
+  temporary worker pods created during Veeam Kasten recovery as part of
+  its operation. The labels and annotations can be set through the podLabels and podAnnotations Helm flags, respectively. For example,
+  if using a values.yaml file:
+
+```
+podLabels:   app.kubernetes.io/component: "database"   topology.kubernetes.io/region: "us-east-1"podAnnotations:   config.kubernetes.io/local-config: "true"   kubernetes.io/description: "Description"
+```
+
+Alternatively, the Helm parameters can be configured using the --set flag:
+
+```
+--set podLabels.labelKey1=value1 --set podLabels.labelKey2=value2 \--set podAnnotations.annotationKey1="Example annotation" --set podAnnotations.annotationKey2=value2
+```
+
+The restore job always restores the restore point catalog and artifact
+  information. If the restore of other resources (options include
+  profiles, policies, secrets) needs to be skipped, the skipResource flag can be used.
+
+```
+# e.g. to skip restore of profiles and policies, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set skipResource="profiles\,policies"
+```
+
+The timeout of the entire restore process can be configured by the helm
+  field restore.timeout . The type of this field is int and the value
+  is in minutes.
+
+```
+# e.g. to specify the restore timeout, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set restore.timeout=<timeout-in-minutes>
+```
+
+If the Disaster Recovery Location Profile was configured for Immutable Backups ,
+  Veeam Kasten can be restored to an earlier point in time. The protection
+  period chosen when creating the profile determines how far in the past
+  the point-in-time can be. Set the pointInTime helm value to the
+  desired time stamp.
+
+```
+# e.g. to restore Kasten to 15:04:05 UTC on Jan 2, 2022:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set pointInTime="2022-01-02T15:04:05Z"
+```
+
+See Immutable Backups Workflow for additional information.
+
+### Restoring Veeam Kasten Backup with Iron Bank Kasten Images â
+
+The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten using Iron Bank
+  hardened images with a few changes.
+
+Specific helm values are used to ensure that the Veeam Kasten
+  restore helm chart only uses Iron Bank images.
+  The values file must be downloaded by running:
+
+```
+$ curl -sO https://docs.kasten.io/ironbank/k10restore-ironbank-values.yaml
+```
+
+This file is protected and should not be modified. It is necessary
+    to specify all other values using the corresponding helm flags, such as --set , --values , etc.
+
+Credentials for Registry1 must be provided in order to successfully pull
+  the images. These should already have been created as part of re-deploying a
+  new Veeam Kasten instance; therefore, only the name of the secret should be
+  used here.
+
+The following set of flags should be added to the instructions found in Restoring Veeam Kasten with k10restore to use
+  Iron Bank images for Veeam Kasten recovery:
+
+```
+...   --values=<PATH TO DOWNLOADED k10restore-ironbank-values.yaml> \   --set-json 'imagePullSecrets=[{"name": "k10-ecr"}]' \   ...
+```
+
+### Restoring Veeam Kasten Backup in FIPS Mode â
+
+The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten in FIPS mode with a few changes.
+
+To ensure that certified cryptographic modules are utilized, you must install
+  the k10restore chart with additional Helm values that can be found here: FIPS values . These should be added to the
+  instructions found in Restoring Veeam Kasten with k10restore for Veeam Kasten disaster recovery:
+
+```
+...   --values=https://docs.kasten.io/latest/fips/fips-restore-values.yaml   ...
+```
+
+### Restoring Veeam Kasten Backup in Air-Gapped environment â
+
+In case of air-gapped installations, it's assumed that k10offline tool is used to push the images to a private container registry.
+  Below command can be used to instruct k10restore to run in air-gapped mode.
+
+```
+# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job.# Assume that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set airgapped.repository=repo.example.com \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
+```
+
+### Restoring Veeam Kasten Backup with Google Workload Identity Federation â
+
+Veeam Kasten can be restored from a Google Cloud Storage bucket using
+  the Google Workload Identity Federation. Please follow the instructions
+  provided here to
+  restore Veeam Kasten with this option.
+
+### Uninstalling k10restore â
+
+The K10restore instance can be uninstalled with the helm uninstall command.
+
+```
+# e.g. to uninstall K10restore from the kasten-io namespace   $ helm uninstall k10-restore --namespace=kasten-io
+```
+
+#### Enabling HashiCorp Vault using Token Auth â
+
+Create a Kubernetes secret with the Vault token.
+
+```
+kubectl create secret generic vault-creds \       --namespace kasten-io \       --from-literal vault_token=<vault-token>
+```
+
+This may cause the token to be stored in shell history.
+
+Use these additional parameters when installing the kasten/k10restore helm chart.
+
+```
+--set vault.enabled=true \   --set vault.address=<vault-server-address> \   --set vault.secretName=<name-of-secret-with-vault-creds>
+```
+
+#### Enabling HashiCorp Vault using Kubernetes Auth â
+
+Refer to Configuring Vault Server For Kubernetes Auth prior to installing the kasten/k10restore helm chart.
+
+```
+--set vault.enabled=true \    --set vault.address=<vault-server-address> \    --set vault.role=<vault-kubernetes-authentication-role_name> \    --set vault.serviceAccountTokenPath=<service-account-token-path> # optional
+```
+
+vault.role is the name of the Vault Kubernetes authentication role binding
+  the Veeam Kasten service account and namespace to the Vault policy.
+
+vault.serviceAccountTokenPath is optional and defaults to /var/run/secrets/kubernetes.io/serviceaccount/token .
+
+## Recovering with the Operator â
+
+If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
+  the k10restore tool can be deployed via the Operator as described below.
+  However, it is recommended to use either the Recovering Veeam Kasten from a Disaster via UI or Recovering Veeam Kasten from a Disaster via CLI process.
+
+Recovering from a Veeam Kasten backup involves the following sequence of
+  actions:
+
+1. Install a fresh Veeam Kasten instance.
+2. Configure a Location Profile from where the Veeam Kasten backup will be restored.
+3. Create a Kubernetes Secret named k10-dr-secret in the same namespace as the Veeam Kasten install, with the passphrase given when disaster recovery was enabled on the previous Veeam Kasten instance. The commands are detailed here .
+4. Create a K10restore instance. The required values are Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance. Profile name - name of the Location Profile configured in Step 2. and the optional values are Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z". Resources to skip - can be used to skip restore of specific resources. Example "profile,policies". After recovery, deleting the k10restore instance is recommended.
+
+Install a fresh Veeam Kasten instance.
+
+Configure a Location Profile from where the Veeam Kasten backup will be restored.
+
+Create a Kubernetes Secret named k10-dr-secret in the same
+      namespace as the Veeam Kasten install, with the passphrase given
+      when disaster recovery was enabled on the previous Veeam Kasten
+      instance. The commands are detailed here .
+
+Create a K10restore instance. The required values are
+
+- Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance.
+- Profile name - name of the Location Profile configured in Step 2.
+
+and the optional values are
+
+- Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z".
+- Resources to skip - can be used to skip restore of specific resources. Example "profile,policies".
+
+After recovery, deleting the k10restore instance is recommended.
+
+Operator K10restore form view with Enable HashiCorp Vault set to False
+
+Operator K10restore form view with Enable HashiCorp Vault set to True
+
+### Using the Restored Veeam Kasten in Place of the Original â
+
+The newly restored Veeam Kasten includes a safety mechanism to prevent
+  it from performing critical background maintenance operations on backup
+  data in storage. These operations are exclusive, meaning that there
+  is only one Veeam Kasten instance should perform them one at a time.
+  The DR-restored Veeam Kasten initially assumes that it does not have
+  permission to perform these maintenance tasks. This assumption is
+  made in case the original source, Veeam Kasten, is still running,
+  especially during scenarios like testing the DR restore procedure in
+  a secondary test cluster while the primary production Veeam Kasten is
+  still active.
+
+If no other Veeam Kasten instances are accessing the same sets of backup
+  data (i.e., the original Veeam Kasten has been uninstalled and only the new
+  DR-restored Veeam Kasten remains), it can be signaled that the new Veeam
+  Kasten is now eligible to take over the maintenance duties by deleting
+  the following resource:
+
+```
+# Delete the k10-dr-remove-to-get-ownership configmap in the Kasten namespace.$ kubectl delete configmap --namespace=kasten-io k10-dr-remove-to-get-ownership
+```
+
+It is critical that you delete this resource only when you are prepared
+    to make the permanent cutover to the new DR-restored Veeam Kasten instance.
+    Running multiple Veeam Kasten instances simultaneously, each assuming
+    ownership, can corrupt backup data.
 
 ---
 
@@ -369,7 +1515,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.0/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1148,10 +2294,10 @@ Note : Veeam Kasten also does not support distributions/versions that
 | 1.31 | 4.18 |  |
 | 1.30 | 4.17 |  |
 | 1.29 | 4.16 |  |
-| 1.28 | 4.15 | Kubernetes versiononlysupported when deployed as an OpenShift cluster |
-| 1.27 | 4.14 | Kubernetes versiononlysupported when deployed as an OpenShift cluster |
-| 1.26 | 4.13 | Kubernetes versiononlysupported when deployed as an OpenShift cluster |
-| 1.25 | 4.12 | Kubernetes versiononlysupported when deployed as an OpenShift cluster |
+| 1.28 | 4.15 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
+| 1.27 | 4.14 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
+| 1.26 | 4.13 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
+| 1.25 | 4.12 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 
 ## Gathering Debugging Information â
 
@@ -1165,7 +2311,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.0/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -1175,7 +2321,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.0/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -1190,7 +2336,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.0/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
