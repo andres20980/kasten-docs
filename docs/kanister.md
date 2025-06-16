@@ -109,83 +109,35 @@ For example, the following section should be added to the phase's args section t
 
 ## Kanister Kanister
 
-By default, Generic Storage Backup will be disabled for all new
-    deployments of Veeam Kasten and for existing deployments when upgraded
-    to version 6.5.0 or later. For more details, refer to this page.
+Kanister, an extensible open-source framework used by Kasten's Veeam
+  Kasten platform, can be used for application-level data management on
+  Kubernetes. It allows domain experts to capture application specific
+  data management tasks in blueprints which can be easily shared and
+  extended. The framework takes care of the tedious details around
+  execution on Kubernetes and presents a homogeneous operational
+  experience across applications at scale. Further, it gives you a natural
+  mechanism to extend the Veeam Kasten platform by adding your own code to
+  modify any desired step performed for data lifecycle management.
 
-The Veeam Kasten data management platform, purpose-built for Kubernetes,
-  provides enterprise operations teams an easy-to-use, scalable, and
-  secure system for backup/restore, disaster recovery, and mobility of
-  Kubernetes applications.
-
-Veeam Kasten's application-centric approach and deep integrations with
-  relational and NoSQL databases, Kubernetes distributions, and all clouds
-  provide teams with the freedom of infrastructure choice without
-  sacrificing operational simplicity. Policy-driven and extensible, Veeam
-  Kasten provides a native Kubernetes API and includes features such as
-  full-spectrum consistency, database integrations, automatic application
-  discovery, multi-cloud mobility, and a powerful web-based user
-  interface.
-
-Given Veeam Kasten's extensive ecosystem support you have the
-  flexibility to choose environments (public/ private/ hybrid cloud/
-  on-prem) and Kubernetes distributions (cloud vendor managed or self
-  managed) in support of three principal use cases:
-
-- Backup and Restore
-- Disaster Recovery
-- Application Mobility
-
-## Veeam Kasten Editions (Free and Enterprise) â
-
-Veeam Kasten is available in two editions. The default Starter edition,
-  provided at no charge and intended for evaluation or for use in small
-  non-production clusters, is functionally the same as the Enterprise
-  edition but limited from a support and scale perspective. Customers
-  choosing to upgrade to the Enterprise edition can obtain a license key
-  from Kasten or install from cloud marketplaces. Please see the product
-page for a comparison of the editions.
+Below you can find useful resources about the project as well as helpful
+  information for testing Veeam Kasten with Kanister-enabled applications.
 
 ---
 
 ## Kanister Kanister
 
-By default, Generic Storage Backup will be disabled for all new
-    deployments of Veeam Kasten and for existing deployments when upgraded
-    to version 6.5.0 or later. For more details, refer to this page.
+Kanister, an extensible open-source framework used by Kasten's Veeam
+  Kasten platform, can be used for application-level data management on
+  Kubernetes. It allows domain experts to capture application specific
+  data management tasks in blueprints which can be easily shared and
+  extended. The framework takes care of the tedious details around
+  execution on Kubernetes and presents a homogeneous operational
+  experience across applications at scale. Further, it gives you a natural
+  mechanism to extend the Veeam Kasten platform by adding your own code to
+  modify any desired step performed for data lifecycle management.
 
-The Veeam Kasten data management platform, purpose-built for Kubernetes,
-  provides enterprise operations teams an easy-to-use, scalable, and
-  secure system for backup/restore, disaster recovery, and mobility of
-  Kubernetes applications.
-
-Veeam Kasten's application-centric approach and deep integrations with
-  relational and NoSQL databases, Kubernetes distributions, and all clouds
-  provide teams with the freedom of infrastructure choice without
-  sacrificing operational simplicity. Policy-driven and extensible, Veeam
-  Kasten provides a native Kubernetes API and includes features such as
-  full-spectrum consistency, database integrations, automatic application
-  discovery, multi-cloud mobility, and a powerful web-based user
-  interface.
-
-Given Veeam Kasten's extensive ecosystem support you have the
-  flexibility to choose environments (public/ private/ hybrid cloud/
-  on-prem) and Kubernetes distributions (cloud vendor managed or self
-  managed) in support of three principal use cases:
-
-- Backup and Restore
-- Disaster Recovery
-- Application Mobility
-
-## Veeam Kasten Editions (Free and Enterprise) â
-
-Veeam Kasten is available in two editions. The default Starter edition,
-  provided at no charge and intended for evaluation or for use in small
-  non-production clusters, is functionally the same as the Enterprise
-  edition but limited from a support and scale perspective. Customers
-  choosing to upgrade to the Enterprise edition can obtain a license key
-  from Kasten or install from cloud marketplaces. Please see the product
-page for a comparison of the editions.
+Below you can find useful resources about the project as well as helpful
+  information for testing Veeam Kasten with Kanister-enabled applications.
 
 ---
 
