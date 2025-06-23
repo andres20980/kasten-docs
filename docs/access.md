@@ -728,7 +728,7 @@ Depending on the OpenShift cluster's configuration, there are two
   then use Method 1 documented below. Otherwise use Method 2 documented
   below.
 
-If you are using a third-party signed certificate for OpenShift instead
+If a third-party signed certificate for OpenShift is being used instead
     of a self-signed certificate, it is important to ensure that the
     third-party signed certificate and CA are used within the Veeam Kasten
     config map.
@@ -750,8 +750,10 @@ If using default or self-signed certificates in Openshift, in addition
   the OpenShift API server.
 
 ```
-$ oc get secret router-ca -n openshift-ingress-operator -o jsonpath='{.data.tls\.crt}' | \  base64 --decode > custom-ca-bundle.pem$ oc get secret external-loadbalancer-serving-certkey -n openshift-kube-apiserver -o jsonpath='{.data.tls\.crt}' | \  base64 --decode >> custom-ca-bundle.pem
+$ oc get secret router-ca -n openshift-ingress-operator -o jsonpath='{.data.tls\.crt}' | \  base64 --decode > <custom-bundle-file>.pem$ oc get secret external-loadbalancer-serving-certkey -n openshift-kube-apiserver -o jsonpath='{.data.tls\.crt}' | \  base64 --decode >> <custom-bundle-file>.pem
 ```
+
+Replace <custom-bundle-file> with the desired filename
 
 Example for thirdy-party signed certificates in OpenShift
 
@@ -759,9 +761,11 @@ If using 3rd party API server certificate in OpenShift, in addition to
   the Secret Router, the certificate configured for the API server is
   required for Veeam Kasten to send authentication requests to the
   OpenShift API Server.
+  The certificates can be extracted into a single bundle file
+  (the file name is arbitrary and can be chosen as needed):
 
 ```
-$ oc get secret router-ca -n openshift-ingress-operator -o jsonpath='{.data.tls\.crt}' | \  base64 --decode > custom-ca-bundle.pem$ oc get secret -n openshift-config $(oc get apiserver cluster -o jsonpath='{.spec.servingCerts.namedCertificates[*].servingCertificate.name}') -o jsonpath='{.data.tls\.crt}' | \  base64 --decode >> custom-ca-bundle.pem
+$ oc get secret router-ca -n openshift-ingress-operator -o jsonpath='{.data.tls\.crt}' | \  base64 --decode > <custom-bundle-file>.pem$ oc get secret -n openshift-config $(oc get apiserver cluster -o jsonpath='{.spec.servingCerts.namedCertificates[*].servingCertificate.name}') -o jsonpath='{.data.tls\.crt}' | \  base64 --decode >> <custom-bundle-file>.pem
 ```
 
 Alternatively, the API Server Certificate can be exported from a web
@@ -773,25 +777,30 @@ The OpenShift Proxy is responsible for routing incoming requests to the
   appropriate service or pod in the cluster. The proxy can perform various
   functions such as load balancing, SSL termination, URL rewriting, and
   request forwarding.
+  To provide trusted certificate authorities for the OpenShift Proxy:
+
+Extract the trusted CA bundle configured for the proxy
 
 ```
-$ oc get configmap $(oc get proxy cluster -n openshift-config -o jsonpath='{.spec.trustedCA.name}') -n openshift-config -o jsonpath='{.data.ca-bundle\.crt}' > custom-ca-bundle.pem
+$ oc get configmap $(oc get proxy cluster -n openshift-config -o jsonpath='{.spec.trustedCA.name}') -n openshift-config -o jsonpath='{.data.ca-bundle\.crt}' ><custom-bundle-file>.pem
 ```
 
-The name of the Root CA certificate must be custom-ca-bundle.pem
-
-Create a ConfigMap that will contain the certificate
+Create a ConfigMap containing the certificate
 
 ```
-## Choose any name for the ConfigMap$ oc --namespace kasten-io create configmap custom-ca-bundle-store --from-file=custom-ca-bundle.pem
+## Choose any name for the ConfigMap$ oc --namespace kasten-io create configmap <configmap-name> --from-file= <custom-bundle-file>.pem
 ```
 
-Provide the name of the ConfigMap using K10 > spec > cacertconfigmap > name for the Operator config or as a
-  Helm option cacertconfigmap.name .
+Replace <configmap-name> with any desired ConfigMap name and <custom-bundle-file> with the filename used previously.
+
+Provide the name of the ConfigMap and key using K10 > spec > cacertconfigmap > name and K10 > spec > cacertconfigmap > key for the Operator config or
+  as a Helm option cacertconfigmap.name and cacertconfigmap.key respectively.
 
 ```
---set cacertconfigmap.name="custom-ca-bundle-store"
+--set cacertconfigmap.name="custom-ca-bundle-store"--set cacertconfigmap.key=<configmap-key>
 ```
+
+Replace <configmap-key> with the desired key
 
 ### Manual OAuth Client Configuration â
 
@@ -896,8 +905,8 @@ $ helm upgrade k10 kasten/k10 --namespace kasten-io --reuse-values \  --set auth
 
 The complete list of configurable parameters is available in install_advanced .
 
-Because of the behavior of the --set option, if you need to use commas
-  within LDAP values, you must escape them. For example,
+Due to the behavior of the --set option, any commas
+  used in LDAP values must be properly escaped. For example,
 
 ```
 --set auth.ldap.bindDN="CN=demo tkg\,OU=ServiceAccount\,OU=my-department\,DC=my-company\,DC=demo"
@@ -1807,7 +1816,7 @@ kubectl create rolebinding <name> --role=k10-ns-admin \    --namespace=<release_
 apiVersion: rbac.authorization.k8s.io/v1kind: RoleBindingmetadata:  name: k10-k10-ns-admin  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: Role  name: k10-ns-adminsubjects:- kind: ServiceAccount  name: k10-ns-admin  namespace: kasten-io
 ```
 
-## K10-VirtualMachine-Admin â
+## K10-VirtualMachines-Admin â
 
 The K10-virtualmachines-admin ClusterRole is useful for the users who
   want to manage Virtual Machines through the Veeam Kasten dashboard.
@@ -1815,7 +1824,7 @@ The K10-virtualmachines-admin ClusterRole is useful for the users who
 This ClusterRole is created by default with the installation of Veeam
   Kasten and can be later associated with any group or user.
 
-k10-virtualmachines-admin will be installed under the name <release_name>-ns-admin .
+k10-virtualmachines-admin will be installed under the name <release_name>-virtualmachines-admin .
 
 ### K10-VirtualMachines-Admin ClusterRole â
 

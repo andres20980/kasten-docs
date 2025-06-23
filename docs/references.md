@@ -272,7 +272,7 @@ Documentation .
 
 ### Export Storage â
 
-- When choosing a target for backup exports (aka Location Profiles), it is advisable to prioritize object storage over NFS. Object storage solutions (S3, S3-Compatible, Azure Blob, and Google Cloud Storage) provide multiple benefits over NFS. These solutions are designed to work across multiple data centers under a single namespace, and can be made more durable than NFS by distributing copies to multiple locations. It is more scalable and easier to manage when compared to NFS. Additionally, Azure, S3 and S3-compatible solutions can be configured to mitigate ransomware attacks by enabling object locking and versioning to store immutable copies of your backup data.
+- When choosing a target for backup exports (aka Location Profiles), it is advisable to prioritize object storage over NFS/SMB. Object storage solutions (S3, S3-Compatible, Azure Blob, and Google Cloud Storage) provide multiple benefits over NFS/SMB. These solutions are designed to work across multiple data centers under a single namespace, and can be made more durable than NFS/SMB by distributing copies to multiple locations. It is more scalable and easier to manage when compared to NFS/SMB. Additionally, Azure, S3 and S3-compatible solutions can be configured to mitigate ransomware attacks by enabling object locking and versioning to store immutable copies of your backup data.
 - Specific to VMware Tanzu clusters, Veeam Kasten supports Changed Block Tracking (CBT) to efficiently backup Persistent Volumes. This feature is extremely useful and improves performance when backing up large PVCs on VMware. For additional details, refer to the Block Mode Export section. Note that enabling CBT in the Veeam Kasten policy requires Tanzu Advanced licenses. Refer to the URL for additional details.
 
 ### Authorization and Authentication â
@@ -406,7 +406,7 @@ Database backups with Kanister : Check if your database supports
 Veeam Kasten supports Disaster Recovery capabilities directly within the
   product, provided there is a location profile
 configured to send
-  backup data (e.g., S3 or S3-compatible object storage, NFS, Veeam VBR
+  backup data (e.g., S3 or S3-compatible object storage, NFS/SMB, Veeam VBR
   Repository). Ideally, the storage used supports immutability to ensure
   protection against ransomware or malicious or accidental deletion.
 
@@ -456,7 +456,7 @@ e. The Veeam Kasten catalog can be imported (via the previously set
 1. Replicate
 
 a. Configure policies to export backups to an off-site location
-  (e.g., S3 or S3-compatible object storage, NFS, Veeam VBR Repository,
+  (e.g., S3 or S3-compatible object storage, NFS/SMB, Veeam VBR Repository,
   etc.).
 
 b. Configure import policies from secondary storage to import restore
@@ -569,7 +569,7 @@ To generate the bundle, Syft is run
   comprehensive view of an image's contents, but does not indicate Veeam
   Kasten's dependency needs.
 
-Download SBOM bundle sbom-8.0.1.tar.gz
+Download SBOM bundle sbom-8.0.2.tar.gz
 
 Veeam Kasten repackages and distributes the following 3rd-party
   open-source images:

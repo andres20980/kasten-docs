@@ -297,7 +297,7 @@ Veeam Kasten can usually invoke protection operations such as snapshots
 
 To enable these actions that span the lifetime of any one cluster, Veeam
   Kasten needs to be configured with access to external object storage or
-  external NFS file storage. This is accomplished via the creation of Location Profiles.
+  external NFS/SMB file storage. This is accomplished via the creation of Location Profiles.
 
 Location Profile creation can be accessed from the Location page of
   the Profiles menu in the navigation sidebar or via the CRD-based Profiles API .
@@ -372,47 +372,78 @@ When using Google Workload Identity Federation with Kubernetes as the
     configured with the format type ( --credential-source-type ) set to Text , and specify the OIDC ID token path ( --credential-source-file )
     as /var/run/secrets/kasten.io/serviceaccount/GWIF/token .
 
-### NFS File Storage Location â
+### File Storage Location â
+
+You can use either NFS or SMB file storage as a location profile. The setup process for each is described below.
+
+To avoid issues on NFS/SMB servers with limited storage, new exports are prevented from starting when storage is 95% full. Veeam Kasten automatically recovers storage as it cleans up expired snapshots, but reaching this state may signal a need to update retention settings or expand storage.
+
+#### NFS File Storage â
 
 Requirements:
 
-- An NFS server reachable from the nodes where Veeam Kasten is installed
-- An exported NFS share, mountable on all the nodes where Veeam Kasten is installed
-- A Persistent Volume defining the exported NFS share similar to the example below: apiVersion : v1 kind : PersistentVolume metadata : name : test - pv spec : capacity : storage : 10Gi volumeMode : Filesystem accessModes : - ReadWriteMany persistentVolumeReclaimPolicy : Retain storageClassName : nfs mountOptions : - hard - nfsvers=4.1 nfs : path : / server : 172.17.0.2
-- A corresponding Persistent Volume Claim with the same storage class name in the Veeam Kasten namespace (default kasten-io ): apiVersion : v1 kind : PersistentVolumeClaim metadata : name : test - pvc namespace : kasten - io spec : storageClassName : nfs accessModes : - ReadWriteMany resources : requests : storage : 10Gi
+- An NFS server reachable from all nodes where Veeam Kasten is installed.
+- An exported NFS share, mountable on all nodes.
+- A PersistentVolume (PV) and PersistentVolumeClaim (PVC) in the Veeam Kasten namespace.
 
-An NFS server reachable from the nodes where Veeam Kasten is
-      installed
+Steps:
 
-An exported NFS share, mountable on all the nodes where Veeam
-      Kasten is installed
+Specification details will vary based on environment. Consult Kubernetes distribution documentation for additional details on configuring NFS connections.
 
-A Persistent Volume defining the exported NFS share similar to the
-      example below:
+1. Create a PersistentVolume for the NFS share: apiVersion : v1 kind : PersistentVolume metadata : name : nfs - pv spec : capacity : storage : 10Gi volumeMode : Filesystem accessModes : - ReadWriteMany persistentVolumeReclaimPolicy : Retain storageClassName : "" mountOptions : - hard - nfsvers=4.1 nfs : path : / server : 172.17.0.2
+2. Create a PersistentVolumeClaim in the Veeam Kasten namespace: apiVersion : v1 kind : PersistentVolumeClaim metadata : name : test - pvc namespace : kasten - io spec : storageClassName : "" volumeName : nfs - pv accessModes : - ReadWriteMany resources : requests : storage : 10Gi
+3. Create an NFS/SMB Location Profile referencing the previously created PVC:
 
-```
-apiVersion: v1kind: PersistentVolumemetadata:   name: test-pvspec:   capacity:      storage: 10Gi   volumeMode: Filesystem   accessModes:      - ReadWriteMany   persistentVolumeReclaimPolicy: Retain   storageClassName: nfs   mountOptions:      - hard      - nfsvers=4.1   nfs:      path: /      server: 172.17.0.2
-```
-
-A corresponding Persistent Volume Claim with the same storage
-      class name in the Veeam Kasten namespace (default kasten-io ):
+Create a PersistentVolume for the NFS share:
 
 ```
-apiVersion: v1kind: PersistentVolumeClaimmetadata:   name: test-pvc   namespace: kasten-iospec:   storageClassName: nfs   accessModes:      - ReadWriteMany   resources:      requests:         storage: 10Gi
+apiVersion: v1kind: PersistentVolumemetadata:   name: nfs-pvspec:   capacity:      storage: 10Gi   volumeMode: Filesystem   accessModes:      - ReadWriteMany   persistentVolumeReclaimPolicy: Retain   storageClassName: ""   mountOptions:      - hard      - nfsvers=4.1   nfs:      path: /      server: 172.17.0.2
 ```
 
-Once the above requirements are met, an NFS FileStore location profile
-  can be created on the profiles page using the PVC created above.
+Create a PersistentVolumeClaim in the Veeam Kasten namespace:
 
-By default, Veeam Kasten will use the root user to access the NFS Filestore location profile. To use a different user, the Supplemental Group and Path fields can be set. The Path field must
-  refer to the directory located within the PVC specified in the Claim Name . The group specified in the Supplemental Group field must
-  have read, write, and execute access to this directory.
+```
+apiVersion: v1kind: PersistentVolumeClaimmetadata:   name: test-pvc   namespace: kasten-iospec:   storageClassName: ""   volumeName: nfs-pv   accessModes:      - ReadWriteMany   resources:      requests:         storage: 10Gi
+```
 
-To avoid issues on NFS servers with limited storage, new exports are
-  prevented from starting when storage is 95% full. Veeam Kasten
-  automatically recovers storage as it cleans up expired snapshots, but
-  reaching this state may signal a need to update retention settings
-  of affected policies, or to expand storage.
+Create an NFS/SMB Location Profile referencing the previously created PVC:
+
+By default, Veeam Kasten uses the root user to access the NFS location profile. To use a different user, set the Supplemental Group and Path fields. The Path must refer to a directory within the PVC, and the group must have read, write, and execute access.
+
+#### SMB File Storage â
+
+- An SMB server reachable from all nodes where Veeam Kasten is installed.
+- An exported SMB share, mountable on all nodes.
+- A PersistentVolume (PV) and PersistentVolumeClaim (PVC) in the Veeam Kasten namespace (default: kasten-io ).
+
+The following example is specific to Red Hat OpenShift and the smb.csi.k8s.io storage provisioner. For other Kubernetes distributions or provisioners, consult the appropriate documentation.
+
+1. Create a PersistentVolume for the SMB share: apiVersion : v1 kind : PersistentVolume metadata : annotations : pv.kubernetes.io/provisioned-by : smb.csi.k8s.io name : smb - pv spec : capacity : storage : 100Gi accessModes : - ReadWriteMany persistentVolumeReclaimPolicy : Retain storageClassName : "" mountOptions : - dir_mode=0777 - file_mode=0777 csi : driver : smb.csi.k8s.io volumeHandle : smb - server.default.svc.cluster.local/share # volumeAttributes : source : //<hostname > /<shares > nodeStageSecretRef : name : smbcreds namespace : samba - server
+2. Create a Secret for SMB credentials: apiVersion : v1 kind : Secret metadata : name : smbcreds namespace : samba - server stringData : username : <username > password : <password > volumeHandle : Unique identifier for the volume. volumeAttributes.source : UNC path to the SMB share. nodeStageSecretRef : References the Secret with SMB credentials.
+3. Create a PersistentVolumeClaim in the Veeam Kasten namespace: apiVersion : v1 kind : PersistentVolumeClaim metadata : name : test - pvc namespace : kasten - io spec : storageClassName : "" volumeName : smb - pv accessModes : - ReadWriteMany resources : requests : storage : 10Gi
+4. Create an NFS/SMB Location Profile referencing the previously created PVC:
+
+Create a PersistentVolume for the SMB share:
+
+```
+apiVersion: v1kind: PersistentVolumemetadata:  annotations:    pv.kubernetes.io/provisioned-by: smb.csi.k8s.io  name: smb-pvspec:  capacity:    storage: 100Gi  accessModes:    - ReadWriteMany  persistentVolumeReclaimPolicy: Retain  storageClassName: ""  mountOptions:    - dir_mode=0777    - file_mode=0777  csi:    driver: smb.csi.k8s.io    volumeHandle: smb-server.default.svc.cluster.local/share#    volumeAttributes:      source: //<hostname>/<shares>    nodeStageSecretRef:      name: smbcreds      namespace: samba-server
+```
+
+Create a Secret for SMB credentials:
+
+```
+apiVersion: v1kind: Secretmetadata:  name: smbcreds   namespace: samba-server stringData:  username: <username>   password: <password>
+```
+
+- volumeHandle : Unique identifier for the volume.
+- volumeAttributes.source : UNC path to the SMB share.
+- nodeStageSecretRef : References the Secret with SMB credentials.
+
+```
+apiVersion: v1kind: PersistentVolumeClaimmetadata:   name: test-pvc   namespace: kasten-iospec:   storageClassName: ""   volumeName: smb-pv   accessModes:      - ReadWriteMany   resources:      requests:         storage: 10Gi
+```
+
+By default, Veeam Kasten uses the root user to access the SMB location. To use a different user, set the Supplemental Group and Path fields. The Path must refer to a directory within the PVC, and the group must have read, write, and execute access.
 
 ### Veeam Repository Location â
 
@@ -459,7 +490,7 @@ If the location profile is used for exporting an application for
   applications into a cluster that is different than the source cluster
   where the application was captured.
 
-In case of NFS File Storage Location, the exported NFS share must be
+In case of NFS/SMB File Storage Location, the exported NFS/SMB share must be
     reachable from the destination cluster and mounted on all the nodes
     where Veeam Kasten is installed.
 
@@ -634,7 +665,7 @@ The Location Profiles page can be accessed by clicking on Location under the
 The Location Profiles page supports filtering based on the following properties:
 
 - Name : The name assigned to the location profile.
-- Target : The destination for exported snapshots: bucket name (Amazon S3, GCP), container name (Azure), or persistent volume claim name (NFS).
+- Target : The destination for exported snapshots: bucket name (Amazon S3, GCP), container name (Azure), or persistent volume claim name (NFS/SMB).
 - Validation : The current validation status of the location profile.
 - Storage Provider : The third-party storage provider associated with the profile.
 - Immutability : Indicates whether immutability is enabled for the profile.
@@ -1224,13 +1255,13 @@ In particular, the Veeam Kasten platform is built to support application
 Some additional infrastructure configuration is needed before migration
   between two clusters can be enabled.
 
-- Required : Object storage or NFS file storage configuration
+- Required : Object storage or NFS/SMB file storage configuration
 - Use-Case Specific : Cross-account and Kanister configuration
 
 ### External Storage Configuration â
 
 For two clusters to share data, Veeam Kasten needs access to an object
-  storage bucket (e.g., k10-migrate ) or an NFS file storage location
+  storage bucket (e.g., k10-migrate ) or an NFS/SMB file storage location
   that will be used to store data about the application restore points
   that have been selected for migration between clusters. If a Veeam Repository is used to export snapshot data then it too needs to be accessible in
   the destination cluster. The source cluster needs to have write
@@ -1350,7 +1381,7 @@ When Export Snapshot Data is selected then the Export Location
 Profile specifies a Location Profile where the exported data and metadata will be stored. This
   profile contains the location of an object storage bucket (e.g., using
   AWS S3, Google Cloud Storage, Azure blob, or any other S3-compliant
-  object store) or an NFS file storage location to export the needed data.
+  object store) or an NFS/SMB file storage location to export the needed data.
   The default is to export snapshot data to this location in filesystem mode ,
   but with some cluster infrastructures snapshot data can alternatively be
   exported in block mode , by enabling the Export snapshot data in block mode option
@@ -1401,7 +1432,7 @@ Importing an application snapshot is again very similar to the policy
 
 To import applications, you need to select Import for the action.
   While you need to also specify a frequency for the import, this simply
-  controls how often to check the shared object storage or NFS file
+  controls how often to check the shared object storage or NFS/SMB file
   storage location. If data within the store is not refreshed at the same
   frequency, no duplicate work will be performed, and multiple restore
   points may be imported by a single action if there is any catching-up to
@@ -1444,7 +1475,7 @@ After the Create Policy button is clicked, the system will start
   with the application stack already running, and be made available as a
   restore point. Note that unless Restore after Import is selected, only
   metadata is brought into the cluster. If the data volumes reside in an
-  object store or NFS file store (e.g., after a cross-cloud migration),
+  object store or NFS/SMB file store (e.g., after a cross-cloud migration),
   they will not be converted into native volumes until a restore operation
   is initiated.
 
@@ -1856,7 +1887,7 @@ To convert snapshots into
 
 The backup produced by an export action consists of metadata of the
   application and snapshot data for the application volumes. The
-  destination for the metadata export is an Object Storage Location or an NFS File Storage Location that is specified in the Export Location Profile field.
+  destination for the metadata export is an Object Storage Location or an NFS/SMB File Storage Location that is specified in the Export Location Profile field.
 
 There are two options by which Veeam Kasten exports snapshot data: Filesystem Mode Export or Block Mode Export .
 
@@ -1919,10 +1950,10 @@ When block mode export is used, the organization of
   exported data is based on the type of location profile
   configured in the policy:
 
-- When the destination is an Object Storage Location or an NFS File Storage Location , snapshot data will be uploaded in a Veeam Kasten specific format which provides deduplication, compression and encryption support in the specified destination. Automatic compaction will be performed periodically on volume data, to ensure that the chain of incremental backups that follows a full backup will not grow too long. Compaction synthesizes a full backup by applying the chain of incremental backups to the base full backup and saving the result as a new full backup; no block data is uploaded during compaction as only references to data blocks are manipulated by the operation. Metadata will also be sent to the same destination location, though it is stored separately from the snapshot data.
+- When the destination is an Object Storage Location or an NFS/SMB File Storage Location , snapshot data will be uploaded in a Veeam Kasten specific format which provides deduplication, compression and encryption support in the specified destination. Automatic compaction will be performed periodically on volume data, to ensure that the chain of incremental backups that follows a full backup will not grow too long. Compaction synthesizes a full backup by applying the chain of incremental backups to the base full backup and saving the result as a new full backup; no block data is uploaded during compaction as only references to data blocks are manipulated by the operation. Metadata will also be sent to the same destination location, though it is stored separately from the snapshot data.
 - When the destination is a Veeam Repository Location then snapshot data is uploaded to a Veeam Repository in its specific format. A Veeam Repository Location does not provide metadata storage, which must be specified separately within the policy.
 
-When the destination is an Object Storage Location or an NFS File Storage Location , snapshot data will be uploaded in a Veeam Kasten
+When the destination is an Object Storage Location or an NFS/SMB File Storage Location , snapshot data will be uploaded in a Veeam Kasten
       specific format which provides deduplication, compression and
       encryption support in the specified destination.
 
@@ -2003,10 +2034,10 @@ Mode of each persistent volume.This is the preferred way to export snapshot data
 Using the Block Mode Export mechanism for all volume snapshots
   is enabled by explicitly selecting the Export snapshot data in block mode option in the export properties
   of the policy and then
-  selecting an Object Storage Location , an NFS File Storage or a Veeam Repository Location profile as the destination for snapshot data in the Location Profile Supporting Block Mode field.
+  selecting an Object Storage Location , an NFS/SMB File Storage or a Veeam Repository Location profile as the destination for snapshot data in the Location Profile Supporting Block Mode field.
 
 The location for metadata is specified by the Export Location Profile field, a required field in the dialog. When
-  the Location Profile Supporting Block Mode field is an Object Storage Location or an NFS File Storage Location , then both values are required to be the same to
+  the Location Profile Supporting Block Mode field is an Object Storage Location or an NFS/SMB File Storage Location , then both values are required to be the same to
   ensure that both metadata and snapshot data are sent to the same
   location.
 
@@ -2024,7 +2055,7 @@ Using the Block Mode Export mechanism for all volume snapshots
   of the policy and then
   selecting an available Veeam Repository Location profile as the destination.
 
-The location for metadata is specified by the Export Location Profile field, which requires the selection of a separate Object Storage Location or an NFS File Storage Location .
+The location for metadata is specified by the Export Location Profile field, which requires the selection of a separate Object Storage Location or an NFS/SMB File Storage Location .
 
 ## Scheduling â
 

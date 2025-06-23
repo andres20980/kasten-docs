@@ -15,7 +15,7 @@ As Veeam Kasten is a stateful application running on the
 ## Configuring Veeam Kasten Disaster Recovery Mode â
 
 The KDR mode specifies how internal Veeam Kasten resources are protected. The
-  mode can be set either before or after enabling the KDR policy. Changes
+  mode must be set before enabling the KDR policy. Changes
   to the KDR mode only apply to future KDR policy runs.
 
 Starting in Veeam Kasten v8.0.0, all installations default to Quick DR (Local Catalog Snapshot) mode.
@@ -35,6 +35,9 @@ Refer to the details below to understand the key differences between
   each mode:
 
 ### Legacy DR â
+
+Legacy DR mode has been deprecated and will be removed in a future release.
+    All clusters should be migrated a supported Quick DR configuration.
 
 Recommended Usage
 
@@ -265,7 +268,7 @@ It is not recommended to run Veeam Kasten without KDR enabled.
 To recover from a KDR backup using the UI, follow these steps:
 
 1. On a new cluster, install a fresh Veeam Kasten instance in the same namespace as the original Veeam Kasten instance.
-2. On the new cluster, create a location profile by providing the bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+2. On the new cluster, create a location profile by providing the bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored.
 3. On the new cluster, navigate to the Restore Kasten page under the Settings menu in the navigation sidebar.
 4. In the Profile drop-down, select the location profile created in step 3.
 
@@ -305,7 +308,7 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery as described in Specifying a Disaster Recovery Passphrase .
 2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret.
-3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored.
 4. Create KastenDRReview resource providing the source cluster information.
 5. Create KastenDRRestore resource referring to the KastenDRReview resource and choosing one of the restore points provided in the KastenDRReview status.
 6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be created directly with the source cluster information.
@@ -313,22 +316,22 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 ## Recovering Veeam Kasten From a Disaster via Helm â
 
-The k10restore Helm chart is deprecated with Veeam Kasten v7.5.0
-    release and will be removed in a future release.
+The k10restore tool has has been deprecated and will be removed in a future release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
+    supported recovery options.
 
 Recovering from a KDR backup using k10restore involves the
   following sequence of actions:
 
 1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery
 2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret
-3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored
+3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored
 4. Restoring the Veeam Kasten backup
 5. Uninstalling the Veeam Kasten restore instance after recovery is recommended
 
 If Kasten was previously installed in FIPS mode, ensure the fresh Veeam
     Kasten instance is also installed in FIPS mode.
 
-If Veeam Kasten backup is stored using an NFS File Storage Location , it is important that the same NFS share is reachable from
+If Veeam Kasten backup is stored using an NFS/SMB File Storage Location , it is important that the same NFS share is reachable from
     the recovery cluster and is mounted on all nodes where Veeam Kasten is
     installed.
 
@@ -383,7 +386,7 @@ Veeam Kasten must be reinstalled before recovery. Please follow the
 
 ### Configuring Location Profile â
 
-Create a Location Profile with the object storage location or NFS file storage
+Create a Location Profile with the object storage location or NFS/SMB file storage
   location where Veeam Kasten KDR backups are stored.
 
 ### Restoring Veeam Kasten with k10restore â
@@ -584,7 +587,7 @@ Operator K10restore form view with Enable HashiCorp Vault set to False
 
 Operator K10restore form view with Enable HashiCorp Vault set to True
 
-### Using the Restored Veeam Kasten in Place of the Original â
+## Using the Restored Veeam Kasten in Place of the Original â
 
 The newly restored Veeam Kasten includes a safety mechanism to prevent
   it from performing critical background maintenance operations on backup
@@ -629,7 +632,7 @@ As Veeam Kasten is a stateful application running on the
 ## Configuring Veeam Kasten Disaster Recovery Mode â
 
 The KDR mode specifies how internal Veeam Kasten resources are protected. The
-  mode can be set either before or after enabling the KDR policy. Changes
+  mode must be set before enabling the KDR policy. Changes
   to the KDR mode only apply to future KDR policy runs.
 
 Starting in Veeam Kasten v8.0.0, all installations default to Quick DR (Local Catalog Snapshot) mode.
@@ -649,6 +652,9 @@ Refer to the details below to understand the key differences between
   each mode:
 
 ### Legacy DR â
+
+Legacy DR mode has been deprecated and will be removed in a future release.
+    All clusters should be migrated a supported Quick DR configuration.
 
 Recommended Usage
 
@@ -879,7 +885,7 @@ It is not recommended to run Veeam Kasten without KDR enabled.
 To recover from a KDR backup using the UI, follow these steps:
 
 1. On a new cluster, install a fresh Veeam Kasten instance in the same namespace as the original Veeam Kasten instance.
-2. On the new cluster, create a location profile by providing the bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+2. On the new cluster, create a location profile by providing the bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored.
 3. On the new cluster, navigate to the Restore Kasten page under the Settings menu in the navigation sidebar.
 4. In the Profile drop-down, select the location profile created in step 3.
 
@@ -919,7 +925,7 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery as described in Specifying a Disaster Recovery Passphrase .
 2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret.
-3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored.
+3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored.
 4. Create KastenDRReview resource providing the source cluster information.
 5. Create KastenDRRestore resource referring to the KastenDRReview resource and choosing one of the restore points provided in the KastenDRReview status.
 6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be created directly with the source cluster information.
@@ -927,22 +933,22 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 ## Recovering Veeam Kasten From a Disaster via Helm â
 
-The k10restore Helm chart is deprecated with Veeam Kasten v7.5.0
-    release and will be removed in a future release.
+The k10restore tool has has been deprecated and will be removed in a future release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
+    supported recovery options.
 
 Recovering from a KDR backup using k10restore involves the
   following sequence of actions:
 
 1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery
 2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret
-3. Provide bucket information and credentials for the object storage location or NFS file storage location where previous Veeam Kasten backups are stored
+3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored
 4. Restoring the Veeam Kasten backup
 5. Uninstalling the Veeam Kasten restore instance after recovery is recommended
 
 If Kasten was previously installed in FIPS mode, ensure the fresh Veeam
     Kasten instance is also installed in FIPS mode.
 
-If Veeam Kasten backup is stored using an NFS File Storage Location , it is important that the same NFS share is reachable from
+If Veeam Kasten backup is stored using an NFS/SMB File Storage Location , it is important that the same NFS share is reachable from
     the recovery cluster and is mounted on all nodes where Veeam Kasten is
     installed.
 
@@ -997,7 +1003,7 @@ Veeam Kasten must be reinstalled before recovery. Please follow the
 
 ### Configuring Location Profile â
 
-Create a Location Profile with the object storage location or NFS file storage
+Create a Location Profile with the object storage location or NFS/SMB file storage
   location where Veeam Kasten KDR backups are stored.
 
 ### Restoring Veeam Kasten with k10restore â
@@ -1198,7 +1204,7 @@ Operator K10restore form view with Enable HashiCorp Vault set to False
 
 Operator K10restore form view with Enable HashiCorp Vault set to True
 
-### Using the Restored Veeam Kasten in Place of the Original â
+## Using the Restored Veeam Kasten in Place of the Original â
 
 The newly restored Veeam Kasten includes a safety mechanism to prevent
   it from performing critical background maintenance operations on backup
@@ -1515,7 +1521,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.0.2/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1629,8 +1635,10 @@ The k10tools debug ca-certificate command can be used to check if the
   be used to provide namespace and it defaults to kasten-io . More
   information on installation process.
 
+Replace <custom-bundle-file> with the desired filename
+
 ```
-% ./k10tools debug ca-certificate  CA Certificate Checker:    Fetching configmap which contains CA Certificate information : custom-ca-bundle-store    Certificate exists in configmap  -  OK    Found container : aggregatedapis-svc to extract certificate    Certificate exists in container at /etc/ssl/certs/custom-ca-bundle.pem    Certificates matched successfully  -  OK
+% ./k10tools ca-certificate -k <custom-bundle-file>.pem  CA Certificate Checker:    Fetching configmap which contains CA Certificate information : custom-ca-bundle-store    Certificate exists in configmap  -  OK    Found container : aggregatedapis-svc to extract certificate    Certificate exists in container at /etc/ssl/certs/<custom-bundle-file>.pem    Certificates matched successfully  -  OK
 ```
 
 ## Installation of Veeam Kasten in OpenShift clusters â
@@ -1645,7 +1653,7 @@ The k10tools openshift prepare-install command can be used to prepare
   trusted.
 
 ```
-% ./k10tools openshift prepare-installOpenshift Prepare Install:  Certificate found in Namespace 'openshift-ingress-operator' in secret 'router-ca'  -  OK  Checking if namespace 'kasten-io' exists  Namespace 'kasten-io' exists  -  OK  Created configmap 'custom-ca-bundle-store' with custom certificate in it  -  OK  Searching for Apps Base Domain Name in Ingress Controller  Found Apps Base Domain 'apps.test.aws.kasten.io'  -  OK  Created Service Account 'k10-dex-sa' successfully  -  OKPlease use below helm command to start K10 installation-------------------------------------------------------------------- helm repo add kasten https://charts.kasten.io/ helm install k10 kasten/k10 --namespace=kasten-io \ --set scc.create=true \ --set route.enabled=true \ --set route.tls.enabled=true \ --set auth.openshift.enabled=true \ --set auth.openshift.serviceAccount=k10-dex-sa \ --set auth.openshift.clientSecret=<your key will be here automatically>\ --set auth.openshift.dashboardURL=https://k10-route-kasten-io.apps.test.aws.kasten.io/k10/ \ --set auth.openshift.openshiftURL=https://api.test.aws.kasten.io:6443 \ --set auth.openshift.insecureCA=false \ --set cacertconfigmap.name=custom-ca-bundle-store
+% ./k10tools openshift prepare-installOpenshift Prepare Install:  Certificate found in Namespace 'openshift-ingress-operator' in secret 'router-ca'  -  OK  Checking if namespace 'kasten-io' exists  Namespace 'kasten-io' exists  -  OK  Created configmap 'custom-ca-bundle-store' with custom certificate in it  -  OK  Searching for Apps Base Domain Name in Ingress Controller  Found Apps Base Domain 'apps.test.aws.kasten.io'  -  OK  Created Service Account 'k10-dex-sa' successfully  -  OKPlease use below helm command to start K10 installation-------------------------------------------------------------------- helm repo add kasten https://charts.kasten.io/ helm install k10 kasten/k10 --namespace=kasten-io \ --set scc.create=true \ --set route.enabled=true \ --set route.tls.enabled=true \ --set auth.openshift.enabled=true \ --set auth.openshift.serviceAccount=k10-dex-sa \ --set auth.openshift.clientSecret=<your key will be here automatically>\ --set auth.openshift.dashboardURL=https://k10-route-kasten-io.apps.test.aws.kasten.io/k10/ \ --set auth.openshift.openshiftURL=https://api.test.aws.kasten.io:6443 \ --set auth.openshift.insecureCA=false \ --set cacertconfigmap.name=custom-ca-bundle-store \ --set cacertconfigmap.key=custom-ca-bundle.pem
 ```
 
 ## Extracting OpenShift CA Certificates â
@@ -1655,6 +1663,7 @@ The k10tools openshift extract-certificates command is used to extract
   The following flags can be used to configure the command:
 
 - --ca-cert-configmap-name . The name of the Kubernetes ConfigMap that contains all certificates required for Veeam Kasten. If no name is provided, the default name custom-ca-bundle-store will be used. If the ConfigMap with the used name does not exist, the command will generate a new ConfigMap. If the ConfigMap with the used name exists, the command will merge newly extracted certificates with the existing certificates in the ConfigMap without creating duplicates.
+- --ca-cert-configmap-key . The key of the Kubernetes ConfigMap that contains certificates required for Veeam Kasten. If no key is provided, the default key custom-ca-bundle.pem will be used.
 - --k10-namespace or -n . The Kubernetes namespace where Veeam Kasten is expected to be installed. The default value is kasten-io .
 - --release-name . The K10 Release Name. The default value is k10 .
 
@@ -1915,7 +1924,7 @@ policies_count{action="backup", chained="export", status="Failed"} reports on po
 
 ### Veeam Kasten Storage Metrics â
 
-To check exported storage consumption (Object, NFS or Veeam Backup &
+To check exported storage consumption (Object, NFS/SMB or Veeam Backup &
   Replication) there is export_storage_size_bytes with types [logical, physical] , e.g. export_storage_size_bytes{type="logical"} .
   The deduplication ratio is calculated by logical / physical .
 
@@ -2282,11 +2291,9 @@ Support or
 Veeam Kasten currently supports deployments running on the following
   certified Kubernetes distributions and respective OpenShift versions:
 
-Note : Veeam Kasten also does not support distributions/versions that
-  have been declared 'End of Life' status as defined by their respective
-  entity/community/vendor (in other words, distributions/versions for
-  which maintenance is not provided anymore by their supporting
-  entity/community/vendor).
+Veeam Kasten does not support distribution versions that
+    are no longer actively supported by their respective
+    vendor or community.
 
 | Kubernetes | RedHat Openshift | Notes | 1.32 |  | Respective OpenShift version is not supported yet |
 | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -2295,9 +2302,6 @@ Note : Veeam Kasten also does not support distributions/versions that
 | 1.30 | 4.17 |  |
 | 1.29 | 4.16 |  |
 | 1.28 | 4.15 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
-| 1.27 | 4.14 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
-| 1.26 | 4.13 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
-| 1.25 | 4.12 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 
 ## Gathering Debugging Information â
 
@@ -2311,7 +2315,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.0.2/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2321,7 +2325,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.0.2/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2336,7 +2340,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.0.2/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.

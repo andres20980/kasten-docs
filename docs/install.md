@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.1    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.2    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -174,18 +174,24 @@ Assuming Veeam Kasten will be deployed in the kasten-io namespace, the
   following instructions will make a private Root CA certificate available
   to Veeam kasten.
 
-The name of the Root CA certificate must be custom-ca-bundle.pem
+```
+$ kubectl --namespace kasten-io create configmap <configmap-name> --from-file=<custom-bundle-file>.pem
+```
 
-```
-# Create a ConfigMap that will contain the certificate.# Choose any name for the ConfigMap$ kubectl --namespace kasten-io create configmap custom-ca-bundle-store --from-file=custom-ca-bundle.pem
-```
+Replace <custom-bundle-file> with the desired filename
 
 To provide the Root CA certificate to Veeam Kasten, add the following to
   the Helm install command.
 
 ```
---set cacertconfigmap.name=<name-of-the-configmap>
+--set cacertconfigmap.name=<configmap-name>--set cacertconfigmap.key=<configmap-key>
 ```
+
+Replace <configmap-key> with the desired key
+
+Use of cacertconfigmap.key is optional. If it is unspecified,
+    the ConfigMap referenced by cacertconfigmap.name must use
+    the expected default key name, custom-ca-bundle.pem .
 
 ### Install Root CA in Application's Namespace When Using Kanister Sidecar â
 
@@ -202,14 +208,16 @@ Assuming that the application's namespace is named test-app , use the
   application's namespace:
 
 ```
-# Create a ConfigMap that will contain the certificate.# Choose any name for the ConfigMap$ kubectl --namespace test-app create configmap custom-ca-bundle-store --from-file=custom-ca-bundle.pem
+$ kubectl --namespace test-app create configmap <configmap-name> --from-file= <custom-bundle-file>.pem
 ```
+
+Replace <configmap-name> with any desired ConfigMap name and <custom-bundle-file> with the desired filename
 
 This is an example of a VolumeMount that must be added to the
   application's specification.
 
 ```
-- name: custom-ca-bundle-store  mountPath: "/etc/ssl/certs/custom-ca-bundle.pem"  subPath: custom-ca-bundle.pem
+- name: custom-ca-bundle-store  mountPath: "/etc/ssl/certs/<custom-bundle-file>.pem"  subPath:<custom-bundle-file>.pem
 ```
 
 This is an example of a Volume that must be added to the application's
@@ -241,7 +249,7 @@ Veeam Kasten service containers run with UID and fsGroup 1000 by
   own services requires the containers to run as a specific user, then the
   user can be modified.
 
-This is often needed when using shared storage, such as NFS, where
+This is often needed when using shared storage, such as NFS/SMB, where
   permissions on the target storage require a specific user.
 
 To run as a specific user (e.g., root (0), add the following to the Helm
@@ -291,8 +299,10 @@ To modify the bundled Prometheus configuration, only use the helm values
 | eula.email | Contact email. Required field if EULA is accepted | None |
 | license | License string obtained from Kasten | None |
 | rbac.create | Whether to enable RBAC with a specific cluster role and binding for K10 | true |
-| scc.create | Whether to create a SecurityContextConstraints for K10 ServiceAccounts | false |
+| scc.create | Toggle creation of SecurityContextConstraints for Kasten ServiceAccount(s) | false |
 | scc.priority | Sets the SecurityContextConstraints priority | 15 |
+| scc.allowCSI | Toggles allowing CSI ephemeral volumes in SecurityContextConstraints | false |
+| networkPolicy.create | Toggle creation of built-in NetworkPolicies | true |
 | services.dashboardbff.hostNetwork | Whether the dashboardbff Pods may use the node network | false |
 | services.executor.hostNetwork | Whether the executor Pods may use the node network | false |
 | services.aggregatedapis.hostNetwork | Whether the aggregatedapis Pods may use the node network | false |
@@ -647,7 +657,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.1    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.2    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -749,18 +759,24 @@ Assuming Veeam Kasten will be deployed in the kasten-io namespace, the
   following instructions will make a private Root CA certificate available
   to Veeam kasten.
 
-The name of the Root CA certificate must be custom-ca-bundle.pem
+```
+$ kubectl --namespace kasten-io create configmap <configmap-name> --from-file=<custom-bundle-file>.pem
+```
 
-```
-# Create a ConfigMap that will contain the certificate.# Choose any name for the ConfigMap$ kubectl --namespace kasten-io create configmap custom-ca-bundle-store --from-file=custom-ca-bundle.pem
-```
+Replace <custom-bundle-file> with the desired filename
 
 To provide the Root CA certificate to Veeam Kasten, add the following to
   the Helm install command.
 
 ```
---set cacertconfigmap.name=<name-of-the-configmap>
+--set cacertconfigmap.name=<configmap-name>--set cacertconfigmap.key=<configmap-key>
 ```
+
+Replace <configmap-key> with the desired key
+
+Use of cacertconfigmap.key is optional. If it is unspecified,
+    the ConfigMap referenced by cacertconfigmap.name must use
+    the expected default key name, custom-ca-bundle.pem .
 
 ### Install Root CA in Application's Namespace When Using Kanister Sidecar â
 
@@ -777,14 +793,16 @@ Assuming that the application's namespace is named test-app , use the
   application's namespace:
 
 ```
-# Create a ConfigMap that will contain the certificate.# Choose any name for the ConfigMap$ kubectl --namespace test-app create configmap custom-ca-bundle-store --from-file=custom-ca-bundle.pem
+$ kubectl --namespace test-app create configmap <configmap-name> --from-file= <custom-bundle-file>.pem
 ```
+
+Replace <configmap-name> with any desired ConfigMap name and <custom-bundle-file> with the desired filename
 
 This is an example of a VolumeMount that must be added to the
   application's specification.
 
 ```
-- name: custom-ca-bundle-store  mountPath: "/etc/ssl/certs/custom-ca-bundle.pem"  subPath: custom-ca-bundle.pem
+- name: custom-ca-bundle-store  mountPath: "/etc/ssl/certs/<custom-bundle-file>.pem"  subPath:<custom-bundle-file>.pem
 ```
 
 This is an example of a Volume that must be added to the application's
@@ -816,7 +834,7 @@ Veeam Kasten service containers run with UID and fsGroup 1000 by
   own services requires the containers to run as a specific user, then the
   user can be modified.
 
-This is often needed when using shared storage, such as NFS, where
+This is often needed when using shared storage, such as NFS/SMB, where
   permissions on the target storage require a specific user.
 
 To run as a specific user (e.g., root (0), add the following to the Helm
@@ -866,8 +884,10 @@ To modify the bundled Prometheus configuration, only use the helm values
 | eula.email | Contact email. Required field if EULA is accepted | None |
 | license | License string obtained from Kasten | None |
 | rbac.create | Whether to enable RBAC with a specific cluster role and binding for K10 | true |
-| scc.create | Whether to create a SecurityContextConstraints for K10 ServiceAccounts | false |
+| scc.create | Toggle creation of SecurityContextConstraints for Kasten ServiceAccount(s) | false |
 | scc.priority | Sets the SecurityContextConstraints priority | 15 |
+| scc.allowCSI | Toggles allowing CSI ephemeral volumes in SecurityContextConstraints | false |
+| networkPolicy.create | Toggle creation of built-in NetworkPolicies | true |
 | services.dashboardbff.hostNetwork | Whether the dashboardbff Pods may use the node network | false |
 | services.executor.hostNetwork | Whether the executor Pods may use the node network | false |
 | services.aggregatedapis.hostNetwork | Whether the aggregatedapis Pods may use the node network | false |
@@ -1507,7 +1527,7 @@ For a complete list of options for accessing the Kasten Veeam Kasten
 ## Install Configure
 
 Veeam Kasten supports encryption for data and metadata stored in an
-  object store or an NFS file store (e.g., for cross-cloud snapshot
+  object store or an NFS/SMB file store (e.g., for cross-cloud snapshot
   migration) via the use of the AES-256-GCM encryption algorithm. Veeam
   Kasten encryption is always enabled for external data and metadata
   (more information below), it cannot be disabled.
@@ -1731,6 +1751,8 @@ $ kubectl delete passkeys.vault.kio.kasten.io passkey1  vault.kio.kasten.io/pass
 
 ## Install Fips
 
+Versions 7.5.10, 8.0.0, 8.0.1, and 8.0.2 should not be used if requiring FIPS compliance.
+
 Kasten, as of version 7.0, supports an installation option that complies
   with the Federal Information Processing Standards (FIPS) defined by the
   National Institute of Standards and Technology (NIST). This is
@@ -1802,7 +1824,7 @@ To install the latest version of Kasten with the latest values use the
   command below:
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.1/fips/fips-values.yaml
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.2/fips/fips-values.yaml
 ```
 
 ---
@@ -1962,7 +1984,7 @@ After injecting the sidecar manually, workload pods will be recreated.
 
 Once the above changes are made, Veeam Kasten will be able to
   automatically extract data and, using its data engine, efficiently
-  deduplicate data and transfer it into an object store or NFS file store.
+  deduplicate data and transfer it into an object store or NFS/SMB file store.
 
 If you have multiple volumes used by your pod, you simply need to mount
   them all within this sidecar container. There is no naming requirement
@@ -2684,7 +2706,7 @@ Installing Veeam Kasten with the Iron Bank images, as
   version of Veeam Kasten that's being installed:
 
 ```
-$ curl -sO https://docs.kasten.io/downloads/8.0.1/ironbank/ironbank-values.yaml
+$ curl -sO https://docs.kasten.io/downloads/8.0.2/ironbank/ironbank-values.yaml
 ```
 
 This file contains the correct helm values that ensure the deployment of
@@ -2782,7 +2804,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.1.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.2.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2797,7 +2819,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.1.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.2.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2836,10 +2858,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.1 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.2 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.0.1).
+The following commands operate against the latest version of Veeam Kasten (8.0.2).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2848,12 +2870,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.0.1). This can be helpful if there is a requirement to tag and
+  version (8.0.2). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.1 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.2 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2866,7 +2888,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.1 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.2 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -2904,7 +2926,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.1 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.1 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.2 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.2 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -2915,250 +2937,6 @@ You must be logged in to the docker registry locally for this process
 
 Alternatively, provide credentials using the methods
     described above .
-
----
-
-## Install Openshift Helm
-
-## Prerequisites â
-
-Before installing Veeam Kasten on Red Hat OpenShift, please ensure that
-  the install prerequisites are met.
-
-## Veeam Kasten Installation â
-
-Depending on your OpenShift infrastructure provider, you might need to
-  provide access credentials as specified elsewhere for public cloud
-  providers.
-
-You will also need to add the following argument to create the
-  SecurityContextConstraints for Veeam Kasten ServiceAccounts.
-
-```
-$ helm install k10 kasten/k10 --namespace=kasten-io \    --set scc.create=true
-```
-
-### OpenShift on AWS â
-
-When deploying OpenShift on AWS without using the EBS CSI driver for
-  persistent storage, make sure that you configure these policies before executing the installation command provided below:
-
-```
-$ helm install k10 kasten/k10 --namespace=kasten-io \    --set scc.create=true \    --set secrets.awsAccessKeyId="${AWS_ACCESS_KEY_ID}" \    --set secrets.awsSecretAccessKey="${AWS_SECRET_ACCESS_KEY}"
-```
-
-### OpenShift on Azure â
-
-When running OpenShift on Azure, you need to specify a credential if
-  you want to snapshot your volumes using in-tree (non-CSI) storage.
-
-Veeam Kasten supports the following credentials types described below.
-
-#### Service Principal â
-
-If using service principal, the principal needs a contributor role on
-  the resource group. You also need to specify the resource group of the
-  openshift nodes and the subscription id.
-
-```
-$ helm install k10 kasten/k10 --namespace=kasten-io \    --set scc.create=true \    --set secrets.azureTenantId=<tenantID> \    --set secrets.azureClientId=<azureclient_id> \    --set secrets.azureClientSecret=<azureclientsecret> \    --set secrets.azureResourceGroup=<resource_group_name> \    --set secrets.azureSubscriptionID=<subscription_id>
-```
-
-#### Federated Identity â
-
-If using federated identity, the user-assigned managed identity needs
-  a contributor role on the resource group. The federated identity needs
-  to be created and setup for the Veeam Kasten Service Account.
-
-While installing Veeam Kasten, specify the azureClientId of the
-  user-assigned managed identity along with the resource group of the
-  openshift nodes and the subscription id. You also need to set the useFederatedIdentity flag.
-
-```
-$ helm install k10 kasten/k10 --namespace=kasten-io \    --set azure.useFederatedIdentity=true \    --set secrets.azureClientId=<azureclient_id> \    --set secrets.azureResourceGroup=<resource_group_name> \    --set secrets.azureSubscriptionID=<subscription_id>
-```
-
-## Accessing Dashboard via Route â
-
-As documented here , the
-  Veeam Kasten dashboard can also be accessed via an OpenShift Route.
-
-## Authentication â
-
-### OpenShift OAuth server â
-
-As documented here , the
-  OpenShift OAuth server can be used to authenticate access to Veeam
-  Kasten.
-
-### Using an OAuth Proxy â
-
-As documented here , the OpenShift OAuth proxy can be used for authenticating
-  access to Veeam Kasten.
-
-## Securing Veeam Kasten with SecurityContextConstraints â
-
-Veeam Kasten installs customized SecurityContextConstraints (SCC) to
-  ensure that all workloads associated with Veeam Kasten have just enough
-  privileges to perform their respective tasks.
-
-For additional information about SCCs, please refer to the official OpenShift
-documentation
-
-Starting with OpenShift 4.14, a new openshift.io/required-scc annotation was introduced. Veeam
-    Kasten applies this annotation to its own pods to ensure that the
-    correct SecurityContextConstraints (SCC) have been applied.
-
-Please note that pods created for Kanister Execution Hooks execution will not receive the openshift.io/required-scc annotation. For more
-    information, visit the Managing security context
-constraints .
-
-### SecurityContextConstraints customization â
-
-The value of the Priority field in SecurityContextConstraints (SCC) can
-  be adjusted to align the priority with the existing cluster
-  configuration.
-
-To set the desired Priority value in an Operator-managed installation,
-  modify the YAML of the Veeam Kasten Operand configuration with the
-  parameters below:
-
-```
-scc:  priority: <priority_value>
-```
-
-This customization can be achieved in a Helm-based installation by
-  adding the following parameter to the Helm command:
-
-```
---set scc.priority=<priority_value>
-```
-
-### SecurityContextConstraints Leakage â
-
-OpenShift assigns SCC to workloads automatically. By default, the most
-  restrictive SCC matching a workload security requirement will be
-  selected and assigned to that workload. One of the criteria for SCC
-  selection is the availability of the SCC to a User or ServiceAccount.
-  SCC leakage means that some workloads might get an SCC applied to them,
-  which was not the intended one.
-
-Veeam Kasten protects its SCC from leaking onto other workloads by
-  limiting access only to its dedicated ServiceAccount:
-
-```
-users:  - system:serviceaccount:kasten-io:executor-svc  # example of a Veeam Kasten service account  # all Veeam Kasten service accounts will be listed as users
-```
-
-In this example, and in the rest of this page, Veeam Kasten is installed
-    into the namespace kasten-io (default). If the cluster being considered
-    has a different configuration, those values need to be adapted to match
-    the values used during Veeam Kasten's installation in this cluster.
-
-Despite the usage restrictions, it is still possible to get Veeam
-  Kasten's SCC assigned to other workloads. This could happen when a
-  workload is started by a cluster admin or any other user with an allowed use action on all SCCs ( * ) or on Veeam Kasten's specific SCC
-  ( k10-scc ). This is because users with the ClusterRole cluster-admin bound to them have unlimited access to all
-  available SCCs, without any restrictions.
-
-Veeam Kasten's SCC may be unexpectedly applied to workloads it was not
-  intended for under the following conditions:
-
-- The workload is initiated by a user with cluster admin privileges
-- The user initiating the workload has a role that grants access to all SCCs
-
-### How to verify if access to a specific SecurityContextConstraints is granted â
-
-OpenShift's command line (CLI) client, oc , has a can-i command that
-  can be used with impersonation to check if a user can perform a specific
-  action on a specific resource. Alternatively, the standard kubectl CLI client also has the same command built-in and
-  can be used to perform the same check. Simply replace oc with kubectl in the command below.
-
-To check if a user can use/access Veeam Kasten's SCC, the following
-  command can be used:
-
-```
-oc auth can-i use securitycontextconstraints/k10-scc --as=<your_username>
-```
-
-The output will contain yes if the specified user is able to use Veeam
-  Kasten's SCC or no if it is not. For example, the output for the
-  following check, "Can Veeam Kasten's ServiceAccount use Veeam
-  Kasten's SCC", should be yes :
-
-```
-oc auth can-i use securitycontextconstraints/k10-scc --as=system:serviceaccount:kasten-io:executor-svc
-```
-
-Note that executor-svc is just one of the Veeam Kasten service accounts created for a default install.
-
-Detailed information about can-i and impersonation can be found in
-  the official Kubernetes
-documentation .
-
-## Validating the Install â
-
-To validate that Veeam Kasten has been installed properly, the following
-  command can be run in Veeam Kasten's namespace (the install default is kasten-io ) to watch for the status of all Veeam Kasten pods:
-
-```
-$ kubectl get pods --namespace kasten-io --watch
-```
-
-It may take a couple of minutes for all pods to come up but all pods
-  should ultimately display the status of Running .
-
-```
-$ kubectl get pods --namespace kasten-ioNAMESPACE     NAME                                    READY   STATUS    RESTARTS   AGEkasten-io     aggregatedapis-svc-b45d98bb5-w54pr      1/1     Running   0          1m26skasten-io     auth-svc-8549fc9c59-9c9fb               1/1     Running   0          1m26skasten-io     catalog-svc-f64666fdf-5t5tv             2/2     Running   0          1m26s...
-```
-
-In the unlikely scenario that pods that are stuck in any other state,
-  please follow the support documentation to debug further.
-
-### Validate Dashboard Access â
-
-By default, the Veeam Kasten dashboard will not be exposed externally.
-  To establish a connection to it, use the following kubectl command to
-  forward a local port to the Veeam Kasten ingress port:
-
-```
-$ kubectl --namespace kasten-io port-forward service/gateway 8080:80
-```
-
-The Veeam Kasten dashboard will be available at http://127.0.0.1:8080/k10/#/ .
-
-For a complete list of options for accessing the Kasten Veeam Kasten
-  dashboard through a LoadBalancer, Ingress or OpenShift Route you can use
-  the instructions here .
-
-### Using Veeam Kasten Console Plugin â
-
-The Veeam Kasten operator includes the OpenShift Console Plugin,
-  providing faster and more convenient access to the essential data about
-  the Veeam Kasten application state.
-
-#### Enable Veeam Kasten Console Plugin â
-
-The Veeam Kasten Console Plugin can be enabled during the installation
-  of the Veeam Kasten operator. For more details, see Veeam Kasten Installation .
-
-To enable the plugin for existing K10 deployments, navigate to the Operator Details page for Veeam Kasten operator in the OpenShift
-  Console. In the Console Plugin section on the right-hand side,
-  select the Enabled checkbox.
-
-If Veeam Kasten was installed using Helm based Installation , enabling the plugin from the Console Details page will
-  be the only available option. Navigate to the Console Plugins tab of
-
-### the Console Details page in the OpenShift Console. Find the **Veeam â
-
-Kasten Plugin from OpenShift Console** and select the Enabled checkbox.
-
-#### Veeam Kasten Console Plugin UI Overview â
-
-The Veeam Kasten Console Plugin adds a new Veeam Kasten tab to the
-  OpenShift Web Console panel on the left. Click on the tab to open the
-  plugin. The plugin UI contains all the essential data from the Veeam Kasten Dashboard ,
-  including the system overview and the recent activity.
 
 ---
 
@@ -3182,379 +2960,6 @@ The two installation methods mentioned above are also applicable when
 
 No additional or platform-specific configurations are required for
   installation.
-
----
-
-## Install Openshift Operator
-
-With the 7.0 release in May 2024, "Kasten by Veeam" and "Kasten K10"
-    have been replaced with "Veeam Kasten for Kubernetes." Throughout this
-    documentation, references to "K10" will be modified to include both
-    the new and simpler "Veeam Kasten" names. Both names will be used for
-    a while, and then the documentation will be modified only to use the new
-    names. The name K10 is still used for functional examples.
-
-## Veeam Kasten Operator Editions â
-
-- Veeam Kasten (Free): Free edition of Veeam Kasten for use in clusters up to 5 nodes
-- Veeam Kasten (Enterprise - PAYGO): Enterprise edition of Veeam Kasten, billed per usage of node-hours
-- Veeam Kasten (Enterprise - Term): Enterprise edition of Veeam Kasten intended to be used with a term license
-
-## Pre-Flight Checks â
-
-Assuming that your default oc context is pointed to the
-  cluster you want to install Veeam Kasten on, you can run pre-flight
-  checks by deploying the primer tool. This tool runs in a pod in the
-  cluster and does the following:
-
-- Validates if the Kubernetes settings meet the Veeam Kasten requirements.
-- Catalogs the available StorageClasses.
-- If a CSI provisioner exists, it will also perform a basic validation of the cluster's CSI capabilities and any relevant objects that may be required. It is strongly recommended that the same tool be used to also perform a more complete CSI validation using the documentation here.
-
-Note that this will create and clean up a ServiceAccount and ClusterRoleBinding to perform sanity checks on your
-  Kubernetes cluster.
-
-Run the following command to deploy the pre-check tool:
-
-```
-$ curl https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash
-```
-
-## Prerequisites â
-
-Before installing Veeam Kasten, it is essential to have a functional and
-  accessible Red Hat OpenShift environment.
-
-Optionally, you can create a new project in advance where Veeam Kasten
-  will be installed. Select this project during operator deployment, or
-  create a project (namespace) during the operator installation process.
-  By default, the documentation uses the kasten-io namespace.
-
-```
-oc new-project kasten-io \  --description="Kubernetes data management platform" \  --display-name="Veeam Kasten"
-```
-
-## Veeam Kasten Installation â
-
-### Interactive Demo â
-
-### Step-by-Step Guide â
-
-1. Select the OperatorHub from the Operators Menu, search for Veeam Kasten. Select either the Certified Operator, or Marketplace version, depending on the requirements.
-
-1. To begin the installation, simply click Install .
-
-1. Next, set the channel to stable and the installation mode to A specific namespace on the cluster . Choose the kasten-io project created in an earlier step. Optionally, enable the console plugin provided with the Veeam Kasten operator. For more information on the plugin, refer to the plugin documentation `.
-
-1. After installation, click Create Instance on the operator details page to create a Veeam Kasten instance.
-
-1. The default installation can be done through either the Form View or YAML View . By default, no changes are required to install. Veeam Kasten assumes that the default storage class is supported by SSDs or equivalent fast storage media. If this assumption is not true, please modify the installation values to specify a performance-oriented storage class. This modification can be done within the form view or directly within the YAML of the Veeam Kasten Operand configuration by setting the parameters below: global : persistence : storageClass : <storage - class - name >
-
-The default installation can be done through either the Form View or YAML View . By default, no changes are required to install.
-
-Veeam Kasten assumes that the default storage class is supported by
-      SSDs or equivalent fast storage media. If this assumption is not
-      true, please modify the installation values to specify a
-      performance-oriented storage class. This modification can be done
-      within the form view or directly within the YAML of the Veeam Kasten
-      Operand configuration by setting the parameters below:
-
-```
-global:  persistence:    storageClass: <storage-class-name>
-```
-
-### Offline Operator Install â
-
-Only Veeam Kasten Operator Editions "Veeam Kasten (Free)" and "Veeam
-    Kasten (Enterprise - Term)" are supported in disconnected environments.
-
-1. Create a filtered RedHat marketplace index image in the private registry.
-
-Log into both the Red Hat registry and the private registry. The private
-  registry is the registry disconnected cluster has access to.
-
-```
-$ docker login registry.redhat.io$ podman login <private registry>
-```
-
-Prune the index image to include the Veeam Kasten operator(s). The steps
-  below are using the Veeam Kasten operators from registry.redhat.io/redhat/redhat-marketplace-index:v4.9 .
-
-```
-$  opm index prune -f registry.redhat.io/redhat/redhat-marketplace-index:v4.9 \ -p k10-kasten-operator-rhmp,k10-kasten-operator-term-rhmp \ -t <private registry>/redhat-marketplace-index:v4.9 \ -c docker
-```
-
-Push the pruned index image to the private registry.
-
-```
-$ docker push <private registry>/redhat-marketplace-index:v4.9
-```
-
-1. Create a pull secret with RedHat and private registry credentials.
-
-Follow the steps in Configuring credentials that allow images to be
-mirrored to create an image registry credentials file that allows mirroring
-  images to the private registry.
-
-1. Mirror the operator images to the private registry
-
-```
-$ REG_CREDS=pull-secret.json # path to pull secret file created in step 2$ oc adm catalog mirror <private registry>/redhat-marketplace-index:v4.9 \<private registry>/olm-mirror -a ${REG_CREDS}
-```
-
-This copies the operator images from RedHat to the local registry. This
-  also creates a manifest directory, which is used in the next two steps.
-
-Example output:
-
-```
-...info: Mirroring completed in 4.61s (0B/s)no digest mapping available for <private registry>/redhat-marketplace-index:v4.9, skip writing to ImageContentSourcePolicywrote mirroring manifests to <path of manifest directory>
-```
-
-1. Create an ImageContentSourcePolicy in the disconnected cluster.
-
-Create an ImageContentSourcePolicy object using the imageContentSourcePolicy.yaml file in the manifests directory created
-  in step 3.
-
-```
-$ oc create -f <path to manifests dir>/imageContentSourcePolicy.yaml
-```
-
-1. Create a CatalogSource in the disconnected cluster.
-
-Create a CatalogSource object using the catalogSource.yaml file in
-  the manifests directory created in step 3.
-
-```
-$ oc create -f <path to manifests dir>/catalogSource.yaml
-```
-
-catalogSource.yaml can be updated to specify a catalog display name as
-  the example below.
-
-```
-apiVersion: operators.coreos.com/v1alpha1kind: CatalogSourcemetadata:  name: test-catalog  namespace: openshift-marketplacespec:  image: <catalog image>  sourceType: grpc  displayName: Offline Catalog  publisher: Local Publisher  updateStrategy:          registryPoll:                  interval: 30m
-```
-
-Optionally, default catalog sources can be removed with the command
-  below.
-
-```
-$ oc patch OperatorHub cluster --type json \  -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
-```
-
-Verify the package manifest.
-
-```
-$ oc get packagemanifest -n openshift-marketplaceNAME                             CATALOG        AGEk10-kasten-operator-term-rhmp    Test Catalog   10mk10-kasten-operator-rhmp         Test Catalog   10m
-```
-
-1. Install the operators via the operator hub.
-
-Veeam Kasten operators can be now installed from the operator hub.
-
-Follow the steps under operator install to continue installing Veeam Kasten.
-
-## Other Installation Options â
-
-For a complete list of installation options, please visit our advanced installation page .
-
-After installing the "Veeam Kasten (Enterprise - PAYGO)" edition, if
-    the warning message "Unable to validate Red Hat Marketplace license"
-    is displayed on the Veeam Kasten dashboard, please verify the cluster is
-    registered with Red Hat Marketplace and the Red Hat Marketplace Operator
-    is installed, and then re-install Veeam Kasten.
-
-### OpenShift on AWS â
-
-When deploying OpenShift on AWS without using the EBS CSI driver for
-  persistent storage, make sure that you configure these policies before executing the installation command provided below:
-
-```
-$ helm install k10 kasten/k10 --namespace=kasten-io \    --set scc.create=true \    --set secrets.awsAccessKeyId="${AWS_ACCESS_KEY_ID}" \    --set secrets.awsSecretAccessKey="${AWS_SECRET_ACCESS_KEY}"
-```
-
-## Securing Veeam Kasten with SecurityContextConstraints â
-
-Veeam Kasten installs customized SecurityContextConstraints (SCC) to
-  ensure that all workloads associated with Veeam Kasten have just enough
-  privileges to perform their respective tasks.
-
-For additional information about SCCs, please refer to the official OpenShift
-documentation
-
-Starting with OpenShift 4.14, a new openshift.io/required-scc annotation was introduced. Veeam
-    Kasten applies this annotation to its own pods to ensure that the
-    correct SecurityContextConstraints (SCC) have been applied.
-
-Please note that pods created for Kanister Execution Hooks execution will not receive the openshift.io/required-scc annotation. For more
-    information, visit the Managing security context
-constraints .
-
-### SecurityContextConstraints customization â
-
-The value of the Priority field in SecurityContextConstraints (SCC) can
-  be adjusted to align the priority with the existing cluster
-  configuration.
-
-To set the desired Priority value in an Operator-managed installation,
-  modify the YAML of the Veeam Kasten Operand configuration with the
-  parameters below:
-
-```
-scc:  priority: <priority_value>
-```
-
-This customization can be achieved in a Helm-based installation by
-  adding the following parameter to the Helm command:
-
-```
---set scc.priority=<priority_value>
-```
-
-### SecurityContextConstraints Leakage â
-
-OpenShift assigns SCC to workloads automatically. By default, the most
-  restrictive SCC matching a workload security requirement will be
-  selected and assigned to that workload. One of the criteria for SCC
-  selection is the availability of the SCC to a User or ServiceAccount.
-  SCC leakage means that some workloads might get an SCC applied to them,
-  which was not the intended one.
-
-Veeam Kasten protects its SCC from leaking onto other workloads by
-  limiting access only to its dedicated ServiceAccount:
-
-```
-users:  - system:serviceaccount:kasten-io:executor-svc  # example of a Veeam Kasten service account  # all Veeam Kasten service accounts will be listed as users
-```
-
-In this example, and in the rest of this page, Veeam Kasten is installed
-    into the namespace kasten-io (default). If the cluster being considered
-    has a different configuration, those values need to be adapted to match
-    the values used during Veeam Kasten's installation in this cluster.
-
-Despite the usage restrictions, it is still possible to get Veeam
-  Kasten's SCC assigned to other workloads. This could happen when a
-  workload is started by a cluster admin or any other user with an allowed use action on all SCCs ( * ) or on Veeam Kasten's specific SCC
-  ( k10-scc ). This is because users with the ClusterRole cluster-admin bound to them have unlimited access to all
-  available SCCs, without any restrictions.
-
-Veeam Kasten's SCC may be unexpectedly applied to workloads it was not
-  intended for under the following conditions:
-
-- The workload is initiated by a user with cluster admin privileges
-- The user initiating the workload has a role that grants access to all SCCs
-
-### How to verify if access to a specific SecurityContextConstraints is granted â
-
-OpenShift's command line (CLI) client, oc , has a can-i command that
-  can be used with impersonation to check if a user can perform a specific
-  action on a specific resource. Alternatively, the standard kubectl CLI client also has the same command built-in and
-  can be used to perform the same check. Simply replace oc with kubectl in the command below.
-
-To check if a user can use/access Veeam Kasten's SCC, the following
-  command can be used:
-
-```
-oc auth can-i use securitycontextconstraints/k10-scc --as=<your_username>
-```
-
-The output will contain yes if the specified user is able to use Veeam
-  Kasten's SCC or no if it is not. For example, the output for the
-  following check, "Can Veeam Kasten's ServiceAccount use Veeam
-  Kasten's SCC", should be yes :
-
-```
-oc auth can-i use securitycontextconstraints/k10-scc --as=system:serviceaccount:kasten-io:executor-svc
-```
-
-Note that executor-svc is just one of the Veeam Kasten service accounts created for a default install.
-
-Detailed information about can-i and impersonation can be found in
-  the official Kubernetes
-documentation .
-
-## Accessing Dashboard via Route â
-
-As documented here , the
-  Veeam Kasten dashboard can also be accessed via an OpenShift Route.
-
-## Authentication â
-
-### OpenShift OAuth server â
-
-As documented here , the
-  OpenShift OAuth server can be used to authenticate access to Veeam
-  Kasten.
-
-### Using an OAuth Proxy â
-
-As documented here , the OpenShift OAuth proxy can be used for authenticating
-  access to Veeam Kasten.
-
-## Validating the Install â
-
-To validate that Veeam Kasten has been installed properly, the following
-  command can be run in Veeam Kasten's namespace (the install default is kasten-io ) to watch for the status of all Veeam Kasten pods:
-
-```
-$ kubectl get pods --namespace kasten-io --watch
-```
-
-It may take a couple of minutes for all pods to come up but all pods
-  should ultimately display the status of Running .
-
-```
-$ kubectl get pods --namespace kasten-ioNAMESPACE     NAME                                    READY   STATUS    RESTARTS   AGEkasten-io     aggregatedapis-svc-b45d98bb5-w54pr      1/1     Running   0          1m26skasten-io     auth-svc-8549fc9c59-9c9fb               1/1     Running   0          1m26skasten-io     catalog-svc-f64666fdf-5t5tv             2/2     Running   0          1m26s...
-```
-
-In the unlikely scenario that pods that are stuck in any other state,
-  please follow the support documentation to debug further.
-
-### Validate Dashboard Access â
-
-By default, the Veeam Kasten dashboard will not be exposed externally.
-  To establish a connection to it, use the following kubectl command to
-  forward a local port to the Veeam Kasten ingress port:
-
-```
-$ kubectl --namespace kasten-io port-forward service/gateway 8080:80
-```
-
-The Veeam Kasten dashboard will be available at http://127.0.0.1:8080/k10/#/ .
-
-For a complete list of options for accessing the Kasten Veeam Kasten
-  dashboard through a LoadBalancer, Ingress or OpenShift Route you can use
-  the instructions here .
-
-### Using Veeam Kasten Console Plugin â
-
-The Veeam Kasten operator includes the OpenShift Console Plugin,
-  providing faster and more convenient access to the essential data about
-  the Veeam Kasten application state.
-
-#### Enable Veeam Kasten Console Plugin â
-
-The Veeam Kasten Console Plugin can be enabled during the installation
-  of the Veeam Kasten operator. For more details, see Veeam Kasten Installation .
-
-To enable the plugin for existing K10 deployments, navigate to the Operator Details page for Veeam Kasten operator in the OpenShift
-  Console. In the Console Plugin section on the right-hand side,
-  select the Enabled checkbox.
-
-If Veeam Kasten was installed using Helm based Installation , enabling the plugin from the Console Details page will
-  be the only available option. Navigate to the Console Plugins tab of
-
-### the Console Details page in the OpenShift Console. Find the **Veeam â
-
-Kasten Plugin from OpenShift Console** and select the Enabled checkbox.
-
-#### Veeam Kasten Console Plugin UI Overview â
-
-The Veeam Kasten Console Plugin adds a new Veeam Kasten tab to the
-  OpenShift Web Console panel on the left. Click on the tab to open the
-  plugin. The plugin UI contains all the essential data from the Veeam Kasten Dashboard ,
-  including the system overview and the recent activity.
 
 ---
 
@@ -3662,14 +3067,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.0.2/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.1
+$ curl https://docs.kasten.io/downloads/8.0.2/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.2
 ```
 
 Follow this guide to
@@ -3724,7 +3129,7 @@ Shareable volume backup and restore workflows are not compatible with immutable 
     object-locking bucket for such cases can amplify storage usage without
     any additional benefit.
 
-Shareable volume backup and restore workflows are not compatible with NFS FileStore location profiles .
+Shareable volume backup and restore workflows are not compatible with NFS/SMB location profiles .
 
 The location profile must be present for shareable volume backups to
   work.
@@ -3770,13 +3175,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.0.2/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.1/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.0.2/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â
@@ -4117,12 +3522,12 @@ The available functionality varies by the type of cluster infrastructure
 | vSphere | Supported versions | 7.0 U3 or higher | 7.0 U1 or higher |
 | vCenter access required[2] | Required | Required |
 | Export | Export infilesystem mode | Not Supported[3] | Supported |
-| Export inblock mode[4] | To anObject Storage Location, anNFS File Storage Locationor aVeeam Repository[5] | To anObject Storage Location, anNFS File Storage Locationor aVeeam Repository[5] |
+| Export inblock mode[4] | To anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository[5] | To anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository[5] |
 | Restore | Restore from asnapshot | Not Supported[3] | Supported |
 | Restore from an export (any mode) | Supported | Supported |
 | Instant Recoveryrestore | Not Supported[3] | From aVeeam Repository |
 | Import | Import afilesystem modeexport | Supported | Supported |
-| Import ablock modeexport | From anObject Storage Location, anNFS File Storage Locationor aVeeam Repository[5] | From anObject Storage Location, anNFS File Storage Locationor aVeeam Repository[5] |
+| Import ablock modeexport | From anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository[5] | From anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository[5] |
 
 1. vSphere with Tanzu supervisor clusters and VMware Tanzu Kubernetes Grid management clusters are not supported.
 
@@ -4132,7 +3537,7 @@ The available functionality varies by the type of cluster infrastructure
 
 1. Block mode snapshot exports are available in all types of vSphere cluster infrastructures. Snapshot content is accessed at the block level directly through the network using the VMware VDDK API. Enable changed block tracking on the VMware cluster nodes to reduce the amount of data transferred during export. See this Veeam Kasten knowledge base article for how to do so in vSphere with Tanzu guest clusters.
 
-1. Block mode snapshot exports can be saved in an Object Storage Location , an NFS File Storage Location or a Veeam Repository .
+1. Block mode snapshot exports can be saved in an Object Storage Location , an NFS/SMB File Storage Location or a Veeam Repository .
 
 A vSphere Infrastructure Profile must be created from the Infrastructure page of the Profiles menu in the navigation sidebar
   to identify the vCenter server.

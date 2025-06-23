@@ -771,7 +771,7 @@ This section helps you learn about the Veeam Kasten platform and the
 
 Currently the following Veeam Kasten objects are supported:
 
-- Profile - abstracts a location (e.g. object store, NFS file store) and a set of credentials for accessing it. The Profile location is used to store and transfer application meta-data and, in some cases, actual persistent data during Veeam Kasten data management operations.
+- Profile - abstracts a location (e.g. object store, NFS/SMB file store) and a set of credentials for accessing it. The Profile location is used to store and transfer application meta-data and, in some cases, actual persistent data during Veeam Kasten data management operations.
 - Policy - represents a collection of data management actions that are configured to occur on a periodic or event driven basis. Policies would typically encode a set of business rules and translate them to specific actions that Veeam Kasten will apply on the applications it has discovered.
 - PolicyPreset - is a predefined set of settings that can easily be applied to a Policy . A PolicyPreset can represent organizational SLAs requiring a user to specify only the application details to be used in a Policy .
 - Applications - abstracts an application that has been automatically discovered on the cluster where Veeam Kasten is running. The application object encapsulates information about all stateful and stateless resources that comprise the application.
@@ -1936,7 +1936,7 @@ A StorageSecurityContext custom resource (CR) represents pod security
   will use the parameters set in the StorageSecurityContext for its
   internal pods, which access bound storage.
 
-If the target storage type is NFS and a StorageSecurityContext is
+If the target storage type is NFS/SMB and a StorageSecurityContext is
     used for restoration, the owner of the restored files and directories
     will be set to the UID and GID specified in the StorageSecurityContext .
 
