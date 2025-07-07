@@ -316,6 +316,7 @@ Support is available for the following object storage providers:
 - Amazon S3 or S3 Compatible Storage
 - Azure Storage
 - Google Cloud Storage
+- Veeam Data Cloud Vault
 
 Veeam Kasten creates Kopia repositories in object
   store locations. Veeam Kasten uses Kopia as a data
@@ -371,6 +372,41 @@ When using Google Workload Identity Federation with Kubernetes as the
     Identity Provider, ensure that the credential configuration file is
     configured with the format type ( --credential-source-type ) set to Text , and specify the OIDC ID token path ( --credential-source-file )
     as /var/run/secrets/kasten.io/serviceaccount/GWIF/token .
+
+#### Veeam Data Cloud Vault â
+
+A Veeam Data Cloud Vault Repository may be used as the destination for persistent
+  volume snapshot data in compatible environments.
+
+Prior to creating a Veeam Data Cloud Vault location profile within Veeam Kasten, a Kasten instance must
+  first be registered with Veeam Data Cloud. Visit Settings > Registration to start that process. See Veeam Data Cloud Vault Integration Guide for additional details.
+
+To create a Veeam Data Cloud Vault location profile, select Create New Profile and specify Veeam Data Cloud Vault as the provider type.
+
+Select one of the storage vaults assigned to this Veeam Kasten Backup Server . If you haven't yet
+  assigned a storage vault to this registered cluster, you'll have to visit My Account to configure that.
+  For more information on that process please visit the Veeam Data Cloud Vault user guide
+
+Upon clicking Submit , the dialog will validate the input data.
+
+If registration has occurred recently, there is a possibility it may take 30
+    minutes to propagate. Please wait or come back and try again later if location
+    profile validation fails and you've recently configured the registration or
+    vault assignment steps.
+
+All Veeam Vault locations are configured as immutable; follow these instructions to
+  learn more about configuration within Veeam Kasten.
+
+##### Considerations â
+
+The following limitations should be considered when exporting
+  data from Veeam Kasten to Veeam Vault:
+
+- Veeam Vault is a generic object storage repository
+- All Veeam Vault exports are immutable.
+- Data captured in Veeam Vault remains (and continues to incur charges) until the retention period expires, even if the location profile is removed from a Kasten installation.
+- While Veeam Vault can be used to protect kubernetes data from any on-premises or cloud environment, when running in Azure Veeam highly recommends the Kasten cluster be located in the same Azure region as the Veeam Vault storage account to limit possible ingress and egress data charges
+- Removing the Veeam Vault location profile will not remove any data from Veeam Vault and prevents Kasten from running future cleanup actions.
 
 ### File Storage Location â
 
@@ -432,7 +468,7 @@ apiVersion: v1kind: PersistentVolumemetadata:  annotations:    pv.kubernetes.io/
 Create a Secret for SMB credentials:
 
 ```
-apiVersion: v1kind: Secretmetadata:  name: smbcreds   namespace: samba-server stringData:  username: <username>   password: <password>
+apiVersion: v1kind: Secretmetadata:  name: smbcreds  namespace: samba-serverstringData:  username: <username>  password: <password>
 ```
 
 - volumeHandle : Unique identifier for the volume.
@@ -654,6 +690,10 @@ To set up immutability in Google take into account the following requirements:
 - Enable object versioning on the bucket.
 - Enable object retention lock on the bucket.
 - If using minimal permissions with the credentials, storage.objects.setRetention permission is also required.
+
+### Veeam Data Cloud Vault Immutability â
+
+There are no special setup requirements to configure Veeam Vault immutability. See Setting up Immutability for Veeam Vault for more details.
 
 ## Location Profiles page â
 
@@ -1159,6 +1199,19 @@ The Protection period set in Veeam Kasten should not exceed the
     shown in the figure):
 
 Please check, Setting Up Immutable Backup Protection for details about immutable profile creation.
+
+### Setting Up Immutable Backup Protection Using Veeam Data Cloud Vault â
+
+To use the Veeam Kasten backup immutability feature with Veeam Vault, make sure
+  to configure the desired retention period in Kasten as this setting is required.
+
+The default value is 30 days but it may be configured as low as 1 day.
+
+It is recommended to set up the retention policy in Kasten to automatically delete
+    restore points when they are no longer required and to prevent unnecessary costs.
+
+If you need to keep, for example, N daily backups and M yearly backups, create
+  several policies with different backup frequencies and retention settings.
 
 #### Creating an Immutable Policy â
 
