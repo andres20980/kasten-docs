@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.3    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.4    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -657,7 +657,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.3    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.4    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1824,7 +1824,7 @@ To install the latest version of Kasten with the latest values use the
   command below:
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.3/fips/fips-values.yaml
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.4/fips/fips-values.yaml
 ```
 
 ---
@@ -2706,7 +2706,7 @@ Installing Veeam Kasten with the Iron Bank images, as
   version of Veeam Kasten that's being installed:
 
 ```
-$ curl -sO https://docs.kasten.io/downloads/8.0.3/ironbank/ironbank-values.yaml
+$ curl -sO https://docs.kasten.io/downloads/8.0.4/ironbank/ironbank-values.yaml
 ```
 
 This file contains the correct helm values that ensure the deployment of
@@ -2804,7 +2804,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.3.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.4.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2819,7 +2819,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.3.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.4.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2858,10 +2858,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.3 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.4 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.0.3).
+The following commands operate against the latest version of Veeam Kasten (8.0.4).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2870,12 +2870,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.0.3). This can be helpful if there is a requirement to tag and
+  version (8.0.4). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.3 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.4 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2888,7 +2888,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.3 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.4 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -2926,7 +2926,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.3 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.3 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.4 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.4 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3067,14 +3067,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.3/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.0.4/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.3/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.3
+$ curl https://docs.kasten.io/downloads/8.0.4/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.4
 ```
 
 Follow this guide to
@@ -3175,13 +3175,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.3/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.0.4/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.3/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.0.4/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â
@@ -3780,6 +3780,11 @@ To upgrade to the latest Veeam Kasten release, unless you have installed
   with the release name k10 . If you do not remember your release name,
   you can easily discover that via the use of helm list --namespace=kasten-io .
 
+If Generic Storage Backup is being used
+    for backing the applications and if a new version of
+    Kanister-tools image is available, additional steps may need to be performed
+    for updating the Kanister sidecar image manually. Follow steps mentioned in Update Kanister Sidecar Image section.
+
 ```
 $ helm repo update && \    helm get values k10 --output yaml --namespace=kasten-io > k10_val.yaml && \    helm upgrade k10 kasten/k10 --namespace=kasten-io -f k10_val.yaml
 ```
@@ -3796,6 +3801,64 @@ Please use the following as a workaround and then run the above upgrade
 
 ```
 $ kubectl --namespace=kasten-io delete deployment prometheus-server
+```
+
+## Updating Kanister Sidecar Image for Applications using Generic Storage Backup â
+
+After releasing a new version of Veeam Kasten, a new Sidecar container
+  may be published. In such cases, the Kanister Sidecar image needs to be
+  updated for applications using Generic Storage Backup. Generic Storage Backup .
+  If the Sidecar injection was enabled while installing/upgrading Veeam Kasten using the Helm option described in Generic Storage Backup .
+  the application pods having the Kanister Sidecar injected in them can be
+  restarted.
+  This will pull the latest Kanister tools image for the application.
+
+Alternatively, to refrain from the restarting the application,
+  one of the below methods can be followed to update the Kanister
+  Sidecar image in the application pods.
+
+1. Manual update of the Kanister Sidecar Image : Manually update the Kanister Sidecar image in all the application deployments where the Kanister Sidecar is injected. This can be done by changing the image for kanister-sidecar container in the application deployment.
+
+```
+$ kubectl set image deployment/<deployment_name> kanister-sidecar=<image_name>:<version>
+```
+
+Executing this updates the deployment and causes the pods to restart. The
+    restart behavior depends on the deployment strategy.
+
+1. Removing the Sidecar manually : Once the Kanister Sidecar is removed, mutating webhook will inject the Sidecar with the new image automatically. This can be done by any of the methods mentioned below: 2.1 Use Kasten tools to remove the Sidecar. Note This should be done in a planned maintenance window. $ ./k10tools k10genericbackup uninject all -n < namespace > 2.2 Fetch the YAML manifest for the deployment and manually remove the Kanister Sidecar $ kubectl get deployment < deployment_name > -o yaml > deployment.yaml Identify the section in the YAML file that defines the containers in the deployment. Delete the definition of the unwanted Sidecar container. containers: - args: - tail -f /dev/null image: gcr.io/kasten-images/kanister-tools:108 imagePullPolicy: IfNotPresent name: kanister-sidecar resources: { } terminationMessagePath: /dev/termination-log terminationMessagePolicy: File volumeMounts: - mountPath: /data/data name: data - mountPath: /tmp/kopia-cache name: kopia-cache-volume dnsPolicy: ClusterFirst Apply the modified deployment as below $ kubectl apply -f deployment.yaml -n < namespace_name >
+
+Removing the Sidecar manually : Once the Kanister Sidecar is removed,
+      mutating webhook will inject the Sidecar with the new image automatically.
+      This can be done by any of the methods mentioned below:
+
+2.1 Use Kasten tools to remove the Sidecar.
+
+This should be done in a planned maintenance window.
+
+```
+$ ./k10tools k10genericbackup uninject all -n <namespace>
+```
+
+2.2 Fetch the YAML manifest for the deployment and manually remove
+      the Kanister Sidecar
+
+```
+$ kubectl get deployment <deployment_name> -o yaml > deployment.yaml
+```
+
+Identify the section in the YAML file that defines the containers
+      in the deployment.
+      Delete the definition of the unwanted Sidecar container.
+
+```
+containers:- args:- tail -f /dev/nullimage: gcr.io/kasten-images/kanister-tools:108imagePullPolicy: IfNotPresentname: kanister-sidecarresources: {}terminationMessagePath: /dev/termination-logterminationMessagePolicy: FilevolumeMounts:- mountPath: /data/data    name: data- mountPath: /tmp/kopia-cache    name: kopia-cache-volumednsPolicy: ClusterFirst
+```
+
+Apply the modified deployment as below
+
+```
+$ kubectl apply -f deployment.yaml -n <namespace_name>
 ```
 
 ## Upgrading on the Google Cloud Marketplace â
@@ -3866,6 +3929,11 @@ To upgrade to the latest Veeam Kasten release, unless you have installed
   with the release name k10 . If you do not remember your release name,
   you can easily discover that via the use of helm list --namespace=kasten-io .
 
+If Generic Storage Backup is being used
+    for backing the applications and if a new version of
+    Kanister-tools image is available, additional steps may need to be performed
+    for updating the Kanister sidecar image manually. Follow steps mentioned in Update Kanister Sidecar Image section.
+
 ```
 $ helm repo update && \    helm get values k10 --output yaml --namespace=kasten-io > k10_val.yaml && \    helm upgrade k10 kasten/k10 --namespace=kasten-io -f k10_val.yaml
 ```
@@ -3882,6 +3950,64 @@ Please use the following as a workaround and then run the above upgrade
 
 ```
 $ kubectl --namespace=kasten-io delete deployment prometheus-server
+```
+
+## Updating Kanister Sidecar Image for Applications using Generic Storage Backup â
+
+After releasing a new version of Veeam Kasten, a new Sidecar container
+  may be published. In such cases, the Kanister Sidecar image needs to be
+  updated for applications using Generic Storage Backup. Generic Storage Backup .
+  If the Sidecar injection was enabled while installing/upgrading Veeam Kasten using the Helm option described in Generic Storage Backup .
+  the application pods having the Kanister Sidecar injected in them can be
+  restarted.
+  This will pull the latest Kanister tools image for the application.
+
+Alternatively, to refrain from the restarting the application,
+  one of the below methods can be followed to update the Kanister
+  Sidecar image in the application pods.
+
+1. Manual update of the Kanister Sidecar Image : Manually update the Kanister Sidecar image in all the application deployments where the Kanister Sidecar is injected. This can be done by changing the image for kanister-sidecar container in the application deployment.
+
+```
+$ kubectl set image deployment/<deployment_name> kanister-sidecar=<image_name>:<version>
+```
+
+Executing this updates the deployment and causes the pods to restart. The
+    restart behavior depends on the deployment strategy.
+
+1. Removing the Sidecar manually : Once the Kanister Sidecar is removed, mutating webhook will inject the Sidecar with the new image automatically. This can be done by any of the methods mentioned below: 2.1 Use Kasten tools to remove the Sidecar. Note This should be done in a planned maintenance window. $ ./k10tools k10genericbackup uninject all -n < namespace > 2.2 Fetch the YAML manifest for the deployment and manually remove the Kanister Sidecar $ kubectl get deployment < deployment_name > -o yaml > deployment.yaml Identify the section in the YAML file that defines the containers in the deployment. Delete the definition of the unwanted Sidecar container. containers: - args: - tail -f /dev/null image: gcr.io/kasten-images/kanister-tools:108 imagePullPolicy: IfNotPresent name: kanister-sidecar resources: { } terminationMessagePath: /dev/termination-log terminationMessagePolicy: File volumeMounts: - mountPath: /data/data name: data - mountPath: /tmp/kopia-cache name: kopia-cache-volume dnsPolicy: ClusterFirst Apply the modified deployment as below $ kubectl apply -f deployment.yaml -n < namespace_name >
+
+Removing the Sidecar manually : Once the Kanister Sidecar is removed,
+      mutating webhook will inject the Sidecar with the new image automatically.
+      This can be done by any of the methods mentioned below:
+
+2.1 Use Kasten tools to remove the Sidecar.
+
+This should be done in a planned maintenance window.
+
+```
+$ ./k10tools k10genericbackup uninject all -n <namespace>
+```
+
+2.2 Fetch the YAML manifest for the deployment and manually remove
+      the Kanister Sidecar
+
+```
+$ kubectl get deployment <deployment_name> -o yaml > deployment.yaml
+```
+
+Identify the section in the YAML file that defines the containers
+      in the deployment.
+      Delete the definition of the unwanted Sidecar container.
+
+```
+containers:- args:- tail -f /dev/nullimage: gcr.io/kasten-images/kanister-tools:108imagePullPolicy: IfNotPresentname: kanister-sidecarresources: {}terminationMessagePath: /dev/termination-logterminationMessagePolicy: FilevolumeMounts:- mountPath: /data/data    name: data- mountPath: /tmp/kopia-cache    name: kopia-cache-volumednsPolicy: ClusterFirst
+```
+
+Apply the modified deployment as below
+
+```
+$ kubectl apply -f deployment.yaml -n <namespace_name>
 ```
 
 ## Upgrading on the Google Cloud Marketplace â
