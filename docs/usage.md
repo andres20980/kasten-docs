@@ -1763,6 +1763,8 @@ Clicking on a specific restore point will provide additional details. From there
 
 Additionally, local restore points can be exported by clicking on the Export option in the dropdown menu:
 
+Exported restore points can be validated by selecting the Validate option in the dropdown menu:
+
 Restore points can be deleted, either in bulk by selecting them first, or individually by using the
   action dropdown menu:
 

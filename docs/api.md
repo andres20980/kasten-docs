@@ -345,6 +345,33 @@ The following is a complete specification of the ExportAction API.
 ## Standard Kubernetes API Version declaration. Required.apiVersion: actions.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.## Must be ExportActionkind: ExportActionmetadata:  ## Kubernetes labels.  ## The following labels will be auto-populated upon creation.  ## These labels can be used for filtering when getting actions.  ## Any additional custom labels can be specified if desired.  labels:    ## Populated for policy initiated RestoreAction only.    k10.kasten.io/policyName: "sample-originating-policy"    k10.kasten.io/policyNamespace: "namespace-of-policy"    ## Populated for on-demand and policy initiated actions    k10.kasten.io/appName: "sample-app"    k10.kasten.io/appNamespace: "sample-app"    ## Populated for on-demand RunActions and policy initiated actions    k10.kasten.io/runActionName: "run-lhr7n6j8dw"    k10.kasten.io/runActionNamespace: "namespace-of-policy"  ## ExportAction name may be any valid Kubernetes object name. Required.  ## ExportAction name is not mutable once created.  name: export-action-example  ## ExportAction names must be unique and as an alternative to name above  ## one can take advantage of Kubernetes auto name generation  generateName: export-action-  ## Action namespace. Required.  ## Namespace must be where Veeam Kasten is installed.  namespace: kasten-io## ExportAction spec. Required.spec:  ## Target RestorePoint to be used for export. Required.  ## The caller needs to have read permission for the RestorePoint API  ## in the namespace below.  subject:    ## Standard Kubernetes kind declaration. Required.    ## Must be 'RestorePoint'    kind: RestorePoint    ## Name of the restore point to use. Required.    name: sample-restore-point    ## Namespace of the restore point. Required.    namespace: sample-app  ## Location Profile that is used for this export. Required.  profile:    ## Name of the location profile. Required.    name: sample-profile    ## Namespace of the location profile. Required.    ## Must be the namespace where Veeam Kasten is installed.    namespace: kasten-io  ## The blockModeProfile is a reference to a profile that supports block based backup.  ## Optional: If set then a block mode backup of snapshot data will be performed  ## instead of a filesystem backup.  ## This should only be used when the infrastructure also supports block based backup.  blockModeProfile:    ## Name of the location profile supporting block mode. Required.    name: my-block-mode-profile    ## Namespace of the location profile. Required.    ## Must be in the namespace where Veeam Kasten is installed.    namespace: kasten-io  ## String to be used to initiate corresponding import.  ## Will be automatically populated. Do not explicitly specify.  ## This field will be move to 'status' in an upcoming release  receiveString: "xbrd234sampleExportSting123=="  ## Backup portability setting.  ## Convert volume snapshots into an infrastructure-independent  ## format.  exportData:    ## Default setting for all storage classes    enabled: false    ## Optional: Storage class to use for any temporary PVCs created    ## during the snapshot conversion process. If not specified, the    ## storage class of the source volume is used.    exporterStorageClassName: gp2    ## Overrides for the default exportData setting specified above.    ## Use this if you want to modify the defaults for a PVC that    ## has a specific storage class.    overrides:      ## Override setting of a specific storage class.      - storageClassName: gp2        enabled: false      - storageClassName: gp2-eu-west-1a        enabled: true        exporterStorageClassName: io1  ## Optional: Hooks are Kanister actions executed first or last in an ExportAction.  ## A Kanister ActionSet is created with the exported namespace as its subject.  ## The Blueprint must be in the Veeam Kasten namespace. Hooks do not use Location Profile.  hooks:    ## The Kanister action referenced by preHook will be executed before    ## other phases of the ExportAction. Optional.    preHook:      blueprint: export-hook-blueprint      actionName: before-export    ## The Kanister action referenced by onSuccess will be executed once all    ## other phases in the ExportAction have completed successfully. Optional.    onSuccess:      blueprint: export-hook-blueprint      actionName: on-success    ## The Kanister action referenced by onFailure will be executed only    ## when the ExportAction fails and exhausts all retries. Optional.    onFailure:      blueprint: export-hook-blueprint      actionName: on-failure## Status of the action. Users should not set directly.status:  ## State of the action. Always present.  ## Valid values are:  ## Pending - action has been created  ## Running - action has been validated and is running  ## AttemptFailed - at least one action phase needs to retry  ## Failed - action has failed (at least one phase failed permanently)  ## Complete - action has completed successfully  ## Skipped - action has been skipped  ## Deleting - action is being deleted  state: Complete  ## Action execution progress represented as an integer percentage value in range between 0 and 100. Optional.  progress: 88  ## Action execution progress details, containing information about amounts of data.  ## Progress details are available for export only.  ## Export process consists of three operations:  ## - reading from disk (readBytes value reflects how much data was read from disk)  ## - calculating changes between data on disk and previously exported data (processedBytes value reflects how much data was analyzed).  ##   Data known to be unchanged since the last export will not be read from disk but will still count as being processed.  ## - uploading newly added data (transferredBytes value reflects how much data was uploaded to the export location for the namespace being exported)  progressDetails:    ## Total size of the volumes containing data to be exported.    totalBytes: 10000    ## Number of bytes which were read.    readBytes: 9000    ## Number of bytes which were processed.    processedBytes: 8000    ## Number of bytes which were transferred.    transferredBytes: 5000    ## Number of bytes processed per second    processingRate: 8000    ## Number of volumes to be exported    totalVolumes: 3    ## Number of already exported volumes    completedVolumes: 1    ## Time stamp when progress details were updated    updatedTime: "2019-02-11T05:13:10Z"  ## Initial start time of action. Always present.  startTime: "2019-02-11T05:10:45Z"  ## End time of action. Can be 'null' if action still running. Always present.  endTime: "2019-02-11T05:13:10Z"  ## Error associated with the action.  ## Only included if the action does not succeed.  error:    message: Sample error message  ## List of exceptions associated with the action.  ## Only included if exceptions are present.  exceptions:    - message: Sample exception message
 ```
 
+### Set minimumExportDiskSize for exportStorageClassName â
+
+Users can customize the storageClass used for temporary PVCs created during the snapshot conversion process by setting the exportData.exporterStorageClassName field.
+
+Additionally, to avoid PVC creation failures particularly with certain storage backends that enforce minimum volume sizes, user can add k10.kasten.io/minimumExportDiskSize annotation in StorageClass to influence the sizing of temporary PVCs during export operations. This annotation ensures that any temporary PVCs created during export operations meet the specified minimum size, even if the source PVC is smaller. If the source PVC is larger than the specified minimum, its original size will be used.
+
+#### Supported Units â
+
+The annotation value supports the following units:
+
+- Binary units: Ki , Mi , Gi , Ti , Pi , Ei
+- Decimal units: k , M , G , T , P , E
+
+Binary units: Ki , Mi , Gi , Ti , Pi , Ei
+
+Decimal units: k , M , G , T , P , E
+
+#### Example Usage â
+
+To set a minimum export disk size of 10 GiB for a specific StorageClass , k10.kasten.io /minimumExportDiskSize annotation can be added as shown below:
+
+```
+apiVersion: storage.k8s.io/v1kind: StorageClassmetadata:  name: example-storage-class  annotations:    k10.kasten.io/minimumExportDiskSize: "10Gi"provisioner: example-provisioner
+```
+
+This ensures that any temporary PVCs created during export operations using this StorageClass will have a minimum size of 10â¯GiB. If the source PVC is smaller than 10â¯GiB, the temporary PVC will default to 10â¯GiB; otherwise, it will retain the size of the source PVC.
+
 ### ExportAction Details API Type â
 
 The specification for [actionDetails] for ExportAction API
@@ -582,6 +609,54 @@ The following is a complete specification for the UpgradeAction API.
 
 ```
 ## Standard Kubernetes API Version declaration. Required.apiVersion: actions.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.## Must be 'UpgradeAction'kind: UpgradeActionmetadata:  ## Action name. May be any valid Kubernetes object name.  ## Name or generateName is required.  name: upgrade-action-example  ## UpgradeAction names must be unique and as an alternative to  ## name above one can take advantage of Kubernetes name auto-generation.  generateName: upgrade-action-## UpgradeAction specification. Required.spec:  ## Subject specifies the Policy or StorageRepository to be upgraded. Required.  subject:    ## Standard kubernetes kind declaration. Required.    ## Must be 'StorageRepository' or 'Policy'.    kind: StorageRepository    ## Name of the upgrade's subject. Required.    name: storage-repository-example    ## Namespace of the upgrade's subject. Required.    namespace: kasten-io    ## Profile specifies the location profile with which the    ## subject (StorageRepository or Policy) is associated. Required.  profile:    ## Name of the profile. Required.    name: aws-location-profile-example    ## Namespace of the profile. Required.    ## Must be the same namespace Veeam Kasten is installed in.    namespace: kasten-iostatus:  ## Error associated with the action.  ## Only included if the action does not succeed.  error:    message: Sample error message  ## List of exceptions associated with the action.  ## Only included if exceptions are present.  exceptions:    - message: Sample exception message  ## Start time and end time of the upgrade action.  startTime: "2004-02-29T21:08:07Z"  endTime: "2004-02-29T21:13:07Z"  ## State of the upgrade action: "Running", "Complete" or "Failed"  state: Complete
+```
+
+## ValidateAction â
+
+A ValidateAction resource validates backup data and
+  metadata associated with a given Restore Point . Restore points exported using Filesystem mode can
+  use the validate action to check the volume data exported for that
+  restore point.
+
+### Create ValidateAction Example â
+
+The following example illustrates how to create a ValidateAction to validate backup data
+  and metadata, including a check of 10% of the files in the exported volume data.
+
+```
+$ cat > sample-validate-action.yaml <<EOFapiVersion: actions.kio.kasten.io/v1alpha1kind: ValidateActionmetadata:  generateName: validate-sample-app-  namespace: validation-nsspec:  volumeDataCheckOptions:    verifyFilesPercent: 10    failFast: false  subject:    kind: RestorePoint    name: sample-restore-point    namespace: sample-appEOF$ kubectl create -f sample-validate-action.yaml -n kasten-ioactions.kio.kasten.io/validate-sample-app-abc123 created
+```
+
+### Check Status of ValidateAction Example â
+
+Once created, the ValidateAction status can be reviewed using the command below.
+
+```
+$ kubectl get validateactions.actions.kio.kasten.io validate-sample-app-abc123 -n kasten-io -ojsonpath="{.status.state}{'\n'}"Running
+```
+
+### ValidateAction Details Example â
+
+To get more details about the validation process, use the details sub-resource:
+
+```
+$ kubectl get --raw /apis/actions.kio.kasten.io/v1alpha1/namespaces/kasten-io/validateactions/validate-sample-app-abc123/details | yq -y .status.actionDetails## If any issues are found, the action will fail. Details on the## problem will be presented in the status.phases:  - attempt: 1    endTime: '2025-04-29T01:07:58Z'    startTime: '2025-04-29T01:07:51Z'    state: succeeded    updatedTime: '2025-04-29T01:07:58Z'    volumeOperations:      - namespace: mysql-test        pvcName: mysql-1745884746        operation: Download        dataFormat: Filesystem        driver: GenericVolumeSnapshotvolumeDataCheckResult:  - appName: kasten-io    volumeName: mysql-1745884746    errCount: 1    errors:      - found 0 of the 1 requested snapshot IDs to verify    stats:      processedObjectCount: 0      processedBytes: 0      readFileCount: 0      readBytes: 0      totalObjectCount: 0      totalFileCount: 0      totalBytes: 0errorCount: 1
+```
+
+### ValidateAction Delete Example â
+
+To delete a ValidateAction , use the following command:
+
+```
+$ kubectl delete validateactions.actions.kio.kasten.io validate-sample-app-abc123 -n kasten-ioactions.kio.kasten.io/validate-sample-app-abc123 deleted
+```
+
+### ValidateAction API Type â
+
+The following is a complete specification for the ValidateAction API.
+
+```
+## Standard Kubernetes API Version declaration. Required.apiVersion: actions.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.## Must be 'ValidateAction'kind: ValidateActionmetadata:  ## Action name. May be any valid Kubernetes object name.  ## Name or generateName is required.  name: validate-action-example  ## ValidateAction names must be unique and as an alternative to  ## name above one can take advantage of Kubernetes name auto-generation.  generateName: validate-action-## ValidateAction specification. Required.spec:  ## If provided, the validate action will perform checks  ## of volume data exported by filesystem mode exports. Metadata  ## and content will be checked for consistency.  volumeDataCheckOptions:    ## While traversing volume data in the exported restore point    ## a random series of files will be downloaded from the export    ## location, decrypted, and decompressed to ensure the data    ## is available and consistent.    verifyFilesPercent: 10    ## If true, the validation will terminate immediately upon finding    ## the first error. If false, validation will accumulate errors    ## until the full backup dataset is checked, returning a list    ## of issues found, if any, after the full scan completes.    failFast: false  ## Subject specifies the Policy or StorageRepository to be validated. Required.  subject:    ## Standard Kubernetes kind declaration. Required.    ## Must be 'RestorePoint' or `RestorePointContent`.    kind: RestorePoint    ## Name of the restore point to use. Required.    name: sample-restore-point    ## Namespace of the restore point. Required.    namespace: sample-app  ## Optional: Filters describe which resources should be validated  ## from the RestorePoint. The volume data check validation can  ## filter specific volumes if desired. If no volumes filtered,  ## all volumes associated with the restore point will be checked.  #  ## Filters reduce the resources validated by selectively including and then  ## excluding resources.  ## - If includeResources is not specified, all FS mode volumes in the RestorePoint  ##   are included in the validation.  ## - If includeResources is specified, resources matching any GVRN entry in  ##   includeResources are included in the validation.  ## - If excludeResources is specified, resources matching any GVRN entry in  ##   excludeResources are excluded from the validation.  ## - In a filter, an empty or omitted group, version, resource type or  ##   resource name matches any value.  filters:    ## Include only resources that match any of the following NGVRs or labels    includeResources:      ## Include individual resource    - name: <resource1 resource name>      group: <resource1 group>      version: <resource1 version>      resource: <resource1 type name>      ## Include resource type    - group: <resource2 group>      version: <resource2 version>      resource: <resource2 type name>    - matchLabels:        <label key>: <label value>    ## Exclude resources that match any of the following NGVRs or labels    excludeResources:      ## Exclude specific instance of resource2 type    - name: <resource2 resource name>      group: <resource2 group>      version: <resource2 version>      resource: <resource2 type name>    - matchLabels:        <label key>: <label value>status:  ## Error associated with the action.  ## Only included if the action does not succeed.  error:    message: Sample error message  ## Start time and end time of the validate action.  startTime: "2004-02-29T21:08:07Z"  endTime: "2004-02-29T21:13:07Z"  ## State of the validate action: "Running", "Complete" or "Failed"  state: Complete
 ```
 
 ---
@@ -1831,6 +1906,32 @@ The following example illustrates creating a RestorePoint in the mysql namespace
 
 ```
 $ cat > create-rp-from-rpc.yaml <<EOFapiVersion: apps.kio.kasten.io/v1alpha1kind: RestorePointmetadata:  name: new-restore-point  namespace: mysqlspec:  restorePointContentRef:    name: rpc-mysql-backupEOF$ kubectl create -f create-rp-from-rpc.yamlrestorepoint.apps.kio.kasten.io/new-restore-point created#validate that the new restore point is bound$ kubectl get restorepoints.apps.kio.kasten.io new-restore-point --namespace mysql \       -ojsonpath="{.status.state}{'\n'}"Bound
+```
+
+### Validate RestorePoint â
+
+RestorePoint validation verifies the integrity of an exported RestorePoint before it is used for recovery, offering two supported modes.
+
+- Full Data Scan - Performs a block-level scan of each selected volume. Simulates a full restore operation and completes slower.
+- Metadata Only - Checks only file-system metadata and completes faster.
+
+Every volume in the RestorePoint is examined, except when individual volumes are selected or filters are supplied.
+  Optional setting Fast Fail terminates the validation immediately upon encountering any validation error.
+  When not using the Fast Fail option, the validation operation will continue the validation scan even in the
+  presence of errors, accumulating the list of all errors encountered during the scan.
+
+The example below launches a Full Data Scan validate action for the RestorePoint scheduled-8m629kgdbk in the default namespace, restricted to the mysql-data persistent volume claim.
+
+```
+apiVersion: actions.kio.kasten.io/v1alpha1kind: ValidateActionmetadata:  generateName: default-validate-  namespace: defaultspec:  subject:    kind: RestorePoint    name: scheduled-8m629kgdbk    namespace: default  volumeDataCheckOptions:    failFast: false    verifyFilesPercent: 100  filters:    includeResources:      - name: mysql-data        version: v1        resource: persistentvolumeclaims
+```
+
+To execute in Metadata Only mode set the value of verifyFilesPercent to 0 .
+
+To create this validation execute the below command:
+
+```
+kubectl create -f validate-rp.yaml
 ```
 
 ### RestorePoint API Type â
