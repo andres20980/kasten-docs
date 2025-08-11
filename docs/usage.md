@@ -351,6 +351,15 @@ To use an Azure storage location, you are required to pick an Azure Storage Acco
 
 The Container must be created beforehand.
 
+##### Azure Federated Identity â
+
+Veeam Kasten supports authenticating Azure location profiles
+  with Azure Federated Identity credentials. An Azure Storage Access Key is not required.
+  When using Azure Federated Identity all Azure location profiles will authenticate
+  with Federated Identity credentials.
+
+Learn more about installing Openshift on Azure .
+
 #### Google Cloud Storage â
 
 In addition to authenticating with Google Service Account credentials,
@@ -397,7 +406,7 @@ If registration has occurred recently, there is a possibility it may take 30
 All Veeam Vault locations are configured as immutable; follow these instructions to
   learn more about configuration within Veeam Kasten.
 
-##### Considerations â
+##### Considerations   â
 
 The following limitations should be considered when exporting
   data from Veeam Kasten to Veeam Vault:
