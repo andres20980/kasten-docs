@@ -222,25 +222,25 @@ Modify and apply one of the following k10-disaster-recovery-policy Policy exampl
 Quick DR (Local Catalog Snapshot) - Default
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - kasten-io  kdrSnapshotConfiguration:    takeLocalCatalogSnapshot: true
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - kasten-io  kdrSnapshotConfiguration:    takeLocalCatalogSnapshot: true
 ```
 
 Quick DR (Exported Catalog Snapshot)
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   - action: export    exportParameters:      exportData:        enabled: true      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration:    exportCatalogSnapshot: true    takeLocalCatalogSnapshot: true
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  - action: export    exportParameters:      exportData:        enabled: true      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration:    exportCatalogSnapshot: true    takeLocalCatalogSnapshot: true
 ```
 
 Quick DR (No Catalog Snapshot)
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration: {}
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration: {}
 ```
 
 Legacy DR (Full Catalog Export)
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io
 ```
 
 ## Managing the Veeam Kasten Disaster Recovery Policy â
@@ -412,19 +412,22 @@ The [overrideResources] flag must be set to true when using
     creating or replacing resources, confirmation should be provided by
     setting this flag.
 
-Veeam Kasten provides the ability to apply labels and annotations to all
-  temporary worker pods created during Veeam Kasten recovery as part of
-  its operation. The labels and annotations can be set through the podLabels and podAnnotations Helm flags, respectively. For example,
-  if using a values.yaml file:
+Veeam Kasten provides the ability to apply labels to all temporary worker pods and their associated PersistentVolumeClaims (PVCs),
+  NetworkPolicies, and Services created during recovery operations, as well as to apply annotations to temporary worker pods.
+  Labels and annotations can be set using the resourceLabels , ephemeralResourceLabels , and podAnnotations Helm flags in the global section. For example, in a values.yaml file:
 
 ```
-podLabels:   app.kubernetes.io/component: "database"   topology.kubernetes.io/region: "us-east-1"podAnnotations:   config.kubernetes.io/local-config: "true"   kubernetes.io/description: "Description"
+global:  resourceLabels:    app.kubernetes.io/component: "kasten"    lifecycle: "persistent"  ephemeralResourceLabels:    app.kubernetes.io/component: "kasten-job"    lifecycle: "ephemeral"  podAnnotations:    config.kubernetes.io/local-config: "true"    kubernetes.io/description: "Description"
 ```
+
+- global.resourceLabels : Applies labels to all Kasten PVCs, NetworkPolicies, Services, and Pods.
+- global.ephemeralResourceLabels : Applies labels specifically to Kasten temporary (ephemeral) PVCs, NetworkPolicies, Services, and Pods, and takes precedence over any conflicting keys in global.resourceLabels for ephemeral resources.
+- global.podAnnotations : Applies annotations to all Kasten Pods.
 
 Alternatively, the Helm parameters can be configured using the --set flag:
 
 ```
---set podLabels.labelKey1=value1 --set podLabels.labelKey2=value2 \--set podAnnotations.annotationKey1="Example annotation" --set podAnnotations.annotationKey2=value2
+--set global.resourceLabels.labelKey1=value1 --set global.resourceLabels.labelKey2=value2 \--set global.ephemeralResourceLabels.ephemeralLabelKey1=ephemeralValue1 --set global.ephemeralResourceLabels.ephemeralLabelKey2=ephemeralValue2 \--set global.podAnnotations.annotationKey1="Example annotation" --set global.podAnnotations.annotationKey2=value2
 ```
 
 The restore job always restores the restore point catalog and artifact
@@ -839,25 +842,25 @@ Modify and apply one of the following k10-disaster-recovery-policy Policy exampl
 Quick DR (Local Catalog Snapshot) - Default
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - kasten-io  kdrSnapshotConfiguration:    takeLocalCatalogSnapshot: true
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - kasten-io  kdrSnapshotConfiguration:    takeLocalCatalogSnapshot: true
 ```
 
 Quick DR (Exported Catalog Snapshot)
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   - action: export    exportParameters:      exportData:        enabled: true      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration:    exportCatalogSnapshot: true    takeLocalCatalogSnapshot: true
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  - action: export    exportParameters:      exportData:        enabled: true      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration:    exportCatalogSnapshot: true    takeLocalCatalogSnapshot: true
 ```
 
 Quick DR (No Catalog Snapshot)
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration: {}
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io  kdrSnapshotConfiguration: {}
 ```
 
 Legacy DR (Full Catalog Export)
 
 ```
-apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io   frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: k10-disaster-recovery-policy  namespace: kasten-iospec:  actions:  - action: backup    backupParameters:      filters: {}      profile:        name: <NAME OF LOCATION PROFILE>        namespace: kasten-io  frequency: '@hourly'  retention:    daily: 1    hourly: 4    monthly: 1    weekly: 1    yearly: 1  selector:    matchExpressions:    - key: k10.kasten.io/appNamespace      operator: In      values:        - kasten-io
 ```
 
 ## Managing the Veeam Kasten Disaster Recovery Policy â
@@ -1029,19 +1032,22 @@ The [overrideResources] flag must be set to true when using
     creating or replacing resources, confirmation should be provided by
     setting this flag.
 
-Veeam Kasten provides the ability to apply labels and annotations to all
-  temporary worker pods created during Veeam Kasten recovery as part of
-  its operation. The labels and annotations can be set through the podLabels and podAnnotations Helm flags, respectively. For example,
-  if using a values.yaml file:
+Veeam Kasten provides the ability to apply labels to all temporary worker pods and their associated PersistentVolumeClaims (PVCs),
+  NetworkPolicies, and Services created during recovery operations, as well as to apply annotations to temporary worker pods.
+  Labels and annotations can be set using the resourceLabels , ephemeralResourceLabels , and podAnnotations Helm flags in the global section. For example, in a values.yaml file:
 
 ```
-podLabels:   app.kubernetes.io/component: "database"   topology.kubernetes.io/region: "us-east-1"podAnnotations:   config.kubernetes.io/local-config: "true"   kubernetes.io/description: "Description"
+global:  resourceLabels:    app.kubernetes.io/component: "kasten"    lifecycle: "persistent"  ephemeralResourceLabels:    app.kubernetes.io/component: "kasten-job"    lifecycle: "ephemeral"  podAnnotations:    config.kubernetes.io/local-config: "true"    kubernetes.io/description: "Description"
 ```
+
+- global.resourceLabels : Applies labels to all Kasten PVCs, NetworkPolicies, Services, and Pods.
+- global.ephemeralResourceLabels : Applies labels specifically to Kasten temporary (ephemeral) PVCs, NetworkPolicies, Services, and Pods, and takes precedence over any conflicting keys in global.resourceLabels for ephemeral resources.
+- global.podAnnotations : Applies annotations to all Kasten Pods.
 
 Alternatively, the Helm parameters can be configured using the --set flag:
 
 ```
---set podLabels.labelKey1=value1 --set podLabels.labelKey2=value2 \--set podAnnotations.annotationKey1="Example annotation" --set podAnnotations.annotationKey2=value2
+--set global.resourceLabels.labelKey1=value1 --set global.resourceLabels.labelKey2=value2 \--set global.ephemeralResourceLabels.ephemeralLabelKey1=ephemeralValue1 --set global.ephemeralResourceLabels.ephemeralLabelKey2=ephemeralValue2 \--set global.podAnnotations.annotationKey1="Example annotation" --set global.podAnnotations.annotationKey2=value2
 ```
 
 The restore job always restores the restore point catalog and artifact
@@ -1521,7 +1527,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.7/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.0.8/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -2295,12 +2301,13 @@ Veeam Kasten does not support distribution versions that
     are no longer actively supported by their respective
     vendor or community.
 
-| Kubernetes | RedHat Openshift | Notes | 1.32 |  | Respective OpenShift version is not supported yet |
+| Kubernetes | RedHat Openshift | Notes | 1.33 |  | Respective OpenShift version is not yet supported |
 | :---: | :---: | :---: | :---: | :---: | :---: |
+| 1.33 |  | Respective OpenShift version is not yet supported |
 | 1.32 |  | Respective OpenShift version is not supported yet |
 | 1.31 | 4.18 |  |
 | 1.30 | 4.17 |  |
-| 1.29 | 4.16 |  |
+| 1.29 | 4.16 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 | 1.28 | 4.15 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 
 ## Gathering Debugging Information â
@@ -2315,7 +2322,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.7/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.0.8/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2325,7 +2332,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.7/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.0.8/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2340,7 +2347,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.7/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.0.8/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
