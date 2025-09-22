@@ -2850,6 +2850,9 @@ The important differences from Data-Only Restore to be aware of
 
 ### Instant Recovery â
 
+Support for Instant Recovery has been deprecated and will be removed in a future release.
+    Standard restore of local or exported Kasten restore points will remain unaffected.
+
 Instant Recovery will get an exported restore point up and running much
   faster than a regular restore. This feature requires vSphere 7.0.3+ and
   a Veeam Backup server version V12 or higher. This is not supported on

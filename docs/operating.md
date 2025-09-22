@@ -316,7 +316,7 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 ## Recovering Veeam Kasten From a Disaster via Helm â
 
-The k10restore tool has has been deprecated and will be removed in a future release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
+The k10restore tool has has been deprecated and will be removed in the 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
     supported recovery options.
 
 Recovering from a KDR backup using k10restore involves the
@@ -552,6 +552,9 @@ vault.role is the name of the Vault Kubernetes authentication role binding
 vault.serviceAccountTokenPath is optional and defaults to /var/run/secrets/kubernetes.io/serviceaccount/token .
 
 ## Recovering with the Operator â
+
+The k10restore tool has has been deprecated and will be removed in a 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
+    supported recovery options.
 
 If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
   the k10restore tool can be deployed via the Operator as described below.
@@ -936,7 +939,7 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 ## Recovering Veeam Kasten From a Disaster via Helm â
 
-The k10restore tool has has been deprecated and will be removed in a future release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
+The k10restore tool has has been deprecated and will be removed in the 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
     supported recovery options.
 
 Recovering from a KDR backup using k10restore involves the
@@ -1172,6 +1175,9 @@ vault.role is the name of the Vault Kubernetes authentication role binding
 vault.serviceAccountTokenPath is optional and defaults to /var/run/secrets/kubernetes.io/serviceaccount/token .
 
 ## Recovering with the Operator â
+
+The k10restore tool has has been deprecated and will be removed in a 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
+    supported recovery options.
 
 If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
   the k10restore tool can be deployed via the Operator as described below.
@@ -1527,7 +1533,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.8/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.0.9/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -2322,7 +2328,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.8/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.0.9/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2332,7 +2338,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.8/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.0.9/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2347,7 +2353,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.8/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.0.9/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
