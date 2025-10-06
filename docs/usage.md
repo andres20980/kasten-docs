@@ -406,7 +406,7 @@ If registration has occurred recently, there is a possibility it may take 30
 All Veeam Vault locations are configured as immutable; follow these instructions to
   learn more about configuration within Veeam Kasten.
 
-##### Considerations   â
+##### Considerations  â
 
 The following limitations should be considered when exporting
   data from Veeam Kasten to Veeam Vault:
