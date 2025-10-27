@@ -406,7 +406,7 @@ If registration has occurred recently, there is a possibility it may take 30
 All Veeam Vault locations are configured as immutable; follow these instructions to
   learn more about configuration within Veeam Kasten.
 
-##### Considerations  â
+##### Considerations â
 
 The following limitations should be considered when exporting
   data from Veeam Kasten to Veeam Vault:
@@ -494,10 +494,6 @@ By default, Veeam Kasten uses the root user to access the SMB location. To use a
 
 A Veeam Repository may be used as the destination for persistent
   volume snapshot data in compatible environments. See Storage Integration for additional details.
-
-Prior to creating a Veeam Repository location profile within
-  Veeam Kasten, a Kasten instance must first be configured on the
-  target VBR backup server. See Veeam Kasten Integration Guide for additional details.
 
 To create a Veeam Repository location profile, select Create New Profile and specify Veeam Repository as the
   provider type.

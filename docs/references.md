@@ -569,7 +569,7 @@ To generate the bundle, Syft is run
   comprehensive view of an image's contents, but does not indicate Veeam
   Kasten's dependency needs.
 
-Download SBOM bundle sbom-8.0.10.tar.gz
+Download SBOM bundle sbom-8.0.11.tar.gz
 
 Veeam Kasten repackages and distributes the following 3rd-party
   open-source images:
@@ -606,7 +606,7 @@ The Veeam Kasten Helm chart integrity can be verified either by:
 - Downloading the chart and running the helm verify command.
 - Using the --verify option during chart installation.
 
-##### Verify the Downloaded Helm Chart â
+##### Verify the Downloaded Helm Chart   â
 
 A downloaded Helm chart can be verified using the helm verify command.
 
