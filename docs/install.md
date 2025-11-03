@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.11    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.12    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -495,6 +495,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | limiter.executorThreads | Specifies the number of threads per executor-svc Pod used to process Kasten jobs | 8 |
 | limiter.workloadSnapshotsPerAction | Per action limit of concurrent manifest data snapshots, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 5 |
 | limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
+| limiter.vmSnapshotsPerCluster | Cluster-wide limit of concurrent VirtualMachine snapshot operations | 1 |
 | limiter.directSnapshotsPerCluster | Cluster-wide limit of concurrent non-CSI snapshot creation requests | 10 |
 | limiter.snapshotExportsPerAction | Per action limit of concurrent volume export operations | 3 |
 | limiter.snapshotExportsPerCluster | Cluster-wide limit of concurrent volume export operations | 10 |
@@ -661,7 +662,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.11    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.12    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1084,6 +1085,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | limiter.executorThreads | Specifies the number of threads per executor-svc Pod used to process Kasten jobs | 8 |
 | limiter.workloadSnapshotsPerAction | Per action limit of concurrent manifest data snapshots, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 5 |
 | limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
+| limiter.vmSnapshotsPerCluster | Cluster-wide limit of concurrent VirtualMachine snapshot operations | 1 |
 | limiter.directSnapshotsPerCluster | Cluster-wide limit of concurrent non-CSI snapshot creation requests | 10 |
 | limiter.snapshotExportsPerAction | Per action limit of concurrent volume export operations | 3 |
 | limiter.snapshotExportsPerCluster | Cluster-wide limit of concurrent volume export operations | 10 |
@@ -1832,7 +1834,7 @@ To install the latest version of Kasten with the latest values use the
   command below:
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.11/fips/fips-values.yaml
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.12/fips/fips-values.yaml
 ```
 
 ---
@@ -2294,26 +2296,19 @@ When installing a new instance of Veeam Kasten on a cluster, you will
   upgrade to subsequent patch/minor versions, follow the instructions
   below.
 
-Please collect Namespace and ServiceAccount settings for your Veeam
-  Kasten deployment. To extract the ServiceAccount name, you can run the
-  following command:
+Collect the Application Name, Namespace, and ServiceAccount settings for the Veeam Kasten deployment, and the desired version to upgrade. The following example executes below commands:
+
+1. Collects the ServiceAccount name.
+2. Runs the updater image to update Veeam Kasten application.
 
 ```
-$ kubectl --namespace <k10-namespace> get sa --selector=app.kubernetes.io/name=<k10-application-name> -o jsonpath="{.items[*].metadata.name}"
+# Collect ServiceAccount Namek10sa=$(kubectl --namespace kasten-io get sa --selector=app.kubernetes.io/name=<k10-application-name> -o jsonpath="{.items[*].metadata.name}")# Run the updater:kubectl run --wait updater \  --image=us-docker.pkg.dev/veeam-marketplace-public/veeam-kasten/k10/updater:latest \  --image-pull-policy=Always \  --restart=Never \  --overrides="{\"apiVersion\": \"v1\",  \"spec\": {\"serviceAccountName\": \"${k10sa}\"}}" \  --env=TRACKING_TAG=<kasten_version> \  --namespace <k10-namespace>
 ```
 
-Assuming that you installed in namespace kasten-io and named the
-  application k10
+Assuming that Veeam Kasten is installed in the kasten-io namespace and is named k10 , and desired version to upgrade is version 8.0 :
 
 ```
-$ kubectl --namespace kasten-io get sa --selector=app.kubernetes.io/name=k10 -o jsonpath="{.items[*].metadata.name}"
-```
-
-Replace [<k10-sa-name>] with your ServiceAccount and [<k10-namespace>] with Namespace in the command below.
-  Then simply execute the modified command.
-
-```
-$ kubectl run -i --rm --tty updater --image=us-docker.pkg.dev/veeam-marketplace-public/veeam-kasten/k10/updater:7.5 --image-pull-policy=Always --restart=Never --overrides='{ "apiVersion": "v1",  "spec": {"serviceAccountName": "<k10-sa-name>"}}' --namespace <k10-namespace>
+# Collect ServiceAccount Namek10sa=$(kubectl --namespace kasten-io get sa --selector=app.kubernetes.io/name=k10 -o jsonpath="{.items[*].metadata.name}")# Run the updater:kubectl run --wait updater \  --image=us-docker.pkg.dev/veeam-marketplace-public/veeam-kasten/k10/updater:latest \  --image-pull-policy=Always \  --restart=Never \  --overrides="{\"apiVersion\": \"v1\",  \"spec\": {\"serviceAccountName\": \"${k10sa}\"}}" \  --env=TRACKING_TAG=8.0 \  --namespace kasten-io
 ```
 
 ## Deleting Veeam Kasten â
@@ -2714,7 +2709,7 @@ Installing Veeam Kasten with the Iron Bank images, as
   version of Veeam Kasten that's being installed:
 
 ```
-$ curl -sO https://docs.kasten.io/downloads/8.0.11/ironbank/ironbank-values.yaml
+$ curl -sO https://docs.kasten.io/downloads/8.0.12/ironbank/ironbank-values.yaml
 ```
 
 This file contains the correct helm values that ensure the deployment of
@@ -2812,7 +2807,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.11.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.12.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2827,7 +2822,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.11.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.12.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2866,10 +2861,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.11 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.12 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.0.11).
+The following commands operate against the latest version of Veeam Kasten (8.0.12).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2878,12 +2873,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.0.11). This can be helpful if there is a requirement to tag and
+  version (8.0.12). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.11 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.12 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2896,7 +2891,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.11 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.12 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -2934,7 +2929,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.11 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.11 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.12 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.12 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3075,14 +3070,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.11/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.11/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.11
+$ curl https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.12
 ```
 
 Follow this guide to
@@ -3183,13 +3178,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.11/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.11/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â

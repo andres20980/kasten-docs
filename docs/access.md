@@ -1829,7 +1829,7 @@ k10-virtualmachines-admin will be installed under the name <release_name>-virtua
 ### K10-VirtualMachines-Admin ClusterRole â
 
 ```
-kind: ClusterRoleapiVersion: rbac.authorization.k8s.io/v1metadata:  name: k10-virtualmachines-adminrules:- apiGroups:  - kubevirt.io  resources:  - virtualmachines  verbs:  - get  - list  - patch
+kind: ClusterRoleapiVersion: rbac.authorization.k8s.io/v1metadata:  name: k10-virtualmachines-adminrules:- apiGroups:  - kubevirt.io  resources:  - virtualmachines  - virtualmachineinstances  verbs:  - get  - list  - patch
 ```
 
 Associating the ClusterRole k10-virtualmachines-admin with a user/group allows permission to patch/edit

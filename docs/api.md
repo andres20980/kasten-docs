@@ -526,7 +526,7 @@ You can use the RetireAction to check status and delete completed
 
 Retire actions are non-namespaced.
 
-### RetireAction List Example   â
+### RetireAction List Example â
 
 The following example illustrates listing all RetireActions
 
