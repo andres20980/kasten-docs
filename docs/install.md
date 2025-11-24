@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.12    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.13    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -291,260 +291,304 @@ To modify the bundled Prometheus configuration, only use the helm values
 
 ## Complete List of Veeam Kasten Helm Options â
 
-| Parameter | Description | Default | eula.accept | Whether to enable accept EULA before installation | false |
+| Parameter | Description | Default | auth.basicAuth.enabled | Enables basic authentication to the K10 dashboard that allows users to login with username and password | false |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| eula.accept | Whether to enable accept EULA before installation | false |
-| eula.company | Company name. Required field if EULA is accepted | None |
-| eula.email | Contact email. Required field if EULA is accepted | None |
-| license | License string obtained from Kasten | None |
-| rbac.create | Whether to enable RBAC with a specific cluster role and binding for K10 | true |
-| scc.create | Toggle creation of SecurityContextConstraints for Kasten ServiceAccount(s) | false |
-| scc.priority | Sets the SecurityContextConstraints priority | 15 |
-| scc.allowCSI | Toggles allowing CSI ephemeral volumes in SecurityContextConstraints | false |
-| networkPolicy.create | Toggle creation of built-in NetworkPolicies | true |
-| services.dashboardbff.hostNetwork | Whether the dashboardbff Pods may use the node network | false |
-| services.executor.hostNetwork | Whether the executor Pods may use the node network | false |
-| services.aggregatedapis.hostNetwork | Whether the aggregatedapis Pods may use the node network | false |
-| serviceAccount.create | Specifies whether a ServiceAccount should be created | true |
-| serviceAccount.name | The name of the ServiceAccount to use. If not set, a name is derived using the release and chart names. | None |
-| ingress.create | Specifies whether the K10 dashboard should be exposed via ingress | false |
-| ingress.name | Optional name of the Ingress object for the K10 dashboard. If not set, the name is formed using the release name. | {Release.Name}-ingress |
-| ingress.class | Cluster ingress controller class:nginx,GCE | None |
-| ingress.host | FQDN (e.g.,k10.example.com) for name-based virtual host | None |
-| ingress.urlPath | URL path for K10 Dashboard (e.g.,/k10) | Release.Name |
-| ingress.pathType | Specifies the path type for the ingress resource | ImplementationSpecific |
-| ingress.annotations | Additional Ingress object annotations | {} |
-| ingress.tls.enabled | Configures a TLS use foringress.host | false |
-| ingress.tls.secretName | Optional TLS secret name | None |
-| ingress.defaultBackend.service.enabled | Configures the default backend backed by a service for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.resource.enabled). | false |
-| ingress.defaultBackend.service.name | The name of a service referenced by the default backend (required if the service-backed default backend is used). | None |
-| ingress.defaultBackend.service.port.name | The port name of a service referenced by the default backend (mutually exclusive setting with portnumber, required if the service-backed default backend is used). | None |
-| ingress.defaultBackend.service.port.number | The port number of a service referenced by the default backend (mutually exclusive setting with portname, required if the service-backed default backend is used). | None |
-| ingress.defaultBackend.resource.enabled | Configures the default backend backed by a resource for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.service.enabled). | false |
-| ingress.defaultBackend.resource.apiGroup | Optional API group of a resource backing the default backend. | '' |
-| ingress.defaultBackend.resource.kind | The type of a resource being referenced by the default backend (required if the resource default backend is used). | None |
-| ingress.defaultBackend.resource.name | The name of a resource being referenced by the default backend (required if the resource default backend is used). | None |
-| global.persistence.size | Default global size of volumes for K10 persistent services | 20Gi |
-| global.persistence.catalog.size | Size of a volume for catalog service | global.persistence.size |
-| global.persistence.jobs.size | Size of a volume for jobs service | global.persistence.size |
-| global.persistence.logging.size | Size of a volume for logging service | global.persistence.size |
-| global.persistence.metering.size | Size of a volume for metering service | global.persistence.size |
-| global.persistence.storageClass | Specified StorageClassName will be used for PVCs | None |
-| global.podLabels | DEPRECATED: Configures custom labels to be set to all Kasten Pods | None |
-| global.podAnnotations | Configures custom annotations to be set to all Kasten Pods | None |
-| global.airgapped.repository | Specify the helm repository for offline (airgapped) installation | '' |
-| global.imagePullSecret | Provide secret which contains docker config for private repository. Usek10-ecrwhen secrets.dockerConfigPath is used. | '' |
-| global.prometheus.external.host | Provide external prometheus host name | '' |
-| global.prometheus.external.port | Provide external prometheus port number | '' |
-| global.prometheus.external.baseURL | Provide Base URL of external prometheus | '' |
-| global.network.enable_ipv6 | EnableIPv6support for K10 | false |
-| global.resourceLabels | Configures custom labels to be set on all Kasten PVCs, Network Policies, Services, and Pods | None |
-| global.ephemeralResourceLabels | Configures custom labels to be set on all Kasten ephemeral PVCs, Network Policies, Services, and Pods. Takes precedence over keys also set in global.resourceLabels on ephemeral resources. | None |
-| google.workloadIdentityFederation.enabled | Enable Google Workload Identity Federation for K10 | false |
-| google.workloadIdentityFederation.idp.type | Identity Provider type for Google Workload Identity Federation for K10 | '' |
-| google.workloadIdentityFederation.idp.aud | Audience for whom the ID Token from Identity Provider is intended | '' |
-| secrets.awsAccessKeyId | AWS access key ID (required for AWS deployment) | None |
-| secrets.awsSecretAccessKey | AWS access key secret | None |
-| secrets.awsIamRole | ARN of the AWS IAM role assumed by K10 to perform any AWS operation. | None |
-| secrets.awsClientSecretName | The secret that contains AWS access key ID, AWS access key secret and AWS IAM role for AWS | None |
-| secrets.googleApiKey | Non-default base64 encoded GCP Service Account key | None |
-| secrets.googleProjectId | Sets Google Project ID other than the one used in the GCP Service Account | None |
-| secrets.azureTenantId | Azure tenant ID (required for Azure deployment) | None |
-| secrets.azureClientId | Azure Service App ID | None |
-| secrets.azureClientSecret | Azure Service APP secret | None |
-| secrets.azureClientSecretName | The secret that contains ClientID, ClientSecret and TenantID for Azure | None |
-| secrets.azureResourceGroup | Resource Group name that was created for the Kubernetes cluster | None |
-| secrets.azureSubscriptionID | Subscription ID in your Azure tenant | None |
-| secrets.azureResourceMgrEndpoint | Resource management endpoint for the Azure Stack instance | None |
-| secrets.azureADEndpoint | Azure Active Directory login endpoint | None |
-| secrets.azureADResourceID | Azure Active Directory resource ID to obtain AD tokens | None |
-| secrets.microsoftEntraIDEndpoint | Microsoft Entra ID login endpoint | None |
-| secrets.microsoftEntraIDResourceID | Microsoft Entra ID resource ID to obtain AD tokens | None |
-| secrets.azureCloudEnvID | Azure Cloud Environment ID | None |
-| secrets.vsphereEndpoint | vSphere endpoint for login | None |
-| secrets.vsphereUsername | vSphere username for login | None |
-| secrets.vspherePassword | vSphere password for login | None |
-| secrets.vsphereClientSecretName | The secret that contains vSphere username, vSphere password and vSphere endpoint | None |
-| secrets.dockerConfig | Set base64 encoded docker config to use for image pull operations. Alternative to thesecrets.dockerConfigPath | None |
-| secrets.dockerConfigPath | Use--set-file secrets.dockerConfigPath=path_to_docker_config.yamlto specify docker config for image pull. Will be overwritten ifsecrets.dockerConfigis set | None |
-| cacertconfigmap.name | Name of the ConfigMap that contains a certificate for a trusted root certificate authority | None |
-| clusterName | Cluster name for better logs visibility | None |
-| metering.awsRegion | Sets AWS_REGION for metering service | None |
-| metering.mode | Control license reporting (set toairgapfor private-network installs) | None |
-| metering.reportCollectionPeriod | Sets metric report collection period (in seconds) | 1800 |
-| metering.reportPushPeriod | Sets metric report push period (in seconds) | 3600 |
-| metering.promoID | Sets K10 promotion ID from marketing campaigns | None |
-| metering.awsMarketplace | Sets AWS cloud metering license mode | false |
-| metering.awsManagedLicense | Sets AWS managed license mode | false |
-| metering.redhatMarketplacePayg | Sets Red Hat cloud metering license mode | false |
-| metering.licenseConfigSecretName | Sets AWS managed license config secret | None |
-| externalGateway.create | Configures an external gateway for K10 API services | false |
-| externalGateway.annotations | Standard annotations for the services | None |
-| externalGateway.fqdn.name | Domain name for the K10 API services | None |
-| externalGateway.fqdn.type | Supported gateway type:route53-mapperorexternal-dns | None |
-| externalGateway.awsSSLCertARN | ARN for the AWS ACM SSL certificate used in the K10 API server | None |
-| auth.basicAuth.enabled | Configures basic authentication for the K10 dashboard | false |
-| auth.basicAuth.htpasswd | A username and password pair separated by a colon character | None |
-| auth.basicAuth.secretName | Name of an existing Secret that contains a file generated with htpasswd | None |
-| auth.k10AdminGroups | A list of groups whose members are granted admin level access to K10's dashboard | None |
-| auth.k10AdminUsers | A list of users who are granted admin level access to K10's dashboard | None |
-| auth.tokenAuth.enabled | Configures token based authentication for the K10 dashboard | false |
-| auth.oidcAuth.enabled | Configures Open ID Connect based authentication for the K10 dashboard | false |
-| auth.oidcAuth.providerURL | URL for the OIDC Provider | None |
-| auth.oidcAuth.redirectURL | URL to the K10 gateway service | None |
-| auth.oidcAuth.scopes | Space separated OIDC scopes required for userinfo. Example: "profile email" | None |
-| auth.oidcAuth.prompt | The type of prompt to be used during authentication (none, consent, login or select_account) | select_account |
-| auth.oidcAuth.clientID | Client ID given by the OIDC provider for K10 | None |
-| auth.oidcAuth.clientSecret | Client secret given by the OIDC provider for K10 | None |
-| auth.oidcAuth.clientSecretName | The secret that contains the Client ID and Client secret given by the OIDC provider for K10 | None |
-| auth.oidcAuth.usernameClaim | The claim to be used as the username | sub |
-| auth.oidcAuth.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | None |
-| auth.oidcAuth.groupClaim | Name of a custom OpenID Connect claim for specifying user groups | None |
-| auth.oidcAuth.groupPrefix | All groups will be prefixed with this value to prevent conflicts | None |
-| auth.oidcAuth.sessionDuration | Maximum OIDC session duration | 1h |
-| auth.oidcAuth.refreshTokenSupport | Enable OIDC Refresh Token support | false |
-| auth.openshift.enabled | Enables access to the K10 dashboard by authenticating with the OpenShift OAuth server | false |
-| auth.openshift.serviceAccount | Name of the service account that represents an OAuth client | None |
-| auth.openshift.clientSecret | The token corresponding to the service account | None |
-| auth.openshift.clientSecretName | The secret that contains the token corresponding to the service account | None |
-| auth.openshift.dashboardURL | The URL used for accessing K10's dashboard | None |
-| auth.openshift.openshiftURL | The URL for accessing OpenShift's API server | None |
-| auth.openshift.insecureCA | To turn off SSL verification of connections to OpenShift | false |
-| auth.openshift.useServiceAccountCA | Set this to true to use the CA certificate corresponding to the Service Accountauth.openshift.serviceAccountusually found at/var/run/secrets/kubernetes.io/serviceaccount/ca.crt | false |
-| auth.openshift.caCertsAutoExtraction | Set this to false to disable the OCP CA certificates automatic extraction to the K10 namespace | true |
-| auth.ldap.enabled | Configures Active Directory/LDAP based authentication for the K10 dashboard | false |
+| auth.basicAuth.enabled | Enables basic authentication to the K10 dashboard that allows users to login with username and password | false |
+| auth.basicAuth.htpasswd | A username and password pair separated by a colon character | "" |
+| auth.basicAuth.secretName | Name of an existing Secret that contains a file generated with htpasswd | "" |
+| auth.groupAllowList | A list of groups whose members are allowed access to K10's dashboard | [] |
+| auth.k10AdminGroups | A list of groups whose members are granted admin level access to K10's dashboard | [] |
+| auth.k10AdminUsers | A list of users who are granted admin level access to K10's dashboard | [] |
+| auth.ldap.bindDN | The Distinguished Name(username) used for connecting to the AD/LDAP host | "" |
+| auth.ldap.bindPWSecretName | The name of the secret that contains the password corresponding to thebindDNfor connecting to the AD/LDAP host | "" |
+| auth.ldap.bindPW | The password corresponding to thebindDNfor connecting to the AD/LDAP host | "" |
+| auth.ldap.dashboardURL | The URL used for accessing K10's dashboard | "" |
+| auth.ldap.enabled | Enable Active Directory/LDAP based authentication to access K10 dashboard | false |
+| auth.ldap.groupnameClaim | Name of a custom OpenID Connect claim for specifying user groups | "groups" |
+| auth.ldap.groupnamePrefix | Prefix for user group name | "" |
+| auth.ldap.groupSearch.baseDN | The base Distinguished Name to start the AD/LDAP group search from | "" |
+| auth.ldap.groupSearch.filter | Optional filter to apply when searching the directory for groups | "" |
+| auth.ldap.groupSearch.nameAttr | The AD/LDAP attribute that represents a group's name in the directory | "" |
+| auth.ldap.groupSearch.userMatchers.groupAttr | Attribute in the group's entry that must match with theuserAttrwhile searching for groups | "" |
+| auth.ldap.groupSearch.userMatchers | List of field pairs that are used to match a user to a group. | [] |
+| auth.ldap.groupSearch.userMatchers.userAttr | Attribute in the user's entry that must match with thegroupAttrwhile searching for groups | "" |
+| auth.ldap.host | Host and optional port of the AD/LDAP server in the formhost:port | "" |
+| auth.ldap.insecureNoSSL | Set if the AD/LDAP host is not using TLS | false |
+| auth.ldap.insecureSkipVerifySSL | Turn off SSL verification of connections to the AD/LDAP host | false |
 | auth.ldap.restartPod | To force a restart of the authentication service Pod (useful when updating authentication config) | false |
-| auth.ldap.dashboardURL | The URL used for accessing K10's dashboard | None |
-| auth.ldap.host | Host and optional port of the AD/LDAP server in the formhost:port | None |
-| auth.ldap.insecureNoSSL | Required if the AD/LDAP host is not using TLS | false |
-| auth.ldap.insecureSkipVerifySSL | To turn off SSL verification of connections to the AD/LDAP host | false |
+| auth.ldap.secretName | The Kubernetes Secret that contains OIDC settings | "" |
 | auth.ldap.startTLS | When set to true, ldap:// is used to connect to the server followed by creation of a TLS session. When set to false, ldaps:// is used. | false |
-| auth.ldap.bindDN | The Distinguished Name(username) used for connecting to the AD/LDAP host | None |
-| auth.ldap.bindPW | The password corresponding to thebindDNfor connecting to the AD/LDAP host | None |
-| auth.ldap.bindPWSecretName | The name of the secret that contains the password corresponding to thebindDNfor connecting to the AD/LDAP host | None |
-| auth.ldap.userSearch.baseDN | The base Distinguished Name to start the AD/LDAP search from | None |
-| auth.ldap.userSearch.filter | Optional filter to apply when searching the directory | None |
-| auth.ldap.userSearch.username | Attribute used for comparing user entries when searching the directory | None |
-| auth.ldap.userSearch.idAttr | AD/LDAP attribute in a user's entry that should map to the user ID field in a token | None |
-| auth.ldap.userSearch.emailAttr | AD/LDAP attribute in a user's entry that should map to the email field in a token | None |
-| auth.ldap.userSearch.nameAttr | AD/LDAP attribute in a user's entry that should map to the name field in a token | None |
-| auth.ldap.userSearch.preferredUsernameAttr | AD/LDAP attribute in a user's entry that should map to the preferred_username field in a token | None |
-| auth.ldap.groupSearch.baseDN | The base Distinguished Name to start the AD/LDAP group search from | None |
-| auth.ldap.groupSearch.filter | Optional filter to apply when searching the directory for groups | None |
-| auth.ldap.groupSearch.nameAttr | The AD/LDAP attribute that represents a group's name in the directory | None |
-| auth.ldap.groupSearch.userMatchers | List of field pairs that are used to match a user to a group. | None |
-| auth.ldap.groupSearch.userMatchers.userAttr | Attribute in the user's entry that must match with thegroupAttrwhile searching for groups | None |
-| auth.ldap.groupSearch.userMatchers.groupAttr | Attribute in the group's entry that must match with theuserAttrwhile searching for groups | None |
-| auth.groupAllowList | A list of groups whose members are allowed access to K10's dashboard | None |
-| services.securityContext | Customsecurity contextfor K10 service containers | {"runAsUser" : 1000, "fsGroup": 1000} |
-| services.securityContext.runAsUser | User ID K10 service containers run as | 1000 |
-| services.securityContext.runAsGroup | Group ID K10 service containers run as | 1000 |
-| services.securityContext.fsGroup | FSGroup that owns K10 service container volumes | 1000 |
-| siem.logging.cluster.enabled | Whether to enable writing K10 audit event logs to stdout (standard output) | true |
-| siem.logging.cloud.path | Directory path for saving audit logs in a cloud object store | k10audit/ |
-| siem.logging.cloud.awsS3.enabled | Whether to enable sending K10 audit event logs to AWS S3 | true |
+| auth.ldap.usernameClaim | The claim to be used as the username | "email" |
+| auth.ldap.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
+| auth.ldap.userSearch.baseDN | The base Distinguished Name to start the AD/LDAP search from | "" |
+| auth.ldap.userSearch.emailAttr | AD/LDAP attribute in a user's entry that should map to the email field in a token | "" |
+| auth.ldap.userSearch.filter | Optional filter to apply when searching the directory | "" |
+| auth.ldap.userSearch.idAttr | AD/LDAP attribute in a user's entry that should map to the user ID field in a token | "" |
+| auth.ldap.userSearch.nameAttr | Attribute in a user's entry that should map to the name field in a token | "" |
+| auth.ldap.userSearch.preferredUsernameAttr | AD/LDAP attribute in a user's entry that should map to the preferred_username field in a token | "" |
+| auth.ldap.userSearch.username | Attribute used for comparing user entries when searching the directory | "" |
+| auth.oidcAuth.clientID | Client ID given by the OIDC provider for K10 | "" |
+| auth.oidcAuth.clientSecret | Client secret given by the OIDC provider for K10 | "" |
+| auth.oidcAuth.clientSecretName | The secret that contains the Client ID and Client secret given by the OIDC provider for K10 | "" |
+| auth.oidcAuth.enabled | Enable Open ID Connect based authentication to access K10 dashboard | false |
+| auth.oidcAuth.groupClaim | Name of a custom OpenID Connect claim for specifying user groups | "" |
+| auth.oidcAuth.groupPrefix | All groups will be prefixed with this value to prevent conflicts | "" |
+| auth.oidcAuth.logoutURL | URL to your OIDC provider's logout endpoint | "" |
+| auth.oidcAuth.prompt | The type of prompt to be used during authentication (none, consent, login or select_account) | "select_account" |
+| auth.oidcAuth.providerURL | URL for the OIDC Provider | "" |
+| auth.oidcAuth.redirectURL | URL to the K10 gateway service | "" |
+| auth.oidcAuth.refreshTokenSupport | Enable OIDC Refresh Token support. Disabled by default. | false |
+| auth.oidcAuth.scopes | Space separated OIDC scopes required for userinfo. Example: "profile email" | "" |
+| auth.oidcAuth.secretName | Must include providerURL, redirectURL, scopes, clientID/secret and logoutURL | "" |
+| auth.oidcAuth.sessionDuration | Maximum OIDC session duration. Default value is 1 hour | "1h" |
+| auth.oidcAuth.usernameClaim | The claim to be used as the username | "" |
+| auth.oidcAuth.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
+| auth.openshift.caCertsAutoExtraction | Set this to false to disable the OCP CA certificates automatic extraction to the K10 namespace | true |
+| auth.openshift.clientSecretName | The secret that contains the token corresponding to the service account | "" |
+| auth.openshift.clientSecret | The token corresponding to the service account | "" |
+| auth.openshift.dashboardURL | The URL used for accessing K10's dashboard | "" |
+| auth.openshift.enabled | Enables access to the K10 dashboard by authenticating with the OpenShift OAuth server | false |
+| auth.openshift.groupnameClaim | Name of a custom OpenID Connect claim for specifying user groups | "groups" |
+| auth.openshift.groupnamePrefix | Prefix for user group name | "" |
+| auth.openshift.insecureCA | To turn off SSL verification of connections to OpenShift | false |
+| auth.openshift.openshiftURL | The URL for accessing OpenShift's API server | "" |
+| auth.openshift.secretName | Specify Kubernetes Secret that contains OIDC settings | "" |
+| auth.openshift.serviceAccount | Name of the service account that represents an OAuth client | "" |
+| auth.openshift.usernameClaim | The claim to be used as the username | "email" |
+| auth.openshift.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
+| auth.openshift.useServiceAccountCA | Usually found at/var/run/secrets/kubernetes.io/serviceaccount/ca.crt | false |
+| auth.tokenAuth.enabled | Enable token based authentication to access K10 dashboard | false |
+| awsConfig.assumeRoleDuration | The minimum value is 15 minutes, and the maximum value is determined by the maximum session duration setting for that IAM role. For documentation on how to view and edit the maximum session duration for an IAM role, refer tohttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session. The value accepts a number followed by a single character, 'm' (for minutes) or 'h' (for hours). Examples include: 60m or 2h | "" |
+| awsConfig.efsBackupVaultName | Specifies the AWS EFS backup vault name | "k10vault" |
+| azure.useDefaultMSI | Set to true - profile does not need a secret, Default Managed Identity will be used | false |
+| azure.useFederatedIdentity | Set to true - injected Federated Identity will be used | false |
+| cacertconfigmap.key | Key of the K8s ConfigMap containing a certificate for a trusted root certificate authority | "" |
+| cacertconfigmap.name | Name of the K8s ConfigMap containing a certificate for a trusted root certificate authority | "" |
+| cluster.domainName | Specifies the domain name of the cluster | "" |
+| clusterName | Cluster name for better logs visibility | "" |
+| datastore.parallelBlockDownloads | Specifies how many blocks can be downloaded in parallel from the data store | 8 |
+| datastore.parallelBlockUploads | Specifies how many blocks can be uploaded in parallel to the data store | 8 |
+| datastore.parallelDownloads | Specifies how many files can be downloaded in parallel from the data store | 8 |
+| datastore.parallelUploads | Specifies how many files can be uploaded in parallel to the data store | 8 |
+| defaultPriorityClassName | Specifies the defaultpriority classname for all K10 deployments and ephemeral Pods | "" |
+| encryption.primaryKey.awsCmkKeyId | Specifies the AWS CMK key ID for encrypting K10 Primary Key | "" |
+| encryption.primaryKey.vaultTransitKeyName | Vault Transit key name for Vault integration | "" |
+| encryption.primaryKey.vaultTransitPath | Vault transit path for Vault integration | "" |
+| ephemeralPVCOverhead | Set the percentage increase for the ephemeral Persistent Volume Claim's storage request, e.g. pvc size = (file raw size) * (1 +ephemeralPVCOverhead) | "0.1" |
+| eula.accept | Whether to enable accept EULA before installation | false |
+| excludedApps | Specifies a list of applications to be excluded from the dashboard & compliance considerations. Format should be aYAML array | ["kube-system","kube-ingress","kube-node-lease","kube-public","kube-rook-ceph"] |
+| externalGateway.annotations | Standard annotations for the services | {} |
+| externalGateway.awsSSLCertARN | ARN for the AWS ACM SSL certificate used in the K10 API server | "" |
+| externalGateway.create | Create external gateway service | false |
+| externalGateway.fqdn.name | Domain name for the K10 API services | "" |
+| externalGateway.fqdn.type | Supported gateway type: route53-mapper or external-dns | "" |
+| fips.enabled | Specifies whether K10 should be run in the FIPS mode of operation | false |
+| forceRootInBlueprintActions | Forces any Pod created by a Blueprint to run as root user | true |
+| garbagecollector.actions.enabled | Set true to enable action collectors | false |
+| garbagecollector.daemonPeriod | Sets garbage collection period (in seconds) | 21600 |
+| garbagecollector.keepMaxActions | Sets maximum actions to keep | 1000 |
+| gateway.resources.limits.cpu | Gateway Pod cpu limit | "1000m" |
+| gateway.resources.limits.ephemeral-storage | Gateway Pod ephemeral storage limit | "" |
+| gateway.resources.limits.memory | Gateway Pod memory limit | "1Gi" |
+| gateway.resources.requests.cpu | Gateway Pod cpu request | "200m" |
+| gateway.resources.requests.ephemeral-storage | Gateway Pod ephemeral storage request | "" |
+| gateway.resources.requests.memory | Gateway Pod memory request | "300Mi" |
+| gateway.service.externalPort | Specifies the gateway services external port | 80 |
+| genericStorageBackup.token | Token to enable generic volume snapshot | "" |
+| genericVolumeSnapshot.resources.limits.cpu | Generic Volume Snapshot restore Pods cpu limit | "" |
+| genericVolumeSnapshot.resources.limits.ephemeral-storage | Generic Volume Snapshot restore Pods ephemeral storage limit | "" |
+| genericVolumeSnapshot.resources.limits.memory | Generic Volume Snapshot restore Pods memory limit | "" |
+| genericVolumeSnapshot.resources.requests.cpu | Generic Volume Snapshot restore Pods cpu request | "" |
+| genericVolumeSnapshot.resources.requests.ephemeral-storage | Generic Volume Snapshot restore Pods ephemeral storage request | "" |
+| genericVolumeSnapshot.resources.requests.memory | Generic Volume Snapshot restore Pods memory request | "" |
+| global.airgapped.repository | Specify the helm repository for offline (airgapped) installation | "" |
+| global.ephemeralResourceLabels | Configures custom labels to be set on all Kasten ephemeral PVCs, Network Policies, Services, and Pods. Takes precedence over keys also set in global.resourceLabels on ephemeral resources. | {} |
+| global.imagePullSecret | Provide secret which contains docker config for private repository. Usek10-ecrwhen secrets.dockerConfigPath is used. | "" |
+| global.network.enable_ipv6 | EnableIPv6support for K10 | false |
+| global.persistence.catalog.size | If not set, global.persistence.size is used. | "" |
+| global.persistence.jobs.size | If not set, global.persistence.size is used. | "" |
+| global.persistence.logging.size | If not set, global.persistence.size is used. | "" |
+| global.persistence.metering.size | If not set, global.persistence.size is used | "2Gi" |
+| global.persistence.size | Change default size for Persistent Volumes | "20Gi" |
+| global.persistence.storageClass | If set to '-', dynamic provisioning is disabled. If undefined (the default) or set to null, the default provisioner is used. (e.g gp2 on AWS, standard on GKE, AWS & OpenStack) | "" |
+| global.podAnnotations | Configures custom annotations to be set to all Kasten Pods | {} |
+| global.podLabels | DEPRECATED: Configures custom labels to be set to all Kasten Pods | {} |
+| global.prometheus.external.baseURL | Provide Base URL of external prometheus | "" |
+| global.prometheus.external.host | Provide external prometheus host name | "" |
+| global.prometheus.external.port | Provide external prometheus port number | "" |
+| global.resourceLabels | Configures custom labels to be set on all Kasten PVCs, Network Policies, Services, and Pods. | {} |
+| global.resources.limits | Global resource limits to be added to each Kasten service unless overridden by service specific values | {} |
+| global.resources.requests | Global resource requests to be added to each Kasten service unless overridden by service specific values | {} |
+| google.workloadIdentityFederation.enabled | Enable Google Workload Identity Federation for K10 | false |
+| google.workloadIdentityFederation.idp.aud | Audience for whom the ID Token from Identity Provider is intended | "" |
+| google.workloadIdentityFederation.idp.type | Identity Provider type for Google Workload Identity Federation for K10 | "" |
+| grafana.external.url | If Grafana instance that gets installed with K10 is disabled using grafana.enabled=false, this field can be used to specify URL of externally installed Grafana instance. | "" |
+| ingress.annotations | Add optional annotations to the Ingress resource | {} |
+| ingress.class | Cluster ingress controller class:nginx,GCE | "" |
+| ingress.create | Specifies whether the K10 dashboard should be exposed via ingress | false |
+| ingress.defaultBackend.resource.apiGroup | Optional API group of a resource backing the default backend. | "" |
+| ingress.defaultBackend.resource.enabled | Configures the default backend backed by a resource for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.service.enabled). | false |
+| ingress.defaultBackend.resource.kind | The type of a resource being referenced by the default backend (required if the resource default backend is used). | "" |
+| ingress.defaultBackend.resource.name | Name of a resource referenced by the default backend. | "" |
+| ingress.defaultBackend.service.enabled | Configures the default backend backed by a service for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.resource.enabled). | false |
+| ingress.defaultBackend.service.name | Name of a service referenced by the default backend. | "" |
+| ingress.defaultBackend.service.port.name | Port name of a service referenced by the default backend (mutually exclusive withnumber). | "" |
+| ingress.defaultBackend.service.port.number | Port number of a service referenced by the default backend (mutually exclusive withname). | 0 |
+| ingress.host | FQDN (e.g.,k10.example.com) for name-based virtual host | "" |
+| ingress.name | Optional name of the Ingress object for the K10 dashboard. Defaults to {Release.Name}-ingress | "" |
+| ingress.pathType | Set the path type for the ingress resource | "ImplementationSpecific" |
+| ingress.tls.enabled | Configures a TLS use foringress.host | false |
+| ingress.tls.secretName | Optional TLS secret name | "" |
+| ingress.urlPath | URL path for K10 Dashboard. Defaults to {Release.Name} | "" |
 | injectGenericVolumeBackupSidecar.enabled | Enables injection of sidecar container required to perform Generic Volume Backup into workload Pods | false |
 | injectGenericVolumeBackupSidecar.namespaceSelector.matchLabels | Set of labels to select namespaces in which sidecar injection is enabled for workloads | {} |
 | injectGenericVolumeBackupSidecar.objectSelector.matchLabels | Set of labels to filter workload objects in which the sidecar is injected | {} |
 | injectGenericVolumeBackupSidecar.webhookServer.port | Port number on which the mutating webhook server accepts request | 8080 |
-| gateway.resources.[requests\|limits].[cpu\|memory] | Resource requests and limits for gateway Pod | {} |
-| gateway.service.externalPort | Specifies the gateway services external port | 80 |
-| genericVolumeSnapshot.resources.[requests\|limits].[cpu\|memory] | Specifies resource requests and limits for generic backup sidecar and all temporary Kasten worker Pods. Superseded by ActionPodSpec | {} |
+| kanister.managedDataServicesBlueprintsEnabled | Whether to enable built-in Kanister Blueprints for data services such as Crunchy Data Postgres Operator and K8ssandra | true |
+| kastenDisasterRecovery.quickMode.enabled | Enables Veeam Kasten Disaster Recovery Quick mode | true |
+| kastenDisasterRecovery.restoreTimeout | Sets the maximum duration (in minutes) for a restore operation to complete | 90 |
+| kubeVirtVMs.snapshot.unfreezeTimeout | Defines the time duration within which the VMs must be unfrozen while backing them up. To know more about formatgo doccan be followed | "5m" |
+| license | Add license string obtained from Kasten | "" |
+| limiter.csiSnapshotRestoresPerAction | Per action limit of concurrent CSI volume provisioning requests when restoring from VolumeSnapshots | 3 |
+| limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
+| limiter.directSnapshotsPerCluster | Cluster-wide limit of concurrent non-CSI snapshot creation requests | 10 |
+| limiter.executorReplicas | Specifies the number of executor-svc Pods used to process Kasten jobs | 3 |
+| limiter.executorThreads | Specifies the number of threads per executor-svc Pod used to process Kasten jobs | 8 |
+| limiter.genericVolumeBackupsPerCluster | Cluster-wide limit of concurrent Generic Volume Backup operations | 10 |
+| limiter.imageCopiesPerCluster | Cluster-wide limit of concurrent ImageStream container image backup (i.e. copy from) and restore (i.e. copy to) operations | 10 |
+| limiter.snapshotExportsPerAction | Per action limit of concurrent volume export operations | 3 |
+| limiter.snapshotExportsPerCluster | Cluster-wide limit of concurrent volume export operations | 10 |
+| limiter.vmSnapshotsPerCluster | Cluster-wide limit of concurrent virtual machine snapshot operations | 1 |
+| limiter.volumeRestoresPerAction | Per action limit of concurrent volume restore operations from an exported backup | 3 |
+| limiter.volumeRestoresPerCluster | Cluster-wide limit of concurrent volume restore operations from exported backups | 10 |
+| limiter.workloadRestoresPerAction | Per action limit of concurrent manifest data restores, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 3 |
+| limiter.workloadSnapshotsPerAction | Per action limit of concurrent manifest data snapshots, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 5 |
+| logLevel | Change default log level | "info" |
+| metering.awsManagedLicense | Set AWS managed license mode | false |
+| metering.awsMarketplace | Set AWS cloud metering license mode | false |
+| metering.awsRegion | Set AWS_REGION for metering service | "" |
+| metering.licenseConfigSecretName | AWS managed license config secret | "" |
+| metering.mode | Control license reporting (set toairgapfor private-network installs) | "" |
+| metering.promoID | K10 promotion ID from marketing campaigns | "" |
+| metering.redhatMarketplacePayg | Set Red Hat cloud metering license mode | false |
+| metering.reportCollectionPeriod | Metric report collection period (in seconds) | 1800 |
+| metering.reportPushPeriod | Metric report push period (in seconds) | 3600 |
 | multicluster.enabled | Choose whether to enable the multi-cluster system components and capabilities | true |
 | multicluster.primary.create | Choose whether to setup cluster as a multi-cluster primary | false |
-| multicluster.primary.name | Primary cluster name | '' |
-| multicluster.primary.ingressURL | Primary cluster dashboard URL | '' |
-| prometheus.k10image.registry | (optional) Set Prometheus image registry. | gcr.io |
-| prometheus.k10image.repository | (optional) Set Prometheus image repository. | kasten-images |
-| prometheus.rbac.create | (optional) Whether to create Prometheus RBAC configuration. Warning - this action will allow prometheus to scrape Pods in all k8s namespaces | false |
+| multicluster.primary.ingressURL | Choose the dashboard URL for the multi-cluster primary; e.g.https://cluster-name.domain/k10 | "" |
+| multicluster.primary.name | Choose the cluster name for multi-cluster primary | "" |
+| networkPolicy.create | Whether to create NetworkPolicies for the K10 services | true |
+| priorityClassName | Overrides the defaultpriority classname for the specified deployment | {} |
 | prometheus.alertmanager.enabled | DEPRECATED: (optional) Enable Prometheusalertmanagerservice | false |
 | prometheus.alertmanager.serviceAccount.create | DEPRECATED: (optional) Set true to create ServiceAccount foralertmanager | false |
+| prometheus.k10image.registry | (optional) Set Prometheus image registry. | gcr.io |
+| prometheus.k10image.repository | (optional) Set Prometheus image repository. | kasten-images |
 | prometheus.networkPolicy.enabled | DEPRECATED: (optional) Enable PrometheusnetworkPolicy | false |
 | prometheus.prometheus-node-exporter.enabled | DEPRECATED: (optional) Enable Prometheusnode-exporter | false |
 | prometheus.prometheus-node-exporter.serviceAccount.create | DEPRECATED: (optional) Set true to create ServiceAccount forprometheus-node-exporter | false |
 | prometheus.prometheus-pushgateway.enabled | DEPRECATED: (optional) Enable Prometheuspushgateway | false |
 | prometheus.prometheus-pushgateway.serviceAccount.create | DEPRECATED: (optional) Set true to create ServiceAccount forprometheus-pushgateway | false |
+| prometheus.rbac.create | (optional) Whether to create Prometheus RBAC configuration. Warning - this action will allow prometheus to scrape Pods in all k8s namespaces | false |
 | prometheus.scrapeCAdvisor | DEPRECATED: (optional) Enable Prometheus ScrapeCAdvisor | false |
+| prometheus.server.baseURL | (optional) K10 Prometheus external url path at which the server can be accessed | "/k10/prometheus/" |
+| prometheus.server.configMapOverrideName | DEPRECATED: (optional) Prometheus configmap name to override default generated name | k10-prometheus-config |
 | prometheus.server.enabled | (optional) If false, K10's Prometheus server will not be created, reducing the dashboard's functionality. | true |
-| prometheus.server.securityContext.runAsUser | (optional) Set security contextrunAsUserID for Prometheus server Pod | 65534 |
-| prometheus.server.securityContext.runAsNonRoot | (optional) Enable security contextrunAsNonRootfor Prometheus server Pod | true |
-| prometheus.server.securityContext.runAsGroup | (optional) Set security contextrunAsGroupID for Prometheus server Pod | 65534 |
-| prometheus.server.securityContext.fsGroup | (optional) Set security contextfsGroupID for Prometheus server Pod | 65534 |
+| prometheus.server.fullnameOverride | (optional) Prometheus deployment name to override default generated name | "prometheus-server" |
+| prometheus.server.persistentVolume.enabled | DEPRECATED: (optional) If true, K10 Prometheus server will create a Persistent Volume Claim | true |
+| prometheus.server.persistentVolume.size | (optional) K10 Prometheus server data Persistent Volume size | "8Gi" |
+| prometheus.server.persistentVolume.storageClass | (optional) StorageClassName used to create Prometheus PVC. Setting this option overwrites global StorageClass value | "" |
+| prometheus.server.prefixURL | (optional) K10 Prometheus prefix slug at which the server can be accessed | "/k10/prometheus" |
 | prometheus.server.retention | (optional) K10 Prometheus data retention | "30d" |
+| prometheus.server.securityContext.fsGroup | (optional) Set security contextfsGroupID for Prometheus server Pod | 65534 |
+| prometheus.server.securityContext.runAsGroup | (optional) Set security contextrunAsGroupID for Prometheus server Pod | 65534 |
+| prometheus.server.securityContext.runAsNonRoot | (optional) Enable security contextrunAsNonRootfor Prometheus server Pod | true |
+| prometheus.server.securityContext.runAsUser | (optional) Set security contextrunAsUserID for Prometheus server Pod | 65534 |
+| prometheus.server.serviceAccounts.server.create | DEPRECATED: (optional) Set true to create ServiceAccount for Prometheus server service | true |
 | prometheus.server.strategy.rollingUpdate.maxSurge | DEPRECATED: (optional) The number of Prometheus server Pods that can be created above the desired amount of Pods during an update | "100%" |
 | prometheus.server.strategy.rollingUpdate.maxUnavailable | DEPRECATED: (optional) The number of Prometheus server Pods that can be unavailable during the upgrade process | "100%" |
 | prometheus.server.strategy.type | DEPRECATED: (optional) Change default deployment strategy for Prometheus server | "RollingUpdate" |
-| prometheus.server.persistentVolume.enabled | DEPRECATED: (optional) If true, K10 Prometheus server will create a Persistent Volume Claim | true |
-| prometheus.server.persistentVolume.size | (optional) K10 Prometheus server data Persistent Volume size | 8Gi |
-| prometheus.server.persistentVolume.storageClass | (optional) StorageClassName used to create Prometheus PVC. Setting this option overwrites global StorageClass value | "" |
-| prometheus.server.configMapOverrideName | DEPRECATED: (optional) Prometheus configmap name to override default generated name | k10-prometheus-config |
-| prometheus.server.fullnameOverride | (optional) Prometheus deployment name to override default generated name | prometheus-server |
-| prometheus.server.baseURL | (optional) K10 Prometheus external url path at which the server can be accessed | /k10/prometheus/ |
-| prometheus.server.prefixURL | (optional) K10 Prometheus prefix slug at which the server can be accessed | /k10/prometheus/ |
-| prometheus.server.serviceAccounts.server.create | DEPRECATED: (optional) Set true to create ServiceAccount for Prometheus server service | true |
-| resources.<deploymentName>.<containerName>.[requests\|limits].[cpu\|memory] | Overwriting the default K10container resource requests and limits | varies depending on the container |
+| rbac.create | Toggle RBAC resource creation | true |
+| resources.<deploymentName>.<containerName>.limits.cpu | Overwrite the default K10container cpu limits | "" |
+| resources.<deploymentName>.<containerName>.limits.memory | Overwrite the default K10container memory limits | "" |
+| resources.<deploymentName>.<containerName>.requests.cpu | Overwrite the default K10container cpu request | "" |
+| resources.<deploymentName>.<containerName>.requests.memory | Overwrite the default K10container memory request | "" |
+| route.annotations | Additional Route object annotations | {} |
 | route.enabled | Specifies whether the K10 dashboard should be exposed via route | false |
 | route.host | FQDN (e.g.,.k10.example.com) for name-based virtual host | "" |
-| route.path | URL path for K10 Dashboard (e.g.,/k10) | / |
-| route.annotations | Additional Route object annotations | {} |
 | route.labels | Additional Route object labels | {} |
+| route.path | Set Path for the route. Defaults to '/' | "" |
 | route.tls.enabled | Configures a TLS use forroute.host | false |
-| route.tls.insecureEdgeTerminationPolicy | Specifies behavior for insecure scheme traffic | Redirect |
-| route.tls.termination | Specifies the TLS termination of the route | edge |
-| limiter.executorReplicas | Specifies the number of executor-svc Pods used to process Kasten jobs | 3 |
-| limiter.executorThreads | Specifies the number of threads per executor-svc Pod used to process Kasten jobs | 8 |
-| limiter.workloadSnapshotsPerAction | Per action limit of concurrent manifest data snapshots, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 5 |
-| limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
-| limiter.vmSnapshotsPerCluster | Cluster-wide limit of concurrent VirtualMachine snapshot operations | 1 |
-| limiter.directSnapshotsPerCluster | Cluster-wide limit of concurrent non-CSI snapshot creation requests | 10 |
-| limiter.snapshotExportsPerAction | Per action limit of concurrent volume export operations | 3 |
-| limiter.snapshotExportsPerCluster | Cluster-wide limit of concurrent volume export operations | 10 |
-| limiter.genericVolumeBackupsPerCluster | Cluster-wide limit of concurrent Generic Volume Backup operations | 10 |
-| limiter.imageCopiesPerCluster | Cluster-wide limit of concurrent ImageStream container image backup (i.e. copy from) and restore (i.e. copy to) operations | 10 |
-| limiter.workloadRestoresPerAction | Per action limit of concurrent manifest data restores, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 3 |
-| limiter.csiSnapshotRestoresPerAction | Per action limit of concurrent CSI volume provisioning requests when restoring from VolumeSnapshots | 3 |
-| limiter.volumeRestoresPerAction | Per action limit of concurrent volume restore operations from an exported backup | 3 |
-| limiter.volumeRestoresPerCluster | Cluster-wide limit of concurrent volume restore operations from exported backups | 10 |
-| cluster.domainName | Specifies the domain name of the cluster | "" |
+| route.tls.insecureEdgeTerminationPolicy | Specifies behavior for insecure scheme traffic | "Redirect" |
+| route.tls.termination | Set termination Schema | "edge" |
+| scc.allowCSI | Enable/disable the CSI ephemeral volumes in k10 | false |
+| scc.create | Toggle creation of SecurityContextConstraints for Kasten ServiceAccount(s) | false |
+| scc.priority | Sets the SecurityContextConstraints priority | 0 |
+| secrets.awsAccessKeyId | AWS access key ID (required for AWS deployment) | "" |
+| secrets.awsClientSecretName | Specify a Secret directly instead of having to provide awsAccessKeyId, awsSecretAccessKey and awsIamRole | "" |
+| secrets.awsIamRole | ARN of the AWS IAM role assumed by K10 to perform any AWS operation | "" |
+| secrets.awsSecretAccessKey | AWS access key secret | "" |
+| secrets.azureADEndpoint | Azure Active Directory login endpoint | "" |
+| secrets.azureADResourceID | Azure Active Directory resource ID to obtain AD tokens | "" |
+| secrets.azureClientId | Azure Service App ID | "" |
+| secrets.azureClientSecret | Azure Service APP secret | "" |
+| secrets.azureClientSecretName | Specify a Secret directly instead of having to provide azureClientId, azureTenantId and azureClientSecret | "" |
+| secrets.azureCloudEnvID | Azure Cloud Environment ID | "" |
+| secrets.azureResourceGroup | Resource Group name that was created for the Kubernetes cluster | "" |
+| secrets.azureResourceMgrEndpoint | Resource management endpoint for the Azure Stack instance | "" |
+| secrets.azureSubscriptionID | Subscription ID in your Azure tenant | "" |
+| secrets.azureTenantId | Azure tenant ID (required for Azure deployment) | "" |
+| secrets.dockerConfig | base64 representation of your Docker credentials to pull docker images from a private registry. Alternative to thesecrets.dockerConfigPath | "" |
+| secrets.dockerConfigPath | Path to Docker config file to create secret from. Will be overwritten ifsecrets.dockerConfigis set. | "" |
+| secrets.googleApiKey | Non-default base64 encoded GCP Service Account key | "" |
+| secrets.googleClientSecretName | Specify a Secret directly instead of having to provide googleApiKey and googleProjectId | "" |
+| secrets.googleProjectId | Set Google Project ID other than the one in the GCP Service Account | "" |
+| secrets.microsoftEntraIDEndpoint | Microsoft Entra ID login endpoint | "" |
+| secrets.microsoftEntraIDResourceID | Microsoft Entra ID resource ID to obtain AD tokens | "" |
+| secrets.vsphereClientSecretName | Specify a Secret directly instead of having to provide vsphereUsername, vspherePassword and vspherePassword | "" |
+| secrets.vsphereEndpoint | vSphere endpoint for login | "" |
+| secrets.vspherePassword | vSphere password for login | "" |
+| secrets.vsphereUsername | vSphere username for login | "" |
+| serviceAccount.create | Specifies whether a ServiceAccount should be created | true |
+| serviceAccount.name | The name of the ServiceAccount to use. If not set and create is true, a name is derived using the release and chart names | "" |
+| services.aggregatedapis.hostNetwork | Whether the aggregatedapis Pods may use the node network | false |
+| services.dashboardbff.hostNetwork | Whether the dashboardbff Pods may use the node network | false |
+| services.executor.hostNetwork | Whether the executor Pods may use the node network | false |
+| services.securityContext.fsGroup | FSGroup that owns K10 service container volumes | 1000 |
+| services.securityContext.runAsNonRoot | Indicates that K10 service containers should run as non-root user. | true |
+| services.securityContext.runAsUser | User ID K10 service containers run as | 1000 |
+| services.securityContext.seccompProfile.type | Sets the Seccomp profile type for K10 service containers | "RuntimeDefault" |
+| siem.logging.cloud.awsS3.enabled | Whether to enable sending K10 audit event logs to AWS S3 | true |
+| siem.logging.cloud.path | Directory path in cloud object storage for saving logs when writing K10 events | "k10audit/" |
+| siem.logging.cluster.enabled | Whether to enable writing K10 audit event logs to stdout (standard output) | true |
 | timeout.blueprintBackup | Specifies the timeout (in minutes) for Blueprint backup actions | 45 |
-| timeout.blueprintRestore | Specifies the timeout (in minutes) for Blueprint restore actions | 600 |
 | timeout.blueprintDelete | Specifies the timeout (in minutes) for Blueprint delete actions | 45 |
 | timeout.blueprintHooks | Specifies the timeout (in minutes) for Blueprint backupPrehook and backupPosthook actions | 20 |
+| timeout.blueprintRestore | Specifies the timeout (in minutes) for Blueprint restore actions | 600 |
 | timeout.checkRepoPodReady | Specifies the timeout (in minutes) for temporary worker Pods used to validate backup repository existence | 20 |
-| timeout.statsPodReady | Specifies the timeout (in minutes) for temporary worker Pods used to collect repository statistics | 20 |
 | timeout.efsRestorePodReady | Specifies the timeout (in minutes) for temporary worker Pods used for shareable volume restore operations | 45 |
+| timeout.jobWait | Specifies the timeout (in minutes) for completing execution of any child job, after which the parent job will be canceled. If no value is set, a default of 10 hours will be used | "" |
+| timeout.statsPodReady | Specifies the timeout (in minutes) for temporary worker Pods used to collect repository statistics | 20 |
 | timeout.workerPodReady | Specifies the timeout (in minutes) for all other temporary worker Pods used during Veeam Kasten operations | 15 |
-| timeout.jobWait | Specifies the timeout (in minutes) for completing execution of any child job, after which the parent job will be canceled. If no value is set, a default of 10 hours will be used | None |
-| awsConfig.assumeRoleDuration | Duration of a session token generated by AWS for an IAM role. The minimum value is 15 minutes and the maximum value is the maximum duration setting for that IAM role. For documentation about how to view and edit the maximum session duration for an IAM role seehttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session. The value accepts a number along with a single characterm(for minutes) orh(for hours) Examples: 60m or 2h | '' |
-| awsConfig.efsBackupVaultName | Specifies the AWS EFS backup vault name | k10vault |
-| vmWare.taskTimeoutMin | Specifies the timeout for VMWare operations | 60 |
-| encryption.primaryKey.awsCmkKeyId | Specifies the AWS CMK key ID for encrypting K10 Primary Key | None |
-| garbagecollector.daemonPeriod | Sets garbage collection period (in seconds) | 21600 |
-| garbagecollector.keepMaxActions | Sets maximum actions to keep | 1000 |
-| garbagecollector.actions.enabled | Enables action collectors | false |
-| kubeVirtVMs.snapshot.unfreezeTimeout | Defines the time duration within which the VMs must be unfrozen while backing them up. To know more about formatgo doccan be followed | 5m |
-| excludedApps | Specifies a list of applications to be excluded from the dashboard & compliance considerations. Format should be a :ref:YAML array<k10_compliance> | ["kube-system", "kube-ingress", "kube-node-lease", "kube-public", "kube-rook-ceph"] |
-| workerPodMetricSidecar.enabled | Enables a sidecar container for temporary worker Pods used to push Pod performance metrics to Prometheus | true |
-| workerPodMetricSidecar.metricLifetime | Specifies the period after which metrics for an individual worker Pod are removed from Prometheus | 2m |
-| workerPodMetricSidecar.pushGatewayInterval | Specifies the frequency for pushing metrics into Prometheus | 30s |
-| workerPodMetricSidecar.resources.[requests\|limits].[cpu\|memory] | Specifies resource requests and limits for the temporary worker Pod metric sidecar | {} |
-| forceRootInBlueprintActions | Forces any Pod created by a Blueprint to run as root user | true |
-| defaultPriorityClassName | Specifies the defaultpriority classname for all K10 deployments and ephemeral Pods | None |
-| priorityClassName.<deploymentName> | Overrides the defaultpriority classname for the specified deployment | {} |
-| ephemeralPVCOverhead | Set the percentage increase for the ephemeral Persistent Volume Claim's storage request, e.g. PVC size = (file raw size) * (1 +ephemeralPVCOverhead) | 0.1 |
-| datastore.parallelUploads | Specifies how many files can be uploaded in parallel to the data store | 8 |
-| datastore.parallelDownloads | Specifies how many files can be downloaded in parallel from the data store | 8 |
-| datastore.parallelBlockUploads | Specifies how many blocks can be uploaded in parallel to the data store | 8 |
-| datastore.parallelBlockDownloads | Specifies how many blocks can be downloaded in parallel from the data store | 8 |
-| kastenDisasterRecovery.quickMode.enabled | Enables Veeam Kasten Disaster Recovery Quick mode | true |
-| kastenDisasterRecovery.restoreTimeout | Configures Veeam Kasten Disaster Recovery timeout in minutes | 90 |
-| fips.enabled | Specifies whether K10 should be run in the FIPS mode of operation | false |
+| vap.kastenPolicyPermissions.enabled | Set true to enable installation of the VAP for Kasten policies | false |
+| vault.address | Specify Vault endpoint | "http://vault.vault.svc:8200" |
+| vault.role | Role that was bound to the service account name and namespace from cluster | "" |
+| vault.secretName | Vault secret name | "" |
+| vault.serviceAccountTokenPath | Default: '/var/run/secrets/kubernetes.io/serviceaccount/token' | "" |
+| vmWare.taskTimeoutMin | the timeout for VMWare operations in minutes | 60 |
+| workerPodCRDs.defaultActionPodSpec | The name of ActionPodSpec that will be used by default for worker Pod resources. if empty, the default APS is omitted | "" |
 | workerPodCRDs.enabled | Specifies whether K10 should useActionPodSpecfor granular resource control of worker Pods | false |
-| workerPodCRDs.resourcesRequests.maxCPU | Max CPU which might be setup inActionPodSpec | '' |
-| workerPodCRDs.resourcesRequests.maxMemory | Max memory which might be setup inActionPodSpec | '' |
-| workerPodCRDs.defaultActionPodSpec.name | The name ofActionPodSpecthat will be used by default for worker Pod resources. | '' |
-| workerPodCRDs.defaultActionPodSpec.namespace | The namespace ofActionPodSpecthat will be used by default for worker Pod resources. | '' |
-| vap.kastenPolicyPermissions.enabled | Enable installation of the ValidatingAdmissionPolicy to evaluate non-admin user permissions while creating a Kasten policy. | false |
+| workerPodCRDs.resourcesRequests.maxCPU | Specifies the cluster-wide, maximum value for CPU resource requests which may be used in any ActionPodSpec | "" |
+| workerPodCRDs.resourcesRequests.maxEphemeralStorage | Specifies the cluster-wide maximum value for storage volumes that may be attached to any ActionPodSpec | "" |
+| workerPodCRDs.resourcesRequests.maxMemory | Specifies the cluster-wide, maximum value for memory resource requests which may be used in any ActionPodSpec | "" |
+| workerPodMetricSidecar.enabled | Enables a sidecar container for temporary worker Pods used to push Pod performance metrics to Prometheus | true |
+| workerPodMetricSidecar.metricLifetime | Specifies the period after which metrics for an individual worker Pod are removed from Prometheus | "2m" |
+| workerPodMetricSidecar.pushGatewayInterval | Specifies the frequency for pushing metrics into Prometheus | "30s" |
+| workerPodMetricSidecar.resources.limits.cpu | Temporary worker Pod metric sidecars cpu limit | "" |
+| workerPodMetricSidecar.resources.limits.ephemeral-storage | Temporary worker Pod metric sidecars storage limit | "" |
+| workerPodMetricSidecar.resources.limits.memory | Temporary worker Pod metric sidecars memory limit | "" |
+| workerPodMetricSidecar.resources.requests.cpu | Temporary worker Pod metric sidecars cpu request | "" |
+| workerPodMetricSidecar.resources.requests.ephemeral-storage | Temporary worker Pod metric sidecars storage request | "" |
+| workerPodMetricSidecar.resources.requests.memory | Temporary worker Pod metric sidecar memory request | "" |
 
 ## Helm Configuration for Parallel Upload to the Storage Repository â
 
@@ -662,7 +706,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.12    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.13    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -881,260 +925,304 @@ To modify the bundled Prometheus configuration, only use the helm values
 
 ## Complete List of Veeam Kasten Helm Options â
 
-| Parameter | Description | Default | eula.accept | Whether to enable accept EULA before installation | false |
+| Parameter | Description | Default | auth.basicAuth.enabled | Enables basic authentication to the K10 dashboard that allows users to login with username and password | false |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| eula.accept | Whether to enable accept EULA before installation | false |
-| eula.company | Company name. Required field if EULA is accepted | None |
-| eula.email | Contact email. Required field if EULA is accepted | None |
-| license | License string obtained from Kasten | None |
-| rbac.create | Whether to enable RBAC with a specific cluster role and binding for K10 | true |
-| scc.create | Toggle creation of SecurityContextConstraints for Kasten ServiceAccount(s) | false |
-| scc.priority | Sets the SecurityContextConstraints priority | 15 |
-| scc.allowCSI | Toggles allowing CSI ephemeral volumes in SecurityContextConstraints | false |
-| networkPolicy.create | Toggle creation of built-in NetworkPolicies | true |
-| services.dashboardbff.hostNetwork | Whether the dashboardbff Pods may use the node network | false |
-| services.executor.hostNetwork | Whether the executor Pods may use the node network | false |
-| services.aggregatedapis.hostNetwork | Whether the aggregatedapis Pods may use the node network | false |
-| serviceAccount.create | Specifies whether a ServiceAccount should be created | true |
-| serviceAccount.name | The name of the ServiceAccount to use. If not set, a name is derived using the release and chart names. | None |
-| ingress.create | Specifies whether the K10 dashboard should be exposed via ingress | false |
-| ingress.name | Optional name of the Ingress object for the K10 dashboard. If not set, the name is formed using the release name. | {Release.Name}-ingress |
-| ingress.class | Cluster ingress controller class:nginx,GCE | None |
-| ingress.host | FQDN (e.g.,k10.example.com) for name-based virtual host | None |
-| ingress.urlPath | URL path for K10 Dashboard (e.g.,/k10) | Release.Name |
-| ingress.pathType | Specifies the path type for the ingress resource | ImplementationSpecific |
-| ingress.annotations | Additional Ingress object annotations | {} |
-| ingress.tls.enabled | Configures a TLS use foringress.host | false |
-| ingress.tls.secretName | Optional TLS secret name | None |
-| ingress.defaultBackend.service.enabled | Configures the default backend backed by a service for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.resource.enabled). | false |
-| ingress.defaultBackend.service.name | The name of a service referenced by the default backend (required if the service-backed default backend is used). | None |
-| ingress.defaultBackend.service.port.name | The port name of a service referenced by the default backend (mutually exclusive setting with portnumber, required if the service-backed default backend is used). | None |
-| ingress.defaultBackend.service.port.number | The port number of a service referenced by the default backend (mutually exclusive setting with portname, required if the service-backed default backend is used). | None |
-| ingress.defaultBackend.resource.enabled | Configures the default backend backed by a resource for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.service.enabled). | false |
-| ingress.defaultBackend.resource.apiGroup | Optional API group of a resource backing the default backend. | '' |
-| ingress.defaultBackend.resource.kind | The type of a resource being referenced by the default backend (required if the resource default backend is used). | None |
-| ingress.defaultBackend.resource.name | The name of a resource being referenced by the default backend (required if the resource default backend is used). | None |
-| global.persistence.size | Default global size of volumes for K10 persistent services | 20Gi |
-| global.persistence.catalog.size | Size of a volume for catalog service | global.persistence.size |
-| global.persistence.jobs.size | Size of a volume for jobs service | global.persistence.size |
-| global.persistence.logging.size | Size of a volume for logging service | global.persistence.size |
-| global.persistence.metering.size | Size of a volume for metering service | global.persistence.size |
-| global.persistence.storageClass | Specified StorageClassName will be used for PVCs | None |
-| global.podLabels | DEPRECATED: Configures custom labels to be set to all Kasten Pods | None |
-| global.podAnnotations | Configures custom annotations to be set to all Kasten Pods | None |
-| global.airgapped.repository | Specify the helm repository for offline (airgapped) installation | '' |
-| global.imagePullSecret | Provide secret which contains docker config for private repository. Usek10-ecrwhen secrets.dockerConfigPath is used. | '' |
-| global.prometheus.external.host | Provide external prometheus host name | '' |
-| global.prometheus.external.port | Provide external prometheus port number | '' |
-| global.prometheus.external.baseURL | Provide Base URL of external prometheus | '' |
-| global.network.enable_ipv6 | EnableIPv6support for K10 | false |
-| global.resourceLabels | Configures custom labels to be set on all Kasten PVCs, Network Policies, Services, and Pods | None |
-| global.ephemeralResourceLabels | Configures custom labels to be set on all Kasten ephemeral PVCs, Network Policies, Services, and Pods. Takes precedence over keys also set in global.resourceLabels on ephemeral resources. | None |
-| google.workloadIdentityFederation.enabled | Enable Google Workload Identity Federation for K10 | false |
-| google.workloadIdentityFederation.idp.type | Identity Provider type for Google Workload Identity Federation for K10 | '' |
-| google.workloadIdentityFederation.idp.aud | Audience for whom the ID Token from Identity Provider is intended | '' |
-| secrets.awsAccessKeyId | AWS access key ID (required for AWS deployment) | None |
-| secrets.awsSecretAccessKey | AWS access key secret | None |
-| secrets.awsIamRole | ARN of the AWS IAM role assumed by K10 to perform any AWS operation. | None |
-| secrets.awsClientSecretName | The secret that contains AWS access key ID, AWS access key secret and AWS IAM role for AWS | None |
-| secrets.googleApiKey | Non-default base64 encoded GCP Service Account key | None |
-| secrets.googleProjectId | Sets Google Project ID other than the one used in the GCP Service Account | None |
-| secrets.azureTenantId | Azure tenant ID (required for Azure deployment) | None |
-| secrets.azureClientId | Azure Service App ID | None |
-| secrets.azureClientSecret | Azure Service APP secret | None |
-| secrets.azureClientSecretName | The secret that contains ClientID, ClientSecret and TenantID for Azure | None |
-| secrets.azureResourceGroup | Resource Group name that was created for the Kubernetes cluster | None |
-| secrets.azureSubscriptionID | Subscription ID in your Azure tenant | None |
-| secrets.azureResourceMgrEndpoint | Resource management endpoint for the Azure Stack instance | None |
-| secrets.azureADEndpoint | Azure Active Directory login endpoint | None |
-| secrets.azureADResourceID | Azure Active Directory resource ID to obtain AD tokens | None |
-| secrets.microsoftEntraIDEndpoint | Microsoft Entra ID login endpoint | None |
-| secrets.microsoftEntraIDResourceID | Microsoft Entra ID resource ID to obtain AD tokens | None |
-| secrets.azureCloudEnvID | Azure Cloud Environment ID | None |
-| secrets.vsphereEndpoint | vSphere endpoint for login | None |
-| secrets.vsphereUsername | vSphere username for login | None |
-| secrets.vspherePassword | vSphere password for login | None |
-| secrets.vsphereClientSecretName | The secret that contains vSphere username, vSphere password and vSphere endpoint | None |
-| secrets.dockerConfig | Set base64 encoded docker config to use for image pull operations. Alternative to thesecrets.dockerConfigPath | None |
-| secrets.dockerConfigPath | Use--set-file secrets.dockerConfigPath=path_to_docker_config.yamlto specify docker config for image pull. Will be overwritten ifsecrets.dockerConfigis set | None |
-| cacertconfigmap.name | Name of the ConfigMap that contains a certificate for a trusted root certificate authority | None |
-| clusterName | Cluster name for better logs visibility | None |
-| metering.awsRegion | Sets AWS_REGION for metering service | None |
-| metering.mode | Control license reporting (set toairgapfor private-network installs) | None |
-| metering.reportCollectionPeriod | Sets metric report collection period (in seconds) | 1800 |
-| metering.reportPushPeriod | Sets metric report push period (in seconds) | 3600 |
-| metering.promoID | Sets K10 promotion ID from marketing campaigns | None |
-| metering.awsMarketplace | Sets AWS cloud metering license mode | false |
-| metering.awsManagedLicense | Sets AWS managed license mode | false |
-| metering.redhatMarketplacePayg | Sets Red Hat cloud metering license mode | false |
-| metering.licenseConfigSecretName | Sets AWS managed license config secret | None |
-| externalGateway.create | Configures an external gateway for K10 API services | false |
-| externalGateway.annotations | Standard annotations for the services | None |
-| externalGateway.fqdn.name | Domain name for the K10 API services | None |
-| externalGateway.fqdn.type | Supported gateway type:route53-mapperorexternal-dns | None |
-| externalGateway.awsSSLCertARN | ARN for the AWS ACM SSL certificate used in the K10 API server | None |
-| auth.basicAuth.enabled | Configures basic authentication for the K10 dashboard | false |
-| auth.basicAuth.htpasswd | A username and password pair separated by a colon character | None |
-| auth.basicAuth.secretName | Name of an existing Secret that contains a file generated with htpasswd | None |
-| auth.k10AdminGroups | A list of groups whose members are granted admin level access to K10's dashboard | None |
-| auth.k10AdminUsers | A list of users who are granted admin level access to K10's dashboard | None |
-| auth.tokenAuth.enabled | Configures token based authentication for the K10 dashboard | false |
-| auth.oidcAuth.enabled | Configures Open ID Connect based authentication for the K10 dashboard | false |
-| auth.oidcAuth.providerURL | URL for the OIDC Provider | None |
-| auth.oidcAuth.redirectURL | URL to the K10 gateway service | None |
-| auth.oidcAuth.scopes | Space separated OIDC scopes required for userinfo. Example: "profile email" | None |
-| auth.oidcAuth.prompt | The type of prompt to be used during authentication (none, consent, login or select_account) | select_account |
-| auth.oidcAuth.clientID | Client ID given by the OIDC provider for K10 | None |
-| auth.oidcAuth.clientSecret | Client secret given by the OIDC provider for K10 | None |
-| auth.oidcAuth.clientSecretName | The secret that contains the Client ID and Client secret given by the OIDC provider for K10 | None |
-| auth.oidcAuth.usernameClaim | The claim to be used as the username | sub |
-| auth.oidcAuth.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | None |
-| auth.oidcAuth.groupClaim | Name of a custom OpenID Connect claim for specifying user groups | None |
-| auth.oidcAuth.groupPrefix | All groups will be prefixed with this value to prevent conflicts | None |
-| auth.oidcAuth.sessionDuration | Maximum OIDC session duration | 1h |
-| auth.oidcAuth.refreshTokenSupport | Enable OIDC Refresh Token support | false |
-| auth.openshift.enabled | Enables access to the K10 dashboard by authenticating with the OpenShift OAuth server | false |
-| auth.openshift.serviceAccount | Name of the service account that represents an OAuth client | None |
-| auth.openshift.clientSecret | The token corresponding to the service account | None |
-| auth.openshift.clientSecretName | The secret that contains the token corresponding to the service account | None |
-| auth.openshift.dashboardURL | The URL used for accessing K10's dashboard | None |
-| auth.openshift.openshiftURL | The URL for accessing OpenShift's API server | None |
-| auth.openshift.insecureCA | To turn off SSL verification of connections to OpenShift | false |
-| auth.openshift.useServiceAccountCA | Set this to true to use the CA certificate corresponding to the Service Accountauth.openshift.serviceAccountusually found at/var/run/secrets/kubernetes.io/serviceaccount/ca.crt | false |
-| auth.openshift.caCertsAutoExtraction | Set this to false to disable the OCP CA certificates automatic extraction to the K10 namespace | true |
-| auth.ldap.enabled | Configures Active Directory/LDAP based authentication for the K10 dashboard | false |
+| auth.basicAuth.enabled | Enables basic authentication to the K10 dashboard that allows users to login with username and password | false |
+| auth.basicAuth.htpasswd | A username and password pair separated by a colon character | "" |
+| auth.basicAuth.secretName | Name of an existing Secret that contains a file generated with htpasswd | "" |
+| auth.groupAllowList | A list of groups whose members are allowed access to K10's dashboard | [] |
+| auth.k10AdminGroups | A list of groups whose members are granted admin level access to K10's dashboard | [] |
+| auth.k10AdminUsers | A list of users who are granted admin level access to K10's dashboard | [] |
+| auth.ldap.bindDN | The Distinguished Name(username) used for connecting to the AD/LDAP host | "" |
+| auth.ldap.bindPWSecretName | The name of the secret that contains the password corresponding to thebindDNfor connecting to the AD/LDAP host | "" |
+| auth.ldap.bindPW | The password corresponding to thebindDNfor connecting to the AD/LDAP host | "" |
+| auth.ldap.dashboardURL | The URL used for accessing K10's dashboard | "" |
+| auth.ldap.enabled | Enable Active Directory/LDAP based authentication to access K10 dashboard | false |
+| auth.ldap.groupnameClaim | Name of a custom OpenID Connect claim for specifying user groups | "groups" |
+| auth.ldap.groupnamePrefix | Prefix for user group name | "" |
+| auth.ldap.groupSearch.baseDN | The base Distinguished Name to start the AD/LDAP group search from | "" |
+| auth.ldap.groupSearch.filter | Optional filter to apply when searching the directory for groups | "" |
+| auth.ldap.groupSearch.nameAttr | The AD/LDAP attribute that represents a group's name in the directory | "" |
+| auth.ldap.groupSearch.userMatchers.groupAttr | Attribute in the group's entry that must match with theuserAttrwhile searching for groups | "" |
+| auth.ldap.groupSearch.userMatchers | List of field pairs that are used to match a user to a group. | [] |
+| auth.ldap.groupSearch.userMatchers.userAttr | Attribute in the user's entry that must match with thegroupAttrwhile searching for groups | "" |
+| auth.ldap.host | Host and optional port of the AD/LDAP server in the formhost:port | "" |
+| auth.ldap.insecureNoSSL | Set if the AD/LDAP host is not using TLS | false |
+| auth.ldap.insecureSkipVerifySSL | Turn off SSL verification of connections to the AD/LDAP host | false |
 | auth.ldap.restartPod | To force a restart of the authentication service Pod (useful when updating authentication config) | false |
-| auth.ldap.dashboardURL | The URL used for accessing K10's dashboard | None |
-| auth.ldap.host | Host and optional port of the AD/LDAP server in the formhost:port | None |
-| auth.ldap.insecureNoSSL | Required if the AD/LDAP host is not using TLS | false |
-| auth.ldap.insecureSkipVerifySSL | To turn off SSL verification of connections to the AD/LDAP host | false |
+| auth.ldap.secretName | The Kubernetes Secret that contains OIDC settings | "" |
 | auth.ldap.startTLS | When set to true, ldap:// is used to connect to the server followed by creation of a TLS session. When set to false, ldaps:// is used. | false |
-| auth.ldap.bindDN | The Distinguished Name(username) used for connecting to the AD/LDAP host | None |
-| auth.ldap.bindPW | The password corresponding to thebindDNfor connecting to the AD/LDAP host | None |
-| auth.ldap.bindPWSecretName | The name of the secret that contains the password corresponding to thebindDNfor connecting to the AD/LDAP host | None |
-| auth.ldap.userSearch.baseDN | The base Distinguished Name to start the AD/LDAP search from | None |
-| auth.ldap.userSearch.filter | Optional filter to apply when searching the directory | None |
-| auth.ldap.userSearch.username | Attribute used for comparing user entries when searching the directory | None |
-| auth.ldap.userSearch.idAttr | AD/LDAP attribute in a user's entry that should map to the user ID field in a token | None |
-| auth.ldap.userSearch.emailAttr | AD/LDAP attribute in a user's entry that should map to the email field in a token | None |
-| auth.ldap.userSearch.nameAttr | AD/LDAP attribute in a user's entry that should map to the name field in a token | None |
-| auth.ldap.userSearch.preferredUsernameAttr | AD/LDAP attribute in a user's entry that should map to the preferred_username field in a token | None |
-| auth.ldap.groupSearch.baseDN | The base Distinguished Name to start the AD/LDAP group search from | None |
-| auth.ldap.groupSearch.filter | Optional filter to apply when searching the directory for groups | None |
-| auth.ldap.groupSearch.nameAttr | The AD/LDAP attribute that represents a group's name in the directory | None |
-| auth.ldap.groupSearch.userMatchers | List of field pairs that are used to match a user to a group. | None |
-| auth.ldap.groupSearch.userMatchers.userAttr | Attribute in the user's entry that must match with thegroupAttrwhile searching for groups | None |
-| auth.ldap.groupSearch.userMatchers.groupAttr | Attribute in the group's entry that must match with theuserAttrwhile searching for groups | None |
-| auth.groupAllowList | A list of groups whose members are allowed access to K10's dashboard | None |
-| services.securityContext | Customsecurity contextfor K10 service containers | {"runAsUser" : 1000, "fsGroup": 1000} |
-| services.securityContext.runAsUser | User ID K10 service containers run as | 1000 |
-| services.securityContext.runAsGroup | Group ID K10 service containers run as | 1000 |
-| services.securityContext.fsGroup | FSGroup that owns K10 service container volumes | 1000 |
-| siem.logging.cluster.enabled | Whether to enable writing K10 audit event logs to stdout (standard output) | true |
-| siem.logging.cloud.path | Directory path for saving audit logs in a cloud object store | k10audit/ |
-| siem.logging.cloud.awsS3.enabled | Whether to enable sending K10 audit event logs to AWS S3 | true |
+| auth.ldap.usernameClaim | The claim to be used as the username | "email" |
+| auth.ldap.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
+| auth.ldap.userSearch.baseDN | The base Distinguished Name to start the AD/LDAP search from | "" |
+| auth.ldap.userSearch.emailAttr | AD/LDAP attribute in a user's entry that should map to the email field in a token | "" |
+| auth.ldap.userSearch.filter | Optional filter to apply when searching the directory | "" |
+| auth.ldap.userSearch.idAttr | AD/LDAP attribute in a user's entry that should map to the user ID field in a token | "" |
+| auth.ldap.userSearch.nameAttr | Attribute in a user's entry that should map to the name field in a token | "" |
+| auth.ldap.userSearch.preferredUsernameAttr | AD/LDAP attribute in a user's entry that should map to the preferred_username field in a token | "" |
+| auth.ldap.userSearch.username | Attribute used for comparing user entries when searching the directory | "" |
+| auth.oidcAuth.clientID | Client ID given by the OIDC provider for K10 | "" |
+| auth.oidcAuth.clientSecret | Client secret given by the OIDC provider for K10 | "" |
+| auth.oidcAuth.clientSecretName | The secret that contains the Client ID and Client secret given by the OIDC provider for K10 | "" |
+| auth.oidcAuth.enabled | Enable Open ID Connect based authentication to access K10 dashboard | false |
+| auth.oidcAuth.groupClaim | Name of a custom OpenID Connect claim for specifying user groups | "" |
+| auth.oidcAuth.groupPrefix | All groups will be prefixed with this value to prevent conflicts | "" |
+| auth.oidcAuth.logoutURL | URL to your OIDC provider's logout endpoint | "" |
+| auth.oidcAuth.prompt | The type of prompt to be used during authentication (none, consent, login or select_account) | "select_account" |
+| auth.oidcAuth.providerURL | URL for the OIDC Provider | "" |
+| auth.oidcAuth.redirectURL | URL to the K10 gateway service | "" |
+| auth.oidcAuth.refreshTokenSupport | Enable OIDC Refresh Token support. Disabled by default. | false |
+| auth.oidcAuth.scopes | Space separated OIDC scopes required for userinfo. Example: "profile email" | "" |
+| auth.oidcAuth.secretName | Must include providerURL, redirectURL, scopes, clientID/secret and logoutURL | "" |
+| auth.oidcAuth.sessionDuration | Maximum OIDC session duration. Default value is 1 hour | "1h" |
+| auth.oidcAuth.usernameClaim | The claim to be used as the username | "" |
+| auth.oidcAuth.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
+| auth.openshift.caCertsAutoExtraction | Set this to false to disable the OCP CA certificates automatic extraction to the K10 namespace | true |
+| auth.openshift.clientSecretName | The secret that contains the token corresponding to the service account | "" |
+| auth.openshift.clientSecret | The token corresponding to the service account | "" |
+| auth.openshift.dashboardURL | The URL used for accessing K10's dashboard | "" |
+| auth.openshift.enabled | Enables access to the K10 dashboard by authenticating with the OpenShift OAuth server | false |
+| auth.openshift.groupnameClaim | Name of a custom OpenID Connect claim for specifying user groups | "groups" |
+| auth.openshift.groupnamePrefix | Prefix for user group name | "" |
+| auth.openshift.insecureCA | To turn off SSL verification of connections to OpenShift | false |
+| auth.openshift.openshiftURL | The URL for accessing OpenShift's API server | "" |
+| auth.openshift.secretName | Specify Kubernetes Secret that contains OIDC settings | "" |
+| auth.openshift.serviceAccount | Name of the service account that represents an OAuth client | "" |
+| auth.openshift.usernameClaim | The claim to be used as the username | "email" |
+| auth.openshift.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
+| auth.openshift.useServiceAccountCA | Usually found at/var/run/secrets/kubernetes.io/serviceaccount/ca.crt | false |
+| auth.tokenAuth.enabled | Enable token based authentication to access K10 dashboard | false |
+| awsConfig.assumeRoleDuration | The minimum value is 15 minutes, and the maximum value is determined by the maximum session duration setting for that IAM role. For documentation on how to view and edit the maximum session duration for an IAM role, refer tohttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session. The value accepts a number followed by a single character, 'm' (for minutes) or 'h' (for hours). Examples include: 60m or 2h | "" |
+| awsConfig.efsBackupVaultName | Specifies the AWS EFS backup vault name | "k10vault" |
+| azure.useDefaultMSI | Set to true - profile does not need a secret, Default Managed Identity will be used | false |
+| azure.useFederatedIdentity | Set to true - injected Federated Identity will be used | false |
+| cacertconfigmap.key | Key of the K8s ConfigMap containing a certificate for a trusted root certificate authority | "" |
+| cacertconfigmap.name | Name of the K8s ConfigMap containing a certificate for a trusted root certificate authority | "" |
+| cluster.domainName | Specifies the domain name of the cluster | "" |
+| clusterName | Cluster name for better logs visibility | "" |
+| datastore.parallelBlockDownloads | Specifies how many blocks can be downloaded in parallel from the data store | 8 |
+| datastore.parallelBlockUploads | Specifies how many blocks can be uploaded in parallel to the data store | 8 |
+| datastore.parallelDownloads | Specifies how many files can be downloaded in parallel from the data store | 8 |
+| datastore.parallelUploads | Specifies how many files can be uploaded in parallel to the data store | 8 |
+| defaultPriorityClassName | Specifies the defaultpriority classname for all K10 deployments and ephemeral Pods | "" |
+| encryption.primaryKey.awsCmkKeyId | Specifies the AWS CMK key ID for encrypting K10 Primary Key | "" |
+| encryption.primaryKey.vaultTransitKeyName | Vault Transit key name for Vault integration | "" |
+| encryption.primaryKey.vaultTransitPath | Vault transit path for Vault integration | "" |
+| ephemeralPVCOverhead | Set the percentage increase for the ephemeral Persistent Volume Claim's storage request, e.g. pvc size = (file raw size) * (1 +ephemeralPVCOverhead) | "0.1" |
+| eula.accept | Whether to enable accept EULA before installation | false |
+| excludedApps | Specifies a list of applications to be excluded from the dashboard & compliance considerations. Format should be aYAML array | ["kube-system","kube-ingress","kube-node-lease","kube-public","kube-rook-ceph"] |
+| externalGateway.annotations | Standard annotations for the services | {} |
+| externalGateway.awsSSLCertARN | ARN for the AWS ACM SSL certificate used in the K10 API server | "" |
+| externalGateway.create | Create external gateway service | false |
+| externalGateway.fqdn.name | Domain name for the K10 API services | "" |
+| externalGateway.fqdn.type | Supported gateway type: route53-mapper or external-dns | "" |
+| fips.enabled | Specifies whether K10 should be run in the FIPS mode of operation | false |
+| forceRootInBlueprintActions | Forces any Pod created by a Blueprint to run as root user | true |
+| garbagecollector.actions.enabled | Set true to enable action collectors | false |
+| garbagecollector.daemonPeriod | Sets garbage collection period (in seconds) | 21600 |
+| garbagecollector.keepMaxActions | Sets maximum actions to keep | 1000 |
+| gateway.resources.limits.cpu | Gateway Pod cpu limit | "1000m" |
+| gateway.resources.limits.ephemeral-storage | Gateway Pod ephemeral storage limit | "" |
+| gateway.resources.limits.memory | Gateway Pod memory limit | "1Gi" |
+| gateway.resources.requests.cpu | Gateway Pod cpu request | "200m" |
+| gateway.resources.requests.ephemeral-storage | Gateway Pod ephemeral storage request | "" |
+| gateway.resources.requests.memory | Gateway Pod memory request | "300Mi" |
+| gateway.service.externalPort | Specifies the gateway services external port | 80 |
+| genericStorageBackup.token | Token to enable generic volume snapshot | "" |
+| genericVolumeSnapshot.resources.limits.cpu | Generic Volume Snapshot restore Pods cpu limit | "" |
+| genericVolumeSnapshot.resources.limits.ephemeral-storage | Generic Volume Snapshot restore Pods ephemeral storage limit | "" |
+| genericVolumeSnapshot.resources.limits.memory | Generic Volume Snapshot restore Pods memory limit | "" |
+| genericVolumeSnapshot.resources.requests.cpu | Generic Volume Snapshot restore Pods cpu request | "" |
+| genericVolumeSnapshot.resources.requests.ephemeral-storage | Generic Volume Snapshot restore Pods ephemeral storage request | "" |
+| genericVolumeSnapshot.resources.requests.memory | Generic Volume Snapshot restore Pods memory request | "" |
+| global.airgapped.repository | Specify the helm repository for offline (airgapped) installation | "" |
+| global.ephemeralResourceLabels | Configures custom labels to be set on all Kasten ephemeral PVCs, Network Policies, Services, and Pods. Takes precedence over keys also set in global.resourceLabels on ephemeral resources. | {} |
+| global.imagePullSecret | Provide secret which contains docker config for private repository. Usek10-ecrwhen secrets.dockerConfigPath is used. | "" |
+| global.network.enable_ipv6 | EnableIPv6support for K10 | false |
+| global.persistence.catalog.size | If not set, global.persistence.size is used. | "" |
+| global.persistence.jobs.size | If not set, global.persistence.size is used. | "" |
+| global.persistence.logging.size | If not set, global.persistence.size is used. | "" |
+| global.persistence.metering.size | If not set, global.persistence.size is used | "2Gi" |
+| global.persistence.size | Change default size for Persistent Volumes | "20Gi" |
+| global.persistence.storageClass | If set to '-', dynamic provisioning is disabled. If undefined (the default) or set to null, the default provisioner is used. (e.g gp2 on AWS, standard on GKE, AWS & OpenStack) | "" |
+| global.podAnnotations | Configures custom annotations to be set to all Kasten Pods | {} |
+| global.podLabels | DEPRECATED: Configures custom labels to be set to all Kasten Pods | {} |
+| global.prometheus.external.baseURL | Provide Base URL of external prometheus | "" |
+| global.prometheus.external.host | Provide external prometheus host name | "" |
+| global.prometheus.external.port | Provide external prometheus port number | "" |
+| global.resourceLabels | Configures custom labels to be set on all Kasten PVCs, Network Policies, Services, and Pods. | {} |
+| global.resources.limits | Global resource limits to be added to each Kasten service unless overridden by service specific values | {} |
+| global.resources.requests | Global resource requests to be added to each Kasten service unless overridden by service specific values | {} |
+| google.workloadIdentityFederation.enabled | Enable Google Workload Identity Federation for K10 | false |
+| google.workloadIdentityFederation.idp.aud | Audience for whom the ID Token from Identity Provider is intended | "" |
+| google.workloadIdentityFederation.idp.type | Identity Provider type for Google Workload Identity Federation for K10 | "" |
+| grafana.external.url | If Grafana instance that gets installed with K10 is disabled using grafana.enabled=false, this field can be used to specify URL of externally installed Grafana instance. | "" |
+| ingress.annotations | Add optional annotations to the Ingress resource | {} |
+| ingress.class | Cluster ingress controller class:nginx,GCE | "" |
+| ingress.create | Specifies whether the K10 dashboard should be exposed via ingress | false |
+| ingress.defaultBackend.resource.apiGroup | Optional API group of a resource backing the default backend. | "" |
+| ingress.defaultBackend.resource.enabled | Configures the default backend backed by a resource for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.service.enabled). | false |
+| ingress.defaultBackend.resource.kind | The type of a resource being referenced by the default backend (required if the resource default backend is used). | "" |
+| ingress.defaultBackend.resource.name | Name of a resource referenced by the default backend. | "" |
+| ingress.defaultBackend.service.enabled | Configures the default backend backed by a service for the K10 dashboard Ingress (mutually exclusive setting withingress.defaultBackend.resource.enabled). | false |
+| ingress.defaultBackend.service.name | Name of a service referenced by the default backend. | "" |
+| ingress.defaultBackend.service.port.name | Port name of a service referenced by the default backend (mutually exclusive withnumber). | "" |
+| ingress.defaultBackend.service.port.number | Port number of a service referenced by the default backend (mutually exclusive withname). | 0 |
+| ingress.host | FQDN (e.g.,k10.example.com) for name-based virtual host | "" |
+| ingress.name | Optional name of the Ingress object for the K10 dashboard. Defaults to {Release.Name}-ingress | "" |
+| ingress.pathType | Set the path type for the ingress resource | "ImplementationSpecific" |
+| ingress.tls.enabled | Configures a TLS use foringress.host | false |
+| ingress.tls.secretName | Optional TLS secret name | "" |
+| ingress.urlPath | URL path for K10 Dashboard. Defaults to {Release.Name} | "" |
 | injectGenericVolumeBackupSidecar.enabled | Enables injection of sidecar container required to perform Generic Volume Backup into workload Pods | false |
 | injectGenericVolumeBackupSidecar.namespaceSelector.matchLabels | Set of labels to select namespaces in which sidecar injection is enabled for workloads | {} |
 | injectGenericVolumeBackupSidecar.objectSelector.matchLabels | Set of labels to filter workload objects in which the sidecar is injected | {} |
 | injectGenericVolumeBackupSidecar.webhookServer.port | Port number on which the mutating webhook server accepts request | 8080 |
-| gateway.resources.[requests\|limits].[cpu\|memory] | Resource requests and limits for gateway Pod | {} |
-| gateway.service.externalPort | Specifies the gateway services external port | 80 |
-| genericVolumeSnapshot.resources.[requests\|limits].[cpu\|memory] | Specifies resource requests and limits for generic backup sidecar and all temporary Kasten worker Pods. Superseded by ActionPodSpec | {} |
+| kanister.managedDataServicesBlueprintsEnabled | Whether to enable built-in Kanister Blueprints for data services such as Crunchy Data Postgres Operator and K8ssandra | true |
+| kastenDisasterRecovery.quickMode.enabled | Enables Veeam Kasten Disaster Recovery Quick mode | true |
+| kastenDisasterRecovery.restoreTimeout | Sets the maximum duration (in minutes) for a restore operation to complete | 90 |
+| kubeVirtVMs.snapshot.unfreezeTimeout | Defines the time duration within which the VMs must be unfrozen while backing them up. To know more about formatgo doccan be followed | "5m" |
+| license | Add license string obtained from Kasten | "" |
+| limiter.csiSnapshotRestoresPerAction | Per action limit of concurrent CSI volume provisioning requests when restoring from VolumeSnapshots | 3 |
+| limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
+| limiter.directSnapshotsPerCluster | Cluster-wide limit of concurrent non-CSI snapshot creation requests | 10 |
+| limiter.executorReplicas | Specifies the number of executor-svc Pods used to process Kasten jobs | 3 |
+| limiter.executorThreads | Specifies the number of threads per executor-svc Pod used to process Kasten jobs | 8 |
+| limiter.genericVolumeBackupsPerCluster | Cluster-wide limit of concurrent Generic Volume Backup operations | 10 |
+| limiter.imageCopiesPerCluster | Cluster-wide limit of concurrent ImageStream container image backup (i.e. copy from) and restore (i.e. copy to) operations | 10 |
+| limiter.snapshotExportsPerAction | Per action limit of concurrent volume export operations | 3 |
+| limiter.snapshotExportsPerCluster | Cluster-wide limit of concurrent volume export operations | 10 |
+| limiter.vmSnapshotsPerCluster | Cluster-wide limit of concurrent virtual machine snapshot operations | 1 |
+| limiter.volumeRestoresPerAction | Per action limit of concurrent volume restore operations from an exported backup | 3 |
+| limiter.volumeRestoresPerCluster | Cluster-wide limit of concurrent volume restore operations from exported backups | 10 |
+| limiter.workloadRestoresPerAction | Per action limit of concurrent manifest data restores, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 3 |
+| limiter.workloadSnapshotsPerAction | Per action limit of concurrent manifest data snapshots, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 5 |
+| logLevel | Change default log level | "info" |
+| metering.awsManagedLicense | Set AWS managed license mode | false |
+| metering.awsMarketplace | Set AWS cloud metering license mode | false |
+| metering.awsRegion | Set AWS_REGION for metering service | "" |
+| metering.licenseConfigSecretName | AWS managed license config secret | "" |
+| metering.mode | Control license reporting (set toairgapfor private-network installs) | "" |
+| metering.promoID | K10 promotion ID from marketing campaigns | "" |
+| metering.redhatMarketplacePayg | Set Red Hat cloud metering license mode | false |
+| metering.reportCollectionPeriod | Metric report collection period (in seconds) | 1800 |
+| metering.reportPushPeriod | Metric report push period (in seconds) | 3600 |
 | multicluster.enabled | Choose whether to enable the multi-cluster system components and capabilities | true |
 | multicluster.primary.create | Choose whether to setup cluster as a multi-cluster primary | false |
-| multicluster.primary.name | Primary cluster name | '' |
-| multicluster.primary.ingressURL | Primary cluster dashboard URL | '' |
-| prometheus.k10image.registry | (optional) Set Prometheus image registry. | gcr.io |
-| prometheus.k10image.repository | (optional) Set Prometheus image repository. | kasten-images |
-| prometheus.rbac.create | (optional) Whether to create Prometheus RBAC configuration. Warning - this action will allow prometheus to scrape Pods in all k8s namespaces | false |
+| multicluster.primary.ingressURL | Choose the dashboard URL for the multi-cluster primary; e.g.https://cluster-name.domain/k10 | "" |
+| multicluster.primary.name | Choose the cluster name for multi-cluster primary | "" |
+| networkPolicy.create | Whether to create NetworkPolicies for the K10 services | true |
+| priorityClassName | Overrides the defaultpriority classname for the specified deployment | {} |
 | prometheus.alertmanager.enabled | DEPRECATED: (optional) Enable Prometheusalertmanagerservice | false |
 | prometheus.alertmanager.serviceAccount.create | DEPRECATED: (optional) Set true to create ServiceAccount foralertmanager | false |
+| prometheus.k10image.registry | (optional) Set Prometheus image registry. | gcr.io |
+| prometheus.k10image.repository | (optional) Set Prometheus image repository. | kasten-images |
 | prometheus.networkPolicy.enabled | DEPRECATED: (optional) Enable PrometheusnetworkPolicy | false |
 | prometheus.prometheus-node-exporter.enabled | DEPRECATED: (optional) Enable Prometheusnode-exporter | false |
 | prometheus.prometheus-node-exporter.serviceAccount.create | DEPRECATED: (optional) Set true to create ServiceAccount forprometheus-node-exporter | false |
 | prometheus.prometheus-pushgateway.enabled | DEPRECATED: (optional) Enable Prometheuspushgateway | false |
 | prometheus.prometheus-pushgateway.serviceAccount.create | DEPRECATED: (optional) Set true to create ServiceAccount forprometheus-pushgateway | false |
+| prometheus.rbac.create | (optional) Whether to create Prometheus RBAC configuration. Warning - this action will allow prometheus to scrape Pods in all k8s namespaces | false |
 | prometheus.scrapeCAdvisor | DEPRECATED: (optional) Enable Prometheus ScrapeCAdvisor | false |
+| prometheus.server.baseURL | (optional) K10 Prometheus external url path at which the server can be accessed | "/k10/prometheus/" |
+| prometheus.server.configMapOverrideName | DEPRECATED: (optional) Prometheus configmap name to override default generated name | k10-prometheus-config |
 | prometheus.server.enabled | (optional) If false, K10's Prometheus server will not be created, reducing the dashboard's functionality. | true |
-| prometheus.server.securityContext.runAsUser | (optional) Set security contextrunAsUserID for Prometheus server Pod | 65534 |
-| prometheus.server.securityContext.runAsNonRoot | (optional) Enable security contextrunAsNonRootfor Prometheus server Pod | true |
-| prometheus.server.securityContext.runAsGroup | (optional) Set security contextrunAsGroupID for Prometheus server Pod | 65534 |
-| prometheus.server.securityContext.fsGroup | (optional) Set security contextfsGroupID for Prometheus server Pod | 65534 |
+| prometheus.server.fullnameOverride | (optional) Prometheus deployment name to override default generated name | "prometheus-server" |
+| prometheus.server.persistentVolume.enabled | DEPRECATED: (optional) If true, K10 Prometheus server will create a Persistent Volume Claim | true |
+| prometheus.server.persistentVolume.size | (optional) K10 Prometheus server data Persistent Volume size | "8Gi" |
+| prometheus.server.persistentVolume.storageClass | (optional) StorageClassName used to create Prometheus PVC. Setting this option overwrites global StorageClass value | "" |
+| prometheus.server.prefixURL | (optional) K10 Prometheus prefix slug at which the server can be accessed | "/k10/prometheus" |
 | prometheus.server.retention | (optional) K10 Prometheus data retention | "30d" |
+| prometheus.server.securityContext.fsGroup | (optional) Set security contextfsGroupID for Prometheus server Pod | 65534 |
+| prometheus.server.securityContext.runAsGroup | (optional) Set security contextrunAsGroupID for Prometheus server Pod | 65534 |
+| prometheus.server.securityContext.runAsNonRoot | (optional) Enable security contextrunAsNonRootfor Prometheus server Pod | true |
+| prometheus.server.securityContext.runAsUser | (optional) Set security contextrunAsUserID for Prometheus server Pod | 65534 |
+| prometheus.server.serviceAccounts.server.create | DEPRECATED: (optional) Set true to create ServiceAccount for Prometheus server service | true |
 | prometheus.server.strategy.rollingUpdate.maxSurge | DEPRECATED: (optional) The number of Prometheus server Pods that can be created above the desired amount of Pods during an update | "100%" |
 | prometheus.server.strategy.rollingUpdate.maxUnavailable | DEPRECATED: (optional) The number of Prometheus server Pods that can be unavailable during the upgrade process | "100%" |
 | prometheus.server.strategy.type | DEPRECATED: (optional) Change default deployment strategy for Prometheus server | "RollingUpdate" |
-| prometheus.server.persistentVolume.enabled | DEPRECATED: (optional) If true, K10 Prometheus server will create a Persistent Volume Claim | true |
-| prometheus.server.persistentVolume.size | (optional) K10 Prometheus server data Persistent Volume size | 8Gi |
-| prometheus.server.persistentVolume.storageClass | (optional) StorageClassName used to create Prometheus PVC. Setting this option overwrites global StorageClass value | "" |
-| prometheus.server.configMapOverrideName | DEPRECATED: (optional) Prometheus configmap name to override default generated name | k10-prometheus-config |
-| prometheus.server.fullnameOverride | (optional) Prometheus deployment name to override default generated name | prometheus-server |
-| prometheus.server.baseURL | (optional) K10 Prometheus external url path at which the server can be accessed | /k10/prometheus/ |
-| prometheus.server.prefixURL | (optional) K10 Prometheus prefix slug at which the server can be accessed | /k10/prometheus/ |
-| prometheus.server.serviceAccounts.server.create | DEPRECATED: (optional) Set true to create ServiceAccount for Prometheus server service | true |
-| resources.<deploymentName>.<containerName>.[requests\|limits].[cpu\|memory] | Overwriting the default K10container resource requests and limits | varies depending on the container |
+| rbac.create | Toggle RBAC resource creation | true |
+| resources.<deploymentName>.<containerName>.limits.cpu | Overwrite the default K10container cpu limits | "" |
+| resources.<deploymentName>.<containerName>.limits.memory | Overwrite the default K10container memory limits | "" |
+| resources.<deploymentName>.<containerName>.requests.cpu | Overwrite the default K10container cpu request | "" |
+| resources.<deploymentName>.<containerName>.requests.memory | Overwrite the default K10container memory request | "" |
+| route.annotations | Additional Route object annotations | {} |
 | route.enabled | Specifies whether the K10 dashboard should be exposed via route | false |
 | route.host | FQDN (e.g.,.k10.example.com) for name-based virtual host | "" |
-| route.path | URL path for K10 Dashboard (e.g.,/k10) | / |
-| route.annotations | Additional Route object annotations | {} |
 | route.labels | Additional Route object labels | {} |
+| route.path | Set Path for the route. Defaults to '/' | "" |
 | route.tls.enabled | Configures a TLS use forroute.host | false |
-| route.tls.insecureEdgeTerminationPolicy | Specifies behavior for insecure scheme traffic | Redirect |
-| route.tls.termination | Specifies the TLS termination of the route | edge |
-| limiter.executorReplicas | Specifies the number of executor-svc Pods used to process Kasten jobs | 3 |
-| limiter.executorThreads | Specifies the number of threads per executor-svc Pod used to process Kasten jobs | 8 |
-| limiter.workloadSnapshotsPerAction | Per action limit of concurrent manifest data snapshots, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 5 |
-| limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
-| limiter.vmSnapshotsPerCluster | Cluster-wide limit of concurrent VirtualMachine snapshot operations | 1 |
-| limiter.directSnapshotsPerCluster | Cluster-wide limit of concurrent non-CSI snapshot creation requests | 10 |
-| limiter.snapshotExportsPerAction | Per action limit of concurrent volume export operations | 3 |
-| limiter.snapshotExportsPerCluster | Cluster-wide limit of concurrent volume export operations | 10 |
-| limiter.genericVolumeBackupsPerCluster | Cluster-wide limit of concurrent Generic Volume Backup operations | 10 |
-| limiter.imageCopiesPerCluster | Cluster-wide limit of concurrent ImageStream container image backup (i.e. copy from) and restore (i.e. copy to) operations | 10 |
-| limiter.workloadRestoresPerAction | Per action limit of concurrent manifest data restores, based on workload (ex. Namespace, Deployment, StatefulSet, VirtualMachine) | 3 |
-| limiter.csiSnapshotRestoresPerAction | Per action limit of concurrent CSI volume provisioning requests when restoring from VolumeSnapshots | 3 |
-| limiter.volumeRestoresPerAction | Per action limit of concurrent volume restore operations from an exported backup | 3 |
-| limiter.volumeRestoresPerCluster | Cluster-wide limit of concurrent volume restore operations from exported backups | 10 |
-| cluster.domainName | Specifies the domain name of the cluster | "" |
+| route.tls.insecureEdgeTerminationPolicy | Specifies behavior for insecure scheme traffic | "Redirect" |
+| route.tls.termination | Set termination Schema | "edge" |
+| scc.allowCSI | Enable/disable the CSI ephemeral volumes in k10 | false |
+| scc.create | Toggle creation of SecurityContextConstraints for Kasten ServiceAccount(s) | false |
+| scc.priority | Sets the SecurityContextConstraints priority | 0 |
+| secrets.awsAccessKeyId | AWS access key ID (required for AWS deployment) | "" |
+| secrets.awsClientSecretName | Specify a Secret directly instead of having to provide awsAccessKeyId, awsSecretAccessKey and awsIamRole | "" |
+| secrets.awsIamRole | ARN of the AWS IAM role assumed by K10 to perform any AWS operation | "" |
+| secrets.awsSecretAccessKey | AWS access key secret | "" |
+| secrets.azureADEndpoint | Azure Active Directory login endpoint | "" |
+| secrets.azureADResourceID | Azure Active Directory resource ID to obtain AD tokens | "" |
+| secrets.azureClientId | Azure Service App ID | "" |
+| secrets.azureClientSecret | Azure Service APP secret | "" |
+| secrets.azureClientSecretName | Specify a Secret directly instead of having to provide azureClientId, azureTenantId and azureClientSecret | "" |
+| secrets.azureCloudEnvID | Azure Cloud Environment ID | "" |
+| secrets.azureResourceGroup | Resource Group name that was created for the Kubernetes cluster | "" |
+| secrets.azureResourceMgrEndpoint | Resource management endpoint for the Azure Stack instance | "" |
+| secrets.azureSubscriptionID | Subscription ID in your Azure tenant | "" |
+| secrets.azureTenantId | Azure tenant ID (required for Azure deployment) | "" |
+| secrets.dockerConfig | base64 representation of your Docker credentials to pull docker images from a private registry. Alternative to thesecrets.dockerConfigPath | "" |
+| secrets.dockerConfigPath | Path to Docker config file to create secret from. Will be overwritten ifsecrets.dockerConfigis set. | "" |
+| secrets.googleApiKey | Non-default base64 encoded GCP Service Account key | "" |
+| secrets.googleClientSecretName | Specify a Secret directly instead of having to provide googleApiKey and googleProjectId | "" |
+| secrets.googleProjectId | Set Google Project ID other than the one in the GCP Service Account | "" |
+| secrets.microsoftEntraIDEndpoint | Microsoft Entra ID login endpoint | "" |
+| secrets.microsoftEntraIDResourceID | Microsoft Entra ID resource ID to obtain AD tokens | "" |
+| secrets.vsphereClientSecretName | Specify a Secret directly instead of having to provide vsphereUsername, vspherePassword and vspherePassword | "" |
+| secrets.vsphereEndpoint | vSphere endpoint for login | "" |
+| secrets.vspherePassword | vSphere password for login | "" |
+| secrets.vsphereUsername | vSphere username for login | "" |
+| serviceAccount.create | Specifies whether a ServiceAccount should be created | true |
+| serviceAccount.name | The name of the ServiceAccount to use. If not set and create is true, a name is derived using the release and chart names | "" |
+| services.aggregatedapis.hostNetwork | Whether the aggregatedapis Pods may use the node network | false |
+| services.dashboardbff.hostNetwork | Whether the dashboardbff Pods may use the node network | false |
+| services.executor.hostNetwork | Whether the executor Pods may use the node network | false |
+| services.securityContext.fsGroup | FSGroup that owns K10 service container volumes | 1000 |
+| services.securityContext.runAsNonRoot | Indicates that K10 service containers should run as non-root user. | true |
+| services.securityContext.runAsUser | User ID K10 service containers run as | 1000 |
+| services.securityContext.seccompProfile.type | Sets the Seccomp profile type for K10 service containers | "RuntimeDefault" |
+| siem.logging.cloud.awsS3.enabled | Whether to enable sending K10 audit event logs to AWS S3 | true |
+| siem.logging.cloud.path | Directory path in cloud object storage for saving logs when writing K10 events | "k10audit/" |
+| siem.logging.cluster.enabled | Whether to enable writing K10 audit event logs to stdout (standard output) | true |
 | timeout.blueprintBackup | Specifies the timeout (in minutes) for Blueprint backup actions | 45 |
-| timeout.blueprintRestore | Specifies the timeout (in minutes) for Blueprint restore actions | 600 |
 | timeout.blueprintDelete | Specifies the timeout (in minutes) for Blueprint delete actions | 45 |
 | timeout.blueprintHooks | Specifies the timeout (in minutes) for Blueprint backupPrehook and backupPosthook actions | 20 |
+| timeout.blueprintRestore | Specifies the timeout (in minutes) for Blueprint restore actions | 600 |
 | timeout.checkRepoPodReady | Specifies the timeout (in minutes) for temporary worker Pods used to validate backup repository existence | 20 |
-| timeout.statsPodReady | Specifies the timeout (in minutes) for temporary worker Pods used to collect repository statistics | 20 |
 | timeout.efsRestorePodReady | Specifies the timeout (in minutes) for temporary worker Pods used for shareable volume restore operations | 45 |
+| timeout.jobWait | Specifies the timeout (in minutes) for completing execution of any child job, after which the parent job will be canceled. If no value is set, a default of 10 hours will be used | "" |
+| timeout.statsPodReady | Specifies the timeout (in minutes) for temporary worker Pods used to collect repository statistics | 20 |
 | timeout.workerPodReady | Specifies the timeout (in minutes) for all other temporary worker Pods used during Veeam Kasten operations | 15 |
-| timeout.jobWait | Specifies the timeout (in minutes) for completing execution of any child job, after which the parent job will be canceled. If no value is set, a default of 10 hours will be used | None |
-| awsConfig.assumeRoleDuration | Duration of a session token generated by AWS for an IAM role. The minimum value is 15 minutes and the maximum value is the maximum duration setting for that IAM role. For documentation about how to view and edit the maximum session duration for an IAM role seehttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session. The value accepts a number along with a single characterm(for minutes) orh(for hours) Examples: 60m or 2h | '' |
-| awsConfig.efsBackupVaultName | Specifies the AWS EFS backup vault name | k10vault |
-| vmWare.taskTimeoutMin | Specifies the timeout for VMWare operations | 60 |
-| encryption.primaryKey.awsCmkKeyId | Specifies the AWS CMK key ID for encrypting K10 Primary Key | None |
-| garbagecollector.daemonPeriod | Sets garbage collection period (in seconds) | 21600 |
-| garbagecollector.keepMaxActions | Sets maximum actions to keep | 1000 |
-| garbagecollector.actions.enabled | Enables action collectors | false |
-| kubeVirtVMs.snapshot.unfreezeTimeout | Defines the time duration within which the VMs must be unfrozen while backing them up. To know more about formatgo doccan be followed | 5m |
-| excludedApps | Specifies a list of applications to be excluded from the dashboard & compliance considerations. Format should be a :ref:YAML array<k10_compliance> | ["kube-system", "kube-ingress", "kube-node-lease", "kube-public", "kube-rook-ceph"] |
-| workerPodMetricSidecar.enabled | Enables a sidecar container for temporary worker Pods used to push Pod performance metrics to Prometheus | true |
-| workerPodMetricSidecar.metricLifetime | Specifies the period after which metrics for an individual worker Pod are removed from Prometheus | 2m |
-| workerPodMetricSidecar.pushGatewayInterval | Specifies the frequency for pushing metrics into Prometheus | 30s |
-| workerPodMetricSidecar.resources.[requests\|limits].[cpu\|memory] | Specifies resource requests and limits for the temporary worker Pod metric sidecar | {} |
-| forceRootInBlueprintActions | Forces any Pod created by a Blueprint to run as root user | true |
-| defaultPriorityClassName | Specifies the defaultpriority classname for all K10 deployments and ephemeral Pods | None |
-| priorityClassName.<deploymentName> | Overrides the defaultpriority classname for the specified deployment | {} |
-| ephemeralPVCOverhead | Set the percentage increase for the ephemeral Persistent Volume Claim's storage request, e.g. PVC size = (file raw size) * (1 +ephemeralPVCOverhead) | 0.1 |
-| datastore.parallelUploads | Specifies how many files can be uploaded in parallel to the data store | 8 |
-| datastore.parallelDownloads | Specifies how many files can be downloaded in parallel from the data store | 8 |
-| datastore.parallelBlockUploads | Specifies how many blocks can be uploaded in parallel to the data store | 8 |
-| datastore.parallelBlockDownloads | Specifies how many blocks can be downloaded in parallel from the data store | 8 |
-| kastenDisasterRecovery.quickMode.enabled | Enables Veeam Kasten Disaster Recovery Quick mode | true |
-| kastenDisasterRecovery.restoreTimeout | Configures Veeam Kasten Disaster Recovery timeout in minutes | 90 |
-| fips.enabled | Specifies whether K10 should be run in the FIPS mode of operation | false |
+| vap.kastenPolicyPermissions.enabled | Set true to enable installation of the VAP for Kasten policies | false |
+| vault.address | Specify Vault endpoint | "http://vault.vault.svc:8200" |
+| vault.role | Role that was bound to the service account name and namespace from cluster | "" |
+| vault.secretName | Vault secret name | "" |
+| vault.serviceAccountTokenPath | Default: '/var/run/secrets/kubernetes.io/serviceaccount/token' | "" |
+| vmWare.taskTimeoutMin | the timeout for VMWare operations in minutes | 60 |
+| workerPodCRDs.defaultActionPodSpec | The name of ActionPodSpec that will be used by default for worker Pod resources. if empty, the default APS is omitted | "" |
 | workerPodCRDs.enabled | Specifies whether K10 should useActionPodSpecfor granular resource control of worker Pods | false |
-| workerPodCRDs.resourcesRequests.maxCPU | Max CPU which might be setup inActionPodSpec | '' |
-| workerPodCRDs.resourcesRequests.maxMemory | Max memory which might be setup inActionPodSpec | '' |
-| workerPodCRDs.defaultActionPodSpec.name | The name ofActionPodSpecthat will be used by default for worker Pod resources. | '' |
-| workerPodCRDs.defaultActionPodSpec.namespace | The namespace ofActionPodSpecthat will be used by default for worker Pod resources. | '' |
-| vap.kastenPolicyPermissions.enabled | Enable installation of the ValidatingAdmissionPolicy to evaluate non-admin user permissions while creating a Kasten policy. | false |
+| workerPodCRDs.resourcesRequests.maxCPU | Specifies the cluster-wide, maximum value for CPU resource requests which may be used in any ActionPodSpec | "" |
+| workerPodCRDs.resourcesRequests.maxEphemeralStorage | Specifies the cluster-wide maximum value for storage volumes that may be attached to any ActionPodSpec | "" |
+| workerPodCRDs.resourcesRequests.maxMemory | Specifies the cluster-wide, maximum value for memory resource requests which may be used in any ActionPodSpec | "" |
+| workerPodMetricSidecar.enabled | Enables a sidecar container for temporary worker Pods used to push Pod performance metrics to Prometheus | true |
+| workerPodMetricSidecar.metricLifetime | Specifies the period after which metrics for an individual worker Pod are removed from Prometheus | "2m" |
+| workerPodMetricSidecar.pushGatewayInterval | Specifies the frequency for pushing metrics into Prometheus | "30s" |
+| workerPodMetricSidecar.resources.limits.cpu | Temporary worker Pod metric sidecars cpu limit | "" |
+| workerPodMetricSidecar.resources.limits.ephemeral-storage | Temporary worker Pod metric sidecars storage limit | "" |
+| workerPodMetricSidecar.resources.limits.memory | Temporary worker Pod metric sidecars memory limit | "" |
+| workerPodMetricSidecar.resources.requests.cpu | Temporary worker Pod metric sidecars cpu request | "" |
+| workerPodMetricSidecar.resources.requests.ephemeral-storage | Temporary worker Pod metric sidecars storage request | "" |
+| workerPodMetricSidecar.resources.requests.memory | Temporary worker Pod metric sidecar memory request | "" |
 
 ## Helm Configuration for Parallel Upload to the Storage Repository â
 
@@ -1681,7 +1769,7 @@ vault.secretName can be provided to the helm install to do a
     If not present and kubernetes authentication fails, then the primary key
     encryption will not succeed and will return an error.
 
-## PassKey Management â
+## Passkey Management â
 
 ### Creating Passkeys â
 
@@ -1756,6 +1844,8 @@ You can delete existing Passkeys if they are no longer required. If
 ```
 $ kubectl delete passkeys.vault.kio.kasten.io passkey1  vault.kio.kasten.io/passkey1 deleted
 ```
+
+To learn more about how to manage passkeys, refer to passkey management .
 
 ---
 
@@ -1834,7 +1924,7 @@ To install the latest version of Kasten with the latest values use the
   command below:
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.12/fips/fips-values.yaml
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.13/fips/fips-values.yaml
 ```
 
 ---
@@ -2709,7 +2799,7 @@ Installing Veeam Kasten with the Iron Bank images, as
   version of Veeam Kasten that's being installed:
 
 ```
-$ curl -sO https://docs.kasten.io/downloads/8.0.12/ironbank/ironbank-values.yaml
+$ curl -sO https://docs.kasten.io/downloads/8.0.13/ironbank/ironbank-values.yaml
 ```
 
 This file contains the correct helm values that ensure the deployment of
@@ -2807,7 +2897,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.12.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.13.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2822,7 +2912,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.12.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.13.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2861,10 +2951,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.12 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.13 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.0.12).
+The following commands operate against the latest version of Veeam Kasten (8.0.13).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2873,12 +2963,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.0.12). This can be helpful if there is a requirement to tag and
+  version (8.0.13). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.12 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.13 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2891,7 +2981,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.12 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.13 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -2929,7 +3019,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.12 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.12 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.13 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.13 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3070,14 +3160,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.0.13/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.12
+$ curl https://docs.kasten.io/downloads/8.0.13/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.13
 ```
 
 Follow this guide to
@@ -3178,13 +3268,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.0.13/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.0.13/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â
@@ -3512,23 +3602,31 @@ The Keystone Endpoint , Project Name , Domain Name , Username and Password are r
 
 ## vSphere â
 
-Veeam Kasten supports vSphere storage integration with PersistentVolumes
-  provisioned using the vSphere CSI
-Provisioner .
+Veeam Kasten supports two ways of backing up and exporting persistent volumes provisioned using the vSphere CSI Provisioner :
 
-Currently, backup and restore operations are not supported for RWX/ROX
-    volumes provisioned using vSAN File Services.
+- If a vSphere Infrastructure Profile is configured, Veeam Kasten will create First Class Disk (FCD) snapshots of volumes via vCenter. Block mode exports support direct access to storage through the network, and can perform incremental uploads with the use of proprietary VMware APIs that fetch data directly from vSphere and provide Changed Block Tracking (CBT) data, if available.
+- If a vSphere CSI VolumeSnapshotClass has been annotated as a Kasten snapshot class , the native CSI VolumeSnapshot mechanism will be used to create snapshots of volumes. Exports using this mechanism create a temporary, full clone from a VolumeSnapshot to read its data, which could be an expensive operation for underlying storage infrastructure. Both Filesystem mode and Block mode exports are supported, though incremental backups are unavailable for block mode exports using native CSI VolumeSnapshots. Enabling this mechanism will take priority over direct integration, if both a VolumeSnapshotClass and a vSphere Infrastructure Profile have been configured.
+
+If a vSphere Infrastructure Profile is configured, Veeam Kasten will create First Class Disk (FCD) snapshots of volumes via vCenter. Block mode exports support direct access to storage through the network, and can perform incremental uploads with the use of proprietary VMware APIs that fetch data directly from vSphere and provide Changed Block Tracking (CBT) data, if available.
+
+If a vSphere CSI VolumeSnapshotClass has been annotated as a Kasten snapshot class , the native CSI VolumeSnapshot mechanism will be used to create snapshots of volumes. Exports using this mechanism create a temporary, full clone from a VolumeSnapshot to read its data, which could be an expensive operation for underlying storage infrastructure. Both Filesystem mode and Block mode exports are supported, though incremental backups are unavailable for block mode exports using native CSI VolumeSnapshots. Enabling this mechanism will take priority over direct integration, if both a VolumeSnapshotClass and a vSphere Infrastructure Profile have been configured.
+
+The mechanism enabled using a vSphere Infrastructure Profile is faster and consumes less storage, compute, and network resources, but requires access from the Kubernetes cluster to vCenter. Filesystem mode exports are only available with the CSI snapshot mechanism.
+
+Snapshot-based backup operations are not supported for ReadWriteMany or ReadOnlyMany volumes provisioned using the vSphere CSI and vSAN File Services.
+
+### Summary of Available Functionality â
 
 The available functionality varies by the type of cluster infrastructure
   used and is summarized in the table below:
 
-|  | vSphere with Tanzu[1] | Other Kubernetes infrastructures[1] | vSphere | Supported versions | 7.0 U3 or higher | 7.0 U1 or higher |
+|  | vSphere with Tanzu[1] | Other Kubernetes Distributions[1] | vSphere | Supported versions | 7.0 U3 or higher | 7.0 U1 or higher |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | vSphere | Supported versions | 7.0 U3 or higher | 7.0 U1 or higher |
-| vCenter access required[2] | Required | Required |
-| Export | Export infilesystem mode | Not Supported[3] | Supported |
-| Export inblock mode[4] | To anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository[5] | To anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository[5] |
-| Restore | Restore from asnapshot | Not Supported[3] | Supported |
+| vCenter access required | Optional[2] | Optional[2] |
+| Export | Export infilesystem mode | Partially Supported[3][6] | Supported |
+| Export inblock mode[4] | To anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository | To anObject Storage Location, anNFS/SMB File Storage Locationor aVeeam Repository |
+| Restore | Restore from asnapshot | Partially Supported[3][6] | Supported |
 | Restore from an export (any mode) | Supported | Supported |
 | Instant Recoveryrestore | Not Supported[3] | From aVeeam Repository |
 | Import | Import afilesystem modeexport | Supported | Supported |
@@ -3536,13 +3634,17 @@ The available functionality varies by the type of cluster infrastructure
 
 1. vSphere with Tanzu supervisor clusters and VMware Tanzu Kubernetes Grid management clusters are not supported.
 
-1. Access to vCenter is required with all types of cluster infrastructures as Veeam Kasten directly communicates with vSphere to snapshot a First Class Disk (FCD) , resolve paravirtualized volume handles, set tags and access volume data with the VMware VDDK API.
+1. Access to vCenter is required when using FCD snapshots as Veeam Kasten directly communicates with vSphere to snapshot a First Class Disk (FCD), resolve paravirtualized volume handles, set tags and access volume data with the VMware VDDK API. This access is established by creating a vSphere Infrastructure Profile, as described below. Access to vCenter is not required to use CSI snapshots created by the vSphere CSI Provisioner .
 
-1. The guest clusters of vSphere with Tanzu use paravirtualized PersistentVolumes. These clusters do not support the static provisioning of a specific FCD from within the guest cluster itself. This disables Veeam Kasten's ability to restore applications from their local snapshots, Instant Recovery and the ability to export snapshot data in filesystem mode .
+1. The guest clusters of vSphere with Tanzu use paravirtualized PersistentVolumes. These clusters do not support the static provisioning of a specific FCD from within the guest cluster itself. This disables Veeam Kasten's ability to restore applications from their local snapshots and perform Instant Recovery.
 
 1. Block mode snapshot exports are available in all types of vSphere cluster infrastructures. Snapshot content is accessed at the block level directly through the network using the VMware VDDK API. Enable changed block tracking on the VMware cluster nodes to reduce the amount of data transferred during export. See this Veeam Kasten knowledge base article for how to do so in vSphere with Tanzu guest clusters.
 
 1. Block mode snapshot exports can be saved in an Object Storage Location , an NFS/SMB File Storage Location or a Veeam Repository .
+
+1. To enable filesystem mode exports in vSphere with Tanzu with volumes provisioned by the vSphere CSI Provisioner , configure CSI snapshot support as described in CSI Snapshot Configuration . Filesystem mode exports use the CSI snapshot mechanism and do not require an Infrastructure Profile with vCenter access. CSI snapshots also support restore from snapshot.
+
+### vSphere Infrastructure Profile â
 
 A vSphere Infrastructure Profile must be created from the Infrastructure page of the Profiles menu in the navigation sidebar
   to identify the vCenter server.
@@ -3597,11 +3699,13 @@ Assign this role to the dedicated Veeam Kasten user account on the
 - The root vCenter object
 - The datacenter objects (propagate down each subtree to reach datastore and virtual machine objects)
 
-There is an upper limit on the maximum number of snapshots for a VMware
-  Kubernetes PersistentVolume .
-  Refer to this or more recent
-  VMware knowledge base articles for the limit and for recommendations on
-  the number of snapshots to maintain. A Veeam Kasten backup policy provides control over the number of local Veeam Kasten restore points retained, and by implication, the number of local snapshots
+### Snapshot Limitations â
+
+Refer to this Broadcom knowledge base article for current details regarding
+  limits and recommendations for creation and retention of
+  vSphere volume snapshots.
+
+A Veeam Kasten backup policy provides control over the number of local Veeam Kasten restore points retained, and by implication, the number of local snapshots
   retained. A Veeam Kasten backup and export policy allows separate retention policies for local and
   exported Veeam Kasten restore points. It is possible to set a 0 local
   restore point retention value (i.e. no local snapshots are

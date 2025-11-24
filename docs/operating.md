@@ -1533,7 +1533,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.12/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.0.13/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -2234,6 +2234,137 @@ Exporting Metrics to Datadog
 
 ---
 
+## Operating Passkey
+
+The Passkey Management feature in Veeam Kasten provides an interface for managing encryption passkeys used to securely encrypt and decrypt the primary Kasten encryption key responsible for protecting backup data. This feature allows administrators to create, view, and manage multiple passkeys from different key management stores via both the Kasten UI and kubectl commands.
+
+## Overview â
+
+These passkeys use envelope encryption to protect the primary Kasten key used to derive keys for all application backup data and metadata. The primary key performs the encryption of backup data, while passkeys encrypt and protect the primary key itself.
+
+A passkey is considered valid when Kasten can successfully access and use it to decrypt the primary key. Invalid passkeys may result from issues connection to external services, missing Kubernetes secrets, or other configuration errors.
+
+Each Kasten instance requires a minimum of one valid passkey to function. It is not possible to delete the last remaining valid passkey.
+
+Veeam Kasten supports the following types of passkeys:
+
+- Passphrase : Uses a passphrase specified in a Kubernetes Secret
+- AWS Key Management Service : Uses AWS Customer Managed Keys (CMK)
+- HashiCorp Vault : Uses Vault Transit Secrets Engine
+
+## Passkey Management Via the UI â
+
+Admin users can view all valid passkeys under Settings > Passkey Management. This allows you to see all valid passkeys for Kasten.
+
+### Create a Passkey â
+
+1. Create New Passkey: Click the "Create New Passkey" button
+2. Configure Passkey Details: Passkey Name: Enter a unique name for the passkey Passkey Type: Select from AWS Key Management Service, HashiCorp Vault, or Passphrase
+
+- Passkey Name: Enter a unique name for the passkey
+- Passkey Type: Select from AWS Key Management Service, HashiCorp Vault, or Passphrase
+
+#### Passphrase Configuration â
+
+1. Passphrase : Enter a secure passphrase for encrypting backup data
+2. Confirm Passphrase : Re-enter the passphrase for confirmation
+
+Store the passphrase securely outside of the cluster, as it will be required for disaster recovery operations.
+
+Passphrases are less secure than using a managed key service like AWS Key Management Service or HashiCorp Vault.
+
+#### AWS Key Management Service Configuration â
+
+1. AWS CMK Key ID : Provide the AWS Customer Master Key ID Format: arn:aws:kms:region:account:key/key-id Example: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+
+- Format: arn:aws:kms:region:account:key/key-id
+- Example: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab
+
+Using AWS Key Management Service requires that an AWS Infrastructure Profile exists with the required permissions
+
+#### HashiCorp Vault Configuration â
+
+1. Vault Transit Key Name : Specify the name of the Vault transit encryption key
+2. Vault Transit Path : Enter the Vault transit engine path for encryption operations Default path is typically /transit
+
+- Default path is typically /transit
+
+Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault .
+
+### Delete a Passkey â
+
+To delete a passkey via the UI, select the passkey and click the delete option. A confirmation popup will appear to confirm the deletion. Note that you cannot delete a passkey if there is only one passkey remaining, as each Kasten instance requires a minimum of one valid passkey to function.
+
+## Passkey Management Via the CLI â
+
+Passkeys can be managed programmatically using kubectl commands with the passkeys.vault.kio.kasten.io resource.
+
+### Creating Passkeys â
+
+#### Passphrase Passkey â
+
+A Passkey that represents a passphrase expects a Kubernetes Secret to be provided which contains the passphrase. This can be done via the creation of a Kubernetes secret in the Veeam Kasten namespace:
+
+```
+kubectl create secret generic <secret-name> \  --namespace kasten-io \  --from-literal passphrase=<key>
+```
+
+As shown below, this secret can then be used to create a Passkey . Note that Passkeys are non-namespaced.
+
+```
+cat > sample-passkey.yaml <<EOFapiVersion: vault.kio.kasten.io/v1alpha1kind: Passkeymetadata:  name: passkey1spec:  secret:    ## Reference to the passkey secret    name: <secret-name>    namespace: kasten-ioEOF
+```
+
+```
+kubectl create -f sample-passkey.yaml
+```
+
+#### AWS KMS Passkey â
+
+A Passkey can also be used to represent an AWS KMS Customer Managed Key(CMK). The AWS CMK key ID can be provided directly in the passkey.
+
+```
+cat > sample-passkey.yaml <<EOFapiVersion: vault.kio.kasten.io/v1alpha1kind: Passkeymetadata:  name: passkey2spec:  awscmkkeyid: arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890abEOF
+```
+
+#### HashiCorp Vault Passkey â
+
+A Passkey can also be used to represent a HashiCorp Vault Transit Secrets Engine. The Vault Transit key name and mount path can be provided directly in the passkey, as shown below.
+
+In addition, a vault authentication role and path to the service account token used for Vault's Kubernetes Authentication method can be passed in, vaultauthrole and vaultk8sserviceaccounttokenpath , respectively. This will override those values originally set via the helm install Kubernetes Auth .
+
+If using Token Auth , passing in these two values will have the effect of upgrading the authentication method from Token to Kubernetes. Please ensure your vault server is properly configured as shown in Configuring Vault Server for Kubernetes Auth before adding these to the Passkey .
+
+```
+cat > sample-passkey.yaml <<EOFapiVersion: vault.kio.kasten.io/v1alpha1kind: Passkeymetadata:  name: passkey3spec:  vaulttransitkeyname: my-key  vaulttransitpath: my-transit-path  vaultauthrole: my-auth-role  vaultk8sserviceaccounttokenpath: /var/run/secrets/kubernetes.io/serviceaccount/tokenEOF
+```
+
+### Listing Passkeys â
+
+To list all Passkeys , simply run:
+
+```
+kubectl get passkeys.vault.kio.kasten.io
+```
+
+### Getting Passkeys â
+
+To get a specific Passkey , run:
+
+```
+kubectl get passkeys.vault.kio.kasten.io passkey1 -o yaml
+```
+
+### Deleting Passkeys â
+
+You can delete existing Passkeys if they are no longer required. If only a single valid Passkey exists, it cannot be deleted.
+
+```
+kubectl delete passkeys.vault.kio.kasten.io passkey1
+```
+
+---
+
 ## Operating Reporting
 
 Veeam Kasten Reporting provides regular insights into key performance
@@ -2310,11 +2441,10 @@ Veeam Kasten does not support distribution versions that
 | Kubernetes | RedHat Openshift | Notes | 1.33 |  | Respective OpenShift version is not yet supported |
 | :---: | :---: | :---: | :---: | :---: | :---: |
 | 1.33 |  | Respective OpenShift version is not yet supported |
-| 1.32 |  | Respective OpenShift version is not supported yet |
+| 1.32 | 4.19 |  |
 | 1.31 | 4.18 |  |
 | 1.30 | 4.17 |  |
 | 1.29 | 4.16 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
-| 1.28 | 4.15 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 
 ## Gathering Debugging Information â
 
@@ -2328,7 +2458,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.0.13/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2338,7 +2468,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.0.13/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2353,7 +2483,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.12/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.0.13/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
