@@ -74,60 +74,94 @@ A partir del briefing se identifican las siguientes funcionalidades principales:
 
 ## 3. Diagrama de casos de uso
 
+Por claridad y legibilidad, el diagrama de casos de uso se presenta dividido en áreas funcionales:
+
+### 3.1. Gestión de socios y accesos
+
 ```mermaid
-graph TB
-    subgraph Sistema["Sistema de Gestión del Club Polideportivo Mercantil"]
+graph LR
+    Socio([Socio])
+    SocioRep([Socio Representante])
+    Recep([Recepcionista])
+    Tornos([Sistema de Tornos])
+    
+    subgraph Sistema1["Gestión de Socios"]
         CU01[Gestionar socios]
         CU02[Gestionar cuota familiar]
-        CU03[Consultar instalaciones]
-        CU04[Realizar reserva]
-        CU05[Cancelar reserva]
         CU06[Consultar historial personal]
         CU07[Controlar acceso]
         CU08[Verificar límites de uso]
-        CU09[Registrar invitado]
-        CU10[Emitir carné temporal]
-        CU11[Realizar reserva urgente]
-        CU12[Confirmar reserva urgente]
-        CU13[Registrar sanción]
-        CU14[Notificar sanción]
-        CU15[Gestionar pagos y fianzas]
     end
     
+    Recep --> CU01
+    SocioRep --> CU02
+    Socio --> CU06
+    Socio --> CU07
+    Tornos --> CU07
+    Tornos --> CU08
+```
+
+### 3.2. Gestión de reservas de socios
+
+```mermaid
+graph LR
     Socio([Socio])
-    Representante([Socio Representante])
-    Invitado([Invitado])
-    Recepcionista([Recepcionista])
-    Junta([Junta de Dirección])
-    Tornos([Sistema de Tornos])
+    Recep([Recepcionista])
+    
+    subgraph Sistema2["Gestión de Reservas"]
+        CU03[Consultar instalaciones]
+        CU04[Realizar reserva]
+        CU05[Cancelar reserva]
+        CU15[Gestionar pagos y fianzas]
+    end
     
     Socio --> CU03
     Socio --> CU04
     Socio --> CU05
-    Socio --> CU06
-    Socio --> CU07
+    Recep --> CU15
+    CU04 -.-> CU15
+```
+
+### 3.3. Gestión de invitados y reservas urgentes
+
+```mermaid
+graph LR
+    Socio([Socio])
+    Invitado([Invitado])
+    Recep([Recepcionista])
+    
+    subgraph Sistema3["Gestión de Invitados"]
+        CU09[Registrar invitado]
+        CU10[Emitir carné temporal]
+        CU11[Realizar reserva urgente]
+        CU12[Confirmar reserva urgente]
+        CU07[Controlar acceso]
+    end
+    
     Socio --> CU09
-    
-    Representante --> CU02
-    
+    Recep --> CU09
+    Recep --> CU10
+    Recep --> CU12
     Invitado --> CU11
     Invitado --> CU07
+    CU11 -.-> CU12
+```
+
+### 3.4. Gestión de sanciones
+
+```mermaid
+graph LR
+    Junta([Junta de Dirección])
     
-    Recepcionista --> CU01
-    Recepcionista --> CU09
-    Recepcionista --> CU10
-    Recepcionista --> CU12
-    Recepcionista --> CU15
+    subgraph Sistema4["Gestión de Sanciones"]
+        CU08[Verificar límites de uso]
+        CU13[Registrar sanción]
+        CU14[Notificar sanción]
+    end
     
     Junta --> CU13
-    
-    Tornos --> CU07
-    Tornos --> CU08
-    
-    CU13 -.-> CU14
     CU08 -.-> CU13
-    CU04 -.-> CU15
-    CU11 -.-> CU15
+    CU13 -.-> CU14
 ```
 
 ### Descripción de casos de uso principales
