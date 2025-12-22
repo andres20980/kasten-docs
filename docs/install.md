@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.14    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.15    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -372,6 +372,8 @@ To modify the bundled Prometheus configuration, only use the helm values
 | datastore.parallelUploads | Specifies how many files can be uploaded in parallel to the data store | 8 |
 | defaultPriorityClassName | Specifies the defaultpriority classname for all K10 deployments and ephemeral Pods | "" |
 | encryption.primaryKey.awsCmkKeyId | Specifies the AWS CMK key ID for encrypting K10 Primary Key | "" |
+| encryption.primaryKey.azureKeyVaultKeyName | Specifies the Azure Key Vault key name for encrypting K10 Primary Key | "" |
+| encryption.primaryKey.azureKeyVaultURL | Specifies the Azure Key Vault URL which holds the key for encrypting K10 Primary Key | "" |
 | encryption.primaryKey.vaultTransitKeyName | Vault Transit key name for Vault integration | "" |
 | encryption.primaryKey.vaultTransitPath | Vault transit path for Vault integration | "" |
 | ephemeralPVCOverhead | Set the percentage increase for the ephemeral Persistent Volume Claim's storage request, e.g. pvc size = (file raw size) * (1 +ephemeralPVCOverhead) | "0.1" |
@@ -447,7 +449,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | kanister.managedDataServicesBlueprintsEnabled | Whether to enable built-in Kanister Blueprints for data services such as Crunchy Data Postgres Operator and K8ssandra | true |
 | kastenDisasterRecovery.quickMode.enabled | Enables Veeam Kasten Disaster Recovery Quick mode | true |
 | kastenDisasterRecovery.restoreTimeout | Sets the maximum duration (in minutes) for a restore operation to complete | 90 |
-| kubeVirtVMs.snapshot.unfreezeTimeout | Defines the time duration within which the VMs must be unfrozen while backing them up. To know more about formatgo doccan be followed | "5m" |
+| kubeVirtVMs.snapshot.unfreezeTimeout | Specifies thedurationwithin which a VM must be unfrozen before aborting a freeze operation and proceeding with a crash consistent snapshot. The minimum value is10s | "5m" |
 | license | Add license string obtained from Kasten | "" |
 | limiter.csiSnapshotRestoresPerAction | Per action limit of concurrent CSI volume provisioning requests when restoring from VolumeSnapshots | 3 |
 | limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
@@ -707,7 +709,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.14    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.0.15    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1007,6 +1009,8 @@ To modify the bundled Prometheus configuration, only use the helm values
 | datastore.parallelUploads | Specifies how many files can be uploaded in parallel to the data store | 8 |
 | defaultPriorityClassName | Specifies the defaultpriority classname for all K10 deployments and ephemeral Pods | "" |
 | encryption.primaryKey.awsCmkKeyId | Specifies the AWS CMK key ID for encrypting K10 Primary Key | "" |
+| encryption.primaryKey.azureKeyVaultKeyName | Specifies the Azure Key Vault key name for encrypting K10 Primary Key | "" |
+| encryption.primaryKey.azureKeyVaultURL | Specifies the Azure Key Vault URL which holds the key for encrypting K10 Primary Key | "" |
 | encryption.primaryKey.vaultTransitKeyName | Vault Transit key name for Vault integration | "" |
 | encryption.primaryKey.vaultTransitPath | Vault transit path for Vault integration | "" |
 | ephemeralPVCOverhead | Set the percentage increase for the ephemeral Persistent Volume Claim's storage request, e.g. pvc size = (file raw size) * (1 +ephemeralPVCOverhead) | "0.1" |
@@ -1082,7 +1086,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | kanister.managedDataServicesBlueprintsEnabled | Whether to enable built-in Kanister Blueprints for data services such as Crunchy Data Postgres Operator and K8ssandra | true |
 | kastenDisasterRecovery.quickMode.enabled | Enables Veeam Kasten Disaster Recovery Quick mode | true |
 | kastenDisasterRecovery.restoreTimeout | Sets the maximum duration (in minutes) for a restore operation to complete | 90 |
-| kubeVirtVMs.snapshot.unfreezeTimeout | Defines the time duration within which the VMs must be unfrozen while backing them up. To know more about formatgo doccan be followed | "5m" |
+| kubeVirtVMs.snapshot.unfreezeTimeout | Specifies thedurationwithin which a VM must be unfrozen before aborting a freeze operation and proceeding with a crash consistent snapshot. The minimum value is10s | "5m" |
 | license | Add license string obtained from Kasten | "" |
 | limiter.csiSnapshotRestoresPerAction | Per action limit of concurrent CSI volume provisioning requests when restoring from VolumeSnapshots | 3 |
 | limiter.csiSnapshotsPerCluster | Cluster-wide limit of concurrent CSI VolumeSnapshot creation requests | 10 |
@@ -1720,6 +1724,24 @@ In addition to the Transit Secret Engine setup, Veeam Kasten needs to be
   authorized to access Vault. Either token or kubernetes authentication is
   supported for the Vault server.
 
+### Azure Key Vault â
+
+An Azure Key Vault Key can be configured to protect the encryption key used by Veeam
+  Kasten to encrypt application data.
+
+```
+$ kubectl create secret generic k10-cluster-passphrase \    --namespace kasten-io \    --from-literal=azurekeyvaultkeyname=<key-name> \    --from-literal=azurekeyvaulturl=https://<key-vault-name>.vault.azure.net/
+```
+
+Veeam Kasten must be configured with an Azure service principal that has been assigned
+  the Key Vault Crypto Service Encryption User role (or a custom role with keys/wrap and keys/unwrap permissions) on the Azure Key Vault. More information on Key Vault Roles .
+  The service principal credentials can be provided
+  during install:
+
+```
+$ helm install k10 kasten/k10 --namespace=kasten-io \  --set secrets.azureTenantId="${AZURE_TENANT_ID}" \  --set secrets.azureClientId="${AZURE_CLIENT_ID}" \  --set secrets.azureClientSecret="${AZURE_CLIENT_SECRET}"
+```
+
 ### Token Auth â
 
 The token should be provided via a secret.
@@ -1926,7 +1948,7 @@ To install the latest version of Kasten with the latest values use the
   command below:
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.14/fips/fips-values.yaml
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.0.15/fips/fips-values.yaml
 ```
 
 ---
@@ -2707,37 +2729,6 @@ With <audience> is the Audience set up for the Workload Identity Pool.
 Instructions on how to create a Location Profile with Google Workload
   Identity Federation can be found here .
 
-## Restoring Veeam Kasten with Google Workload Identity Federation â
-
-Veeam Kasten supports the use of Google Workload Identity Federation
-with Kubernetes as the Identity
-Provider during Veeam Kasten DR Backup and Restore process. For more information
-  on Veeam Kasten DR Backup and Restore, please see here .
-
-Please note that it is possible to restore Veeam Kasten with Google
-  Workload Identity Federation, regardless of the authentication mechanism
-  used for the Google Location Profile selected while enabling Veeam
-  Kasten disaster recovery on the source cluster.
-
-The restore process will require a Location Profile with Google Workload
-  Identity Federation. Please refer back to this section for
-  instructions on how to install Veeam Kasten on the target cluster with
-  Google Workload Identity Federation, and the Google Cloud Storage Location Profile configuration section for instructions on how to create a Location
-  Profile.
-
-Following that, Veeam Kasten can be restored using Google Workload
-  Identity Federation credentials by executing the command below:
-
-```
-## Install the helm chart that creates the restore job and wait for completion of the `k10-restore` job## Assumes that Veeam Kasten is installed in 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \         --set=google.workloadIdentityFederation.enabled=true \         --set=google.workloadIdentityFederation.idp.type=kubernetes \         --set=google.workloadIdentityFederation.idp.aud=<audience> \         --set sourceClusterID=<source-clusterID> \         --set profile.name=<location-profile-name>
-```
-
-<audience> is the Audience set up for the Workload Identity Pool of
-  the target cluster.
-
-<location-profile-name> is the profile on target cluster that contains
-  the credential configuration file.
-
 ---
 
 ## Install Ironbank
@@ -2803,7 +2794,7 @@ Installing Veeam Kasten with the Iron Bank images, as
   version of Veeam Kasten that's being installed:
 
 ```
-$ curl -sO https://docs.kasten.io/downloads/8.0.14/ironbank/ironbank-values.yaml
+$ curl -sO https://docs.kasten.io/downloads/8.0.15/ironbank/ironbank-values.yaml
 ```
 
 This file contains the correct helm values that ensure the deployment of
@@ -2901,7 +2892,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.14.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.15.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2916,7 +2907,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.14.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.0.15.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2955,10 +2946,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.14 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.15 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.0.14).
+The following commands operate against the latest version of Veeam Kasten (8.0.15).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2967,12 +2958,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.0.14). This can be helpful if there is a requirement to tag and
+  version (8.0.15). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.0.14 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.0.15 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2985,7 +2976,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.14 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.15 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -3023,7 +3014,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.14 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.14 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.0.15 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.0.15 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3164,14 +3155,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.14/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.0.15/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.0.14/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.14
+$ curl https://docs.kasten.io/downloads/8.0.15/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.0.15
 ```
 
 Follow this guide to
@@ -3272,13 +3263,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.14/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.0.14/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â

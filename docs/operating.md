@@ -147,7 +147,7 @@ The Veeam Kasten Disaster Recovery settings are accessible via the Setup Kasten 
   sidebar.
 
 - Specify a location profile to which KDR backups will be exported. It is strongly recommended to use a location profile that supports immutable backups to ensure restore point catalog data can be recovered in the event of incidents including ransomware and accidental deletion. Note Veeam Repository location profiles cannot be used as a destination for KDR backups.
-- Select and configure the desired passphrase method that will be used to encrypt KDR backups: Passphrase warning It is critical that this unmanaged passphrase be stored securely outside of the cluster as it will be required to perform any future recoveries. HashiCorp Vault Note Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault . AWS Secrets Manager Note Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+- Select and configure the desired passphrase method that will be used to encrypt KDR backups: Passphrase warning It is critical that this unmanaged passphrase be stored securely outside of the cluster as it will be required to perform any future recoveries. HashiCorp Vault Note Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault . AWS Secrets Manager Note Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions Azure Key Vault Secrets Note Using Azure Key Vault for Disaster Recovery requires that an Azure Infrastructure Profile exists with permissions to read secrets from the specified Key Vault. Example Role Key Vault Secrets User see Key Vault Roles for more information. When setting up Disaster Recovery with Azure Key Vault, the latest version of the secret will be used. This secret version must be in an enabled state for Disaster Recovery backup and recovery to work properly. The secret version used during setup is stored in the k10-dr-secret Kubernetes secret under the azure-secret-version key.
 - If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations. Note Updating the catalog snapshot configuration may be performed by disabling and re-enabling KDR.
 - Select Enable Kasten DR . A confirmation with the configuration and cluster ID will be displayed when KDR is enabled. This ID is used as a prefix to the object or file storage location where Veeam Kasten saves its exported backup data. Tip The Cluster ID value for a given cluster can also be accessed using the following kubectl command: # Extract UUID of the `default` namespace kubectl get namespace default -o jsonpath = "{.metadata.uid}{' \n '}" warning After enabling KDR it is critical to retain the following to successfully recover Veeam Kasten from a disaster: The source Cluster ID The KDR passphrase (or external secret manager details) The KDR location profile details and credential Without this information, restore point catalog recovery will not be possible.
 
@@ -174,6 +174,15 @@ Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault .
 AWS Secrets Manager
 
 Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+
+Azure Key Vault Secrets
+
+Using Azure Key Vault for Disaster Recovery requires that an Azure Infrastructure Profile exists with
+        permissions to read secrets from the specified Key Vault. Example Role Key Vault Secrets User see Key Vault Roles for more information.
+
+When setting up Disaster Recovery with Azure Key Vault, the latest version of the secret will be used.
+        This secret version must be in an enabled state for Disaster Recovery backup and recovery to work properly.
+        The secret version used during setup is stored in the k10-dr-secret Kubernetes secret under the azure-secret-version key.
 
 If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations.
 
@@ -280,6 +289,16 @@ To recover from a KDR backup using the UI, follow these steps:
 
 - AWS Secrets Manager: Provide the secret name, its associated region, and the key.
 
+- Azure Key Vault Secrets: Provide the Azure Key Vault secret name and vault URL containing the DR passphrase.
+
+- Secret Name : The name of the secret in Azure Key Vault that contains the passphrase
+- Key Vault URL : The vault URL (e.g., https://my-vault.vault.azure.net/ )
+- Secret Version (Optional): Specific version of the secret. If not provided, the latest version will be used. The version from the original cluster is stored in the k10-dr-secret Kubernetes secret under the azure-secret-version key.
+- JSON Key (Optional): If the secret value is a JSON object, specify the field name that contains the passphrase
+
+Using Azure Key Vault requires that an Azure Infrastructure Profile exists with
+    permissions to read secrets from the specified Key Vault. Example Role Key Vault Secrets User see Key Vault Roles for more information.
+
 For immutable location profiles, a previous point in time can be
     provided to filter out any restore points newer than the specified
     time in the next step. If no specific date is chosen, it will display
@@ -308,28 +327,11 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery as described in Specifying a Disaster Recovery Passphrase .
 2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret.
-3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored.
+3. Create a Location Profile with the object storage location or NFS/SMB file storage location where Veeam Kasten KDR backups are stored.
 4. Create KastenDRReview resource providing the source cluster information.
 5. Create KastenDRRestore resource referring to the KastenDRReview resource and choosing one of the restore points provided in the KastenDRReview status.
 6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be created directly with the source cluster information.
 7. Delete the KastenDRReview and KastenDRRestore resources after restore completes. Following recovery of the Veeam Kasten restore point catalog, restore cluster-scoped resources and applications as required.
-
-## Recovering Veeam Kasten From a Disaster via Helm â
-
-The k10restore tool has has been deprecated and will be removed in the 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
-    supported recovery options.
-
-Recovering from a KDR backup using k10restore involves the
-  following sequence of actions:
-
-1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery
-2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret
-3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored
-4. Restoring the Veeam Kasten backup
-5. Uninstalling the Veeam Kasten restore instance after recovery is recommended
-
-If Kasten was previously installed in FIPS mode, ensure the fresh Veeam
-    Kasten instance is also installed in FIPS mode.
 
 If Veeam Kasten backup is stored using an NFS/SMB File Storage Location , it is important that the same NFS share is reachable from
     the recovery cluster and is mounted on all nodes where Veeam Kasten is
@@ -362,13 +364,19 @@ $ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --fr
 The supported values for vault-kv-version are KVv1 and KVv2 .
 
 Using a passphrase from HashiCorp Vault also requires enabling HashiCorp
-    Vault authentication when installing the kasten/k10restore helm chart.
+    Vault authentication when performing restore using CLI.
     Refer: Enabling HashiCorp Vault using Token Auth or Kubernetes Auth .
 
 Specifying the passphrase as an AWS Secrets Manager secret:
 
 ```
 $ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=<aws-region-for-secret> \   --from-literal key=<aws-secret-name># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=us-east-1 \   --from-literal key=k10/dr/passphrase
+```
+
+Specifying the passphrase as an Azure Key Vault secret:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=azure \   --from-literal azure-key-vault-url=<key-vault-url> \   --from-literal key=<azure-secret-name> \   --from-literal azure-secret-version=<azure-secret-version># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=azure \   --from-literal azure-key-vault-url=https://my-key-vault.vault.azure.net/ \   --from-literal key=my-secret \   --from-literal azure-secret-version=1234
 ```
 
 ### Reinstalling Veeam Kasten â
@@ -383,215 +391,6 @@ When reinstalling Veeam Kasten on the same cluster, it is important to
 
 Veeam Kasten must be reinstalled before recovery. Please follow the
   instructions here .
-
-### Configuring Location Profile â
-
-Create a Location Profile with the object storage location or NFS/SMB file storage
-  location where Veeam Kasten KDR backups are stored.
-
-### Restoring Veeam Kasten with k10restore â
-
-Requirements:
-
-- Source cluster ID
-- Name of Location Profile from the previous step
-
-```
-# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job# Assumes that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
-```
-
-If Veeam Kasten Quick Disaster Recovery is enabled, the Veeam Kasten
-  restore helm chart should be installed with the following helm value:
-
-```
---set quickMode.enabled=true \--set quickMode.overrideResources=true
-```
-
-The [overrideResources] flag must be set to true when using
-    Quick Disaster Recovery. Since the Disaster Recovery operation involves
-    creating or replacing resources, confirmation should be provided by
-    setting this flag.
-
-Veeam Kasten provides the ability to apply labels to all temporary worker pods and their associated PersistentVolumeClaims (PVCs),
-  NetworkPolicies, and Services created during recovery operations, as well as to apply annotations to temporary worker pods.
-  Labels and annotations can be set using the resourceLabels , ephemeralResourceLabels , and podAnnotations Helm flags in the global section. For example, in a values.yaml file:
-
-```
-global:  resourceLabels:    app.kubernetes.io/component: "kasten"    lifecycle: "persistent"  ephemeralResourceLabels:    app.kubernetes.io/component: "kasten-job"    lifecycle: "ephemeral"  podAnnotations:    config.kubernetes.io/local-config: "true"    kubernetes.io/description: "Description"
-```
-
-- global.resourceLabels : Applies labels to all Kasten PVCs, NetworkPolicies, Services, and Pods.
-- global.ephemeralResourceLabels : Applies labels specifically to Kasten temporary (ephemeral) PVCs, NetworkPolicies, Services, and Pods, and takes precedence over any conflicting keys in global.resourceLabels for ephemeral resources.
-- global.podAnnotations : Applies annotations to all Kasten Pods.
-
-Alternatively, the Helm parameters can be configured using the --set flag:
-
-```
---set global.resourceLabels.labelKey1=value1 --set global.resourceLabels.labelKey2=value2 \--set global.ephemeralResourceLabels.ephemeralLabelKey1=ephemeralValue1 --set global.ephemeralResourceLabels.ephemeralLabelKey2=ephemeralValue2 \--set global.podAnnotations.annotationKey1="Example annotation" --set global.podAnnotations.annotationKey2=value2
-```
-
-The restore job always restores the restore point catalog and artifact
-  information. If the restore of other resources (options include
-  profiles, policies, secrets) needs to be skipped, the skipResource flag can be used.
-
-```
-# e.g. to skip restore of profiles and policies, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set skipResource="profiles\,policies"
-```
-
-The timeout of the entire restore process can be configured by the helm
-  field restore.timeout . The type of this field is int and the value
-  is in minutes.
-
-```
-# e.g. to specify the restore timeout, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set restore.timeout=<timeout-in-minutes>
-```
-
-If the Disaster Recovery Location Profile was configured for Immutable Backups ,
-  Veeam Kasten can be restored to an earlier point in time. The protection
-  period chosen when creating the profile determines how far in the past
-  the point-in-time can be. Set the pointInTime helm value to the
-  desired time stamp.
-
-```
-# e.g. to restore Kasten to 15:04:05 UTC on Jan 2, 2022:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set pointInTime="2022-01-02T15:04:05Z"
-```
-
-See Immutable Backups Workflow for additional information.
-
-### Restoring Veeam Kasten Backup with Iron Bank Kasten Images â
-
-The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten using Iron Bank
-  hardened images with a few changes.
-
-Specific helm values are used to ensure that the Veeam Kasten
-  restore helm chart only uses Iron Bank images.
-  The values file must be downloaded by running:
-
-```
-$ curl -sO https://docs.kasten.io/ironbank/k10restore-ironbank-values.yaml
-```
-
-This file is protected and should not be modified. It is necessary
-    to specify all other values using the corresponding helm flags, such as --set , --values , etc.
-
-Credentials for Registry1 must be provided in order to successfully pull
-  the images. These should already have been created as part of re-deploying a
-  new Veeam Kasten instance; therefore, only the name of the secret should be
-  used here.
-
-The following set of flags should be added to the instructions found in Restoring Veeam Kasten with k10restore to use
-  Iron Bank images for Veeam Kasten recovery:
-
-```
-...   --values=<PATH TO DOWNLOADED k10restore-ironbank-values.yaml> \   --set-json 'imagePullSecrets=[{"name": "k10-ecr"}]' \   ...
-```
-
-### Restoring Veeam Kasten Backup in FIPS Mode â
-
-The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten in FIPS mode with a few changes.
-
-To ensure that certified cryptographic modules are utilized, you must install
-  the k10restore chart with additional Helm values that can be found here: FIPS values . These should be added to the
-  instructions found in Restoring Veeam Kasten with k10restore for Veeam Kasten disaster recovery:
-
-```
-...   --values=https://docs.kasten.io/latest/fips/fips-restore-values.yaml   ...
-```
-
-### Restoring Veeam Kasten Backup in Air-Gapped environment â
-
-In case of air-gapped installations, it's assumed that k10offline tool is used to push the images to a private container registry.
-  Below command can be used to instruct k10restore to run in air-gapped mode.
-
-```
-# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job.# Assume that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set airgapped.repository=repo.example.com \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
-```
-
-### Restoring Veeam Kasten Backup with Google Workload Identity Federation â
-
-Veeam Kasten can be restored from a Google Cloud Storage bucket using
-  the Google Workload Identity Federation. Please follow the instructions
-  provided here to
-  restore Veeam Kasten with this option.
-
-### Uninstalling k10restore â
-
-The K10restore instance can be uninstalled with the helm uninstall command.
-
-```
-# e.g. to uninstall K10restore from the kasten-io namespace   $ helm uninstall k10-restore --namespace=kasten-io
-```
-
-#### Enabling HashiCorp Vault using Token Auth â
-
-Create a Kubernetes secret with the Vault token.
-
-```
-kubectl create secret generic vault-creds \       --namespace kasten-io \       --from-literal vault_token=<vault-token>
-```
-
-This may cause the token to be stored in shell history.
-
-Use these additional parameters when installing the kasten/k10restore helm chart.
-
-```
---set vault.enabled=true \   --set vault.address=<vault-server-address> \   --set vault.secretName=<name-of-secret-with-vault-creds>
-```
-
-#### Enabling HashiCorp Vault using Kubernetes Auth â
-
-Refer to Configuring Vault Server For Kubernetes Auth prior to installing the kasten/k10restore helm chart.
-
-```
---set vault.enabled=true \    --set vault.address=<vault-server-address> \    --set vault.role=<vault-kubernetes-authentication-role_name> \    --set vault.serviceAccountTokenPath=<service-account-token-path> # optional
-```
-
-vault.role is the name of the Vault Kubernetes authentication role binding
-  the Veeam Kasten service account and namespace to the Vault policy.
-
-vault.serviceAccountTokenPath is optional and defaults to /var/run/secrets/kubernetes.io/serviceaccount/token .
-
-## Recovering with the Operator â
-
-The k10restore tool has has been deprecated and will be removed in a 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
-    supported recovery options.
-
-If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
-  the k10restore tool can be deployed via the Operator as described below.
-  However, it is recommended to use either the Recovering Veeam Kasten from a Disaster via UI or Recovering Veeam Kasten from a Disaster via CLI process.
-
-Recovering from a Veeam Kasten backup involves the following sequence of
-  actions:
-
-1. Install a fresh Veeam Kasten instance.
-2. Configure a Location Profile from where the Veeam Kasten backup will be restored.
-3. Create a Kubernetes Secret named k10-dr-secret in the same namespace as the Veeam Kasten install, with the passphrase given when disaster recovery was enabled on the previous Veeam Kasten instance. The commands are detailed here .
-4. Create a K10restore instance. The required values are Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance. Profile name - name of the Location Profile configured in Step 2. and the optional values are Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z". Resources to skip - can be used to skip restore of specific resources. Example "profile,policies". After recovery, deleting the k10restore instance is recommended.
-
-Install a fresh Veeam Kasten instance.
-
-Configure a Location Profile from where the Veeam Kasten backup will be restored.
-
-Create a Kubernetes Secret named k10-dr-secret in the same
-      namespace as the Veeam Kasten install, with the passphrase given
-      when disaster recovery was enabled on the previous Veeam Kasten
-      instance. The commands are detailed here .
-
-Create a K10restore instance. The required values are
-
-- Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance.
-- Profile name - name of the Location Profile configured in Step 2.
-
-and the optional values are
-
-- Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z".
-- Resources to skip - can be used to skip restore of specific resources. Example "profile,policies".
-
-After recovery, deleting the k10restore instance is recommended.
-
-Operator K10restore form view with Enable HashiCorp Vault set to False
-
-Operator K10restore form view with Enable HashiCorp Vault set to True
 
 ## Using the Restored Veeam Kasten in Place of the Original â
 
@@ -770,7 +569,7 @@ The Veeam Kasten Disaster Recovery settings are accessible via the Setup Kasten 
   sidebar.
 
 - Specify a location profile to which KDR backups will be exported. It is strongly recommended to use a location profile that supports immutable backups to ensure restore point catalog data can be recovered in the event of incidents including ransomware and accidental deletion. Note Veeam Repository location profiles cannot be used as a destination for KDR backups.
-- Select and configure the desired passphrase method that will be used to encrypt KDR backups: Passphrase warning It is critical that this unmanaged passphrase be stored securely outside of the cluster as it will be required to perform any future recoveries. HashiCorp Vault Note Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault . AWS Secrets Manager Note Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+- Select and configure the desired passphrase method that will be used to encrypt KDR backups: Passphrase warning It is critical that this unmanaged passphrase be stored securely outside of the cluster as it will be required to perform any future recoveries. HashiCorp Vault Note Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault . AWS Secrets Manager Note Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions Azure Key Vault Secrets Note Using Azure Key Vault for Disaster Recovery requires that an Azure Infrastructure Profile exists with permissions to read secrets from the specified Key Vault. Example Role Key Vault Secrets User see Key Vault Roles for more information. When setting up Disaster Recovery with Azure Key Vault, the latest version of the secret will be used. This secret version must be in an enabled state for Disaster Recovery backup and recovery to work properly. The secret version used during setup is stored in the k10-dr-secret Kubernetes secret under the azure-secret-version key.
 - If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations. Note Updating the catalog snapshot configuration may be performed by disabling and re-enabling KDR.
 - Select Enable Kasten DR . A confirmation with the configuration and cluster ID will be displayed when KDR is enabled. This ID is used as a prefix to the object or file storage location where Veeam Kasten saves its exported backup data. Tip The Cluster ID value for a given cluster can also be accessed using the following kubectl command: # Extract UUID of the `default` namespace kubectl get namespace default -o jsonpath = "{.metadata.uid}{' \n '}" warning After enabling KDR it is critical to retain the following to successfully recover Veeam Kasten from a disaster: The source Cluster ID The KDR passphrase (or external secret manager details) The KDR location profile details and credential Without this information, restore point catalog recovery will not be possible.
 
@@ -797,6 +596,15 @@ Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault .
 AWS Secrets Manager
 
 Using AWS Secrets Manager requires that an AWS Infrastructure Profile exists with the required permissions
+
+Azure Key Vault Secrets
+
+Using Azure Key Vault for Disaster Recovery requires that an Azure Infrastructure Profile exists with
+        permissions to read secrets from the specified Key Vault. Example Role Key Vault Secrets User see Key Vault Roles for more information.
+
+When setting up Disaster Recovery with Azure Key Vault, the latest version of the secret will be used.
+        This secret version must be in an enabled state for Disaster Recovery backup and recovery to work properly.
+        The secret version used during setup is stored in the k10-dr-secret Kubernetes secret under the azure-secret-version key.
 
 If Quick DR mode is enabled, specify the desired catalog snapshot behavior. See comparison for details and recommendations.
 
@@ -903,6 +711,16 @@ To recover from a KDR backup using the UI, follow these steps:
 
 - AWS Secrets Manager: Provide the secret name, its associated region, and the key.
 
+- Azure Key Vault Secrets: Provide the Azure Key Vault secret name and vault URL containing the DR passphrase.
+
+- Secret Name : The name of the secret in Azure Key Vault that contains the passphrase
+- Key Vault URL : The vault URL (e.g., https://my-vault.vault.azure.net/ )
+- Secret Version (Optional): Specific version of the secret. If not provided, the latest version will be used. The version from the original cluster is stored in the k10-dr-secret Kubernetes secret under the azure-secret-version key.
+- JSON Key (Optional): If the secret value is a JSON object, specify the field name that contains the passphrase
+
+Using Azure Key Vault requires that an Azure Infrastructure Profile exists with
+    permissions to read secrets from the specified Key Vault. Example Role Key Vault Secrets User see Key Vault Roles for more information.
+
 For immutable location profiles, a previous point in time can be
     provided to filter out any restore points newer than the specified
     time in the next step. If no specific date is chosen, it will display
@@ -931,28 +749,11 @@ In Veeam Kasten v7.5.0 and above, KDR recoveries can be performed via
 
 1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery as described in Specifying a Disaster Recovery Passphrase .
 2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret.
-3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored.
+3. Create a Location Profile with the object storage location or NFS/SMB file storage location where Veeam Kasten KDR backups are stored.
 4. Create KastenDRReview resource providing the source cluster information.
 5. Create KastenDRRestore resource referring to the KastenDRReview resource and choosing one of the restore points provided in the KastenDRReview status.
 6. The steps 4 and 5 can be skipped and KastenDRRestore resource can be created directly with the source cluster information.
 7. Delete the KastenDRReview and KastenDRRestore resources after restore completes. Following recovery of the Veeam Kasten restore point catalog, restore cluster-scoped resources and applications as required.
-
-## Recovering Veeam Kasten From a Disaster via Helm â
-
-The k10restore tool has has been deprecated and will be removed in the 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
-    supported recovery options.
-
-Recovering from a KDR backup using k10restore involves the
-  following sequence of actions:
-
-1. Create a Kubernetes Secret, k10-dr-secret , using the passphrase provided while enabling Disaster Recovery
-2. Install a fresh Veeam Kasten instance in the same namespace as the above Secret
-3. Provide bucket information and credentials for the object storage location or NFS/SMB file storage location where previous Veeam Kasten backups are stored
-4. Restoring the Veeam Kasten backup
-5. Uninstalling the Veeam Kasten restore instance after recovery is recommended
-
-If Kasten was previously installed in FIPS mode, ensure the fresh Veeam
-    Kasten instance is also installed in FIPS mode.
 
 If Veeam Kasten backup is stored using an NFS/SMB File Storage Location , it is important that the same NFS share is reachable from
     the recovery cluster and is mounted on all nodes where Veeam Kasten is
@@ -985,13 +786,19 @@ $ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --fr
 The supported values for vault-kv-version are KVv1 and KVv2 .
 
 Using a passphrase from HashiCorp Vault also requires enabling HashiCorp
-    Vault authentication when installing the kasten/k10restore helm chart.
+    Vault authentication when performing restore using CLI.
     Refer: Enabling HashiCorp Vault using Token Auth or Kubernetes Auth .
 
 Specifying the passphrase as an AWS Secrets Manager secret:
 
 ```
 $ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=<aws-region-for-secret> \   --from-literal key=<aws-secret-name># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=aws \   --from-literal aws-region=us-east-1 \   --from-literal key=k10/dr/passphrase
+```
+
+Specifying the passphrase as an Azure Key Vault secret:
+
+```
+$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=azure \   --from-literal azure-key-vault-url=<key-vault-url> \   --from-literal key=<azure-secret-name> \   --from-literal azure-secret-version=<azure-secret-version># Example$ kubectl create secret generic k10-dr-secret \   --namespace kasten-io \   --from-literal source=azure \   --from-literal azure-key-vault-url=https://my-key-vault.vault.azure.net/ \   --from-literal key=my-secret \   --from-literal azure-secret-version=1234
 ```
 
 ### Reinstalling Veeam Kasten â
@@ -1006,215 +813,6 @@ When reinstalling Veeam Kasten on the same cluster, it is important to
 
 Veeam Kasten must be reinstalled before recovery. Please follow the
   instructions here .
-
-### Configuring Location Profile â
-
-Create a Location Profile with the object storage location or NFS/SMB file storage
-  location where Veeam Kasten KDR backups are stored.
-
-### Restoring Veeam Kasten with k10restore â
-
-Requirements:
-
-- Source cluster ID
-- Name of Location Profile from the previous step
-
-```
-# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job# Assumes that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
-```
-
-If Veeam Kasten Quick Disaster Recovery is enabled, the Veeam Kasten
-  restore helm chart should be installed with the following helm value:
-
-```
---set quickMode.enabled=true \--set quickMode.overrideResources=true
-```
-
-The [overrideResources] flag must be set to true when using
-    Quick Disaster Recovery. Since the Disaster Recovery operation involves
-    creating or replacing resources, confirmation should be provided by
-    setting this flag.
-
-Veeam Kasten provides the ability to apply labels to all temporary worker pods and their associated PersistentVolumeClaims (PVCs),
-  NetworkPolicies, and Services created during recovery operations, as well as to apply annotations to temporary worker pods.
-  Labels and annotations can be set using the resourceLabels , ephemeralResourceLabels , and podAnnotations Helm flags in the global section. For example, in a values.yaml file:
-
-```
-global:  resourceLabels:    app.kubernetes.io/component: "kasten"    lifecycle: "persistent"  ephemeralResourceLabels:    app.kubernetes.io/component: "kasten-job"    lifecycle: "ephemeral"  podAnnotations:    config.kubernetes.io/local-config: "true"    kubernetes.io/description: "Description"
-```
-
-- global.resourceLabels : Applies labels to all Kasten PVCs, NetworkPolicies, Services, and Pods.
-- global.ephemeralResourceLabels : Applies labels specifically to Kasten temporary (ephemeral) PVCs, NetworkPolicies, Services, and Pods, and takes precedence over any conflicting keys in global.resourceLabels for ephemeral resources.
-- global.podAnnotations : Applies annotations to all Kasten Pods.
-
-Alternatively, the Helm parameters can be configured using the --set flag:
-
-```
---set global.resourceLabels.labelKey1=value1 --set global.resourceLabels.labelKey2=value2 \--set global.ephemeralResourceLabels.ephemeralLabelKey1=ephemeralValue1 --set global.ephemeralResourceLabels.ephemeralLabelKey2=ephemeralValue2 \--set global.podAnnotations.annotationKey1="Example annotation" --set global.podAnnotations.annotationKey2=value2
-```
-
-The restore job always restores the restore point catalog and artifact
-  information. If the restore of other resources (options include
-  profiles, policies, secrets) needs to be skipped, the skipResource flag can be used.
-
-```
-# e.g. to skip restore of profiles and policies, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set skipResource="profiles\,policies"
-```
-
-The timeout of the entire restore process can be configured by the helm
-  field restore.timeout . The type of this field is int and the value
-  is in minutes.
-
-```
-# e.g. to specify the restore timeout, helm install command will be as follows:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set restore.timeout=<timeout-in-minutes>
-```
-
-If the Disaster Recovery Location Profile was configured for Immutable Backups ,
-  Veeam Kasten can be restored to an earlier point in time. The protection
-  period chosen when creating the profile determines how far in the past
-  the point-in-time can be. Set the pointInTime helm value to the
-  desired time stamp.
-
-```
-# e.g. to restore Kasten to 15:04:05 UTC on Jan 2, 2022:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set pointInTime="2022-01-02T15:04:05Z"
-```
-
-See Immutable Backups Workflow for additional information.
-
-### Restoring Veeam Kasten Backup with Iron Bank Kasten Images â
-
-The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten using Iron Bank
-  hardened images with a few changes.
-
-Specific helm values are used to ensure that the Veeam Kasten
-  restore helm chart only uses Iron Bank images.
-  The values file must be downloaded by running:
-
-```
-$ curl -sO https://docs.kasten.io/ironbank/k10restore-ironbank-values.yaml
-```
-
-This file is protected and should not be modified. It is necessary
-    to specify all other values using the corresponding helm flags, such as --set , --values , etc.
-
-Credentials for Registry1 must be provided in order to successfully pull
-  the images. These should already have been created as part of re-deploying a
-  new Veeam Kasten instance; therefore, only the name of the secret should be
-  used here.
-
-The following set of flags should be added to the instructions found in Restoring Veeam Kasten with k10restore to use
-  Iron Bank images for Veeam Kasten recovery:
-
-```
-...   --values=<PATH TO DOWNLOADED k10restore-ironbank-values.yaml> \   --set-json 'imagePullSecrets=[{"name": "k10-ecr"}]' \   ...
-```
-
-### Restoring Veeam Kasten Backup in FIPS Mode â
-
-The general instructions found in Restoring Veeam Kasten with k10restore can be used for restoring Veeam Kasten in FIPS mode with a few changes.
-
-To ensure that certified cryptographic modules are utilized, you must install
-  the k10restore chart with additional Helm values that can be found here: FIPS values . These should be added to the
-  instructions found in Restoring Veeam Kasten with k10restore for Veeam Kasten disaster recovery:
-
-```
-...   --values=https://docs.kasten.io/latest/fips/fips-restore-values.yaml   ...
-```
-
-### Restoring Veeam Kasten Backup in Air-Gapped environment â
-
-In case of air-gapped installations, it's assumed that k10offline tool is used to push the images to a private container registry.
-  Below command can be used to instruct k10restore to run in air-gapped mode.
-
-```
-# Install the helm chart that creates the Kasten restore job and wait for completion of the `k10-restore` job.# Assume that Kasten is installed in the 'kasten-io' namespace.$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set airgapped.repository=repo.example.com \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name>
-```
-
-### Restoring Veeam Kasten Backup with Google Workload Identity Federation â
-
-Veeam Kasten can be restored from a Google Cloud Storage bucket using
-  the Google Workload Identity Federation. Please follow the instructions
-  provided here to
-  restore Veeam Kasten with this option.
-
-### Uninstalling k10restore â
-
-The K10restore instance can be uninstalled with the helm uninstall command.
-
-```
-# e.g. to uninstall K10restore from the kasten-io namespace   $ helm uninstall k10-restore --namespace=kasten-io
-```
-
-#### Enabling HashiCorp Vault using Token Auth â
-
-Create a Kubernetes secret with the Vault token.
-
-```
-kubectl create secret generic vault-creds \       --namespace kasten-io \       --from-literal vault_token=<vault-token>
-```
-
-This may cause the token to be stored in shell history.
-
-Use these additional parameters when installing the kasten/k10restore helm chart.
-
-```
---set vault.enabled=true \   --set vault.address=<vault-server-address> \   --set vault.secretName=<name-of-secret-with-vault-creds>
-```
-
-#### Enabling HashiCorp Vault using Kubernetes Auth â
-
-Refer to Configuring Vault Server For Kubernetes Auth prior to installing the kasten/k10restore helm chart.
-
-```
---set vault.enabled=true \    --set vault.address=<vault-server-address> \    --set vault.role=<vault-kubernetes-authentication-role_name> \    --set vault.serviceAccountTokenPath=<service-account-token-path> # optional
-```
-
-vault.role is the name of the Vault Kubernetes authentication role binding
-  the Veeam Kasten service account and namespace to the Vault policy.
-
-vault.serviceAccountTokenPath is optional and defaults to /var/run/secrets/kubernetes.io/serviceaccount/token .
-
-## Recovering with the Operator â
-
-The k10restore tool has has been deprecated and will be removed in a 8.5 release. See Recovering Veeam Kasten from a Disaster via UI and Recovering Veeam Kasten from a Disaster via CLI for
-    supported recovery options.
-
-If you have deployed Veeam Kasten via the OperatorHub on an OpenShift cluster,
-  the k10restore tool can be deployed via the Operator as described below.
-  However, it is recommended to use either the Recovering Veeam Kasten from a Disaster via UI or Recovering Veeam Kasten from a Disaster via CLI process.
-
-Recovering from a Veeam Kasten backup involves the following sequence of
-  actions:
-
-1. Install a fresh Veeam Kasten instance.
-2. Configure a Location Profile from where the Veeam Kasten backup will be restored.
-3. Create a Kubernetes Secret named k10-dr-secret in the same namespace as the Veeam Kasten install, with the passphrase given when disaster recovery was enabled on the previous Veeam Kasten instance. The commands are detailed here .
-4. Create a K10restore instance. The required values are Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance. Profile name - name of the Location Profile configured in Step 2. and the optional values are Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z". Resources to skip - can be used to skip restore of specific resources. Example "profile,policies". After recovery, deleting the k10restore instance is recommended.
-
-Install a fresh Veeam Kasten instance.
-
-Configure a Location Profile from where the Veeam Kasten backup will be restored.
-
-Create a Kubernetes Secret named k10-dr-secret in the same
-      namespace as the Veeam Kasten install, with the passphrase given
-      when disaster recovery was enabled on the previous Veeam Kasten
-      instance. The commands are detailed here .
-
-Create a K10restore instance. The required values are
-
-- Cluster ID - value given when disaster recovery was enabled on the previous Veeam Kasten instance.
-- Profile name - name of the Location Profile configured in Step 2.
-
-and the optional values are
-
-- Point in time - time (RFC3339) at which to evaluate restore data. Example "2022-01-02T15:04:05Z".
-- Resources to skip - can be used to skip restore of specific resources. Example "profile,policies".
-
-After recovery, deleting the k10restore instance is recommended.
-
-Operator K10restore form view with Enable HashiCorp Vault set to False
-
-Operator K10restore form view with Enable HashiCorp Vault set to True
 
 ## Using the Restored Veeam Kasten in Place of the Original â
 
@@ -1243,49 +841,6 @@ It is critical that you delete this resource only when you are prepared
     to make the permanent cutover to the new DR-restored Veeam Kasten instance.
     Running multiple Veeam Kasten instances simultaneously, each assuming
     ownership, can corrupt backup data.
-
----
-
-## Operating External Tools Datadog
-
-First off the Datadog agent needs to be installed in the Kubernetes
-  cluster. Documentation for that is found in the Datadog
-docs . Make
-  sure to enable the [prometheusScrape] option documented in prometheus scrape
-docs .
-
-```
-# datadog helm values.yaml# ...datadog:# ...  prometheusScrape:    enabled: true# ...
-```
-
-Finally, to collect the Veeam Kasten metrics in Datadog, apply the
-  following values to either the Veeam Kasten install or upgrade (using
-  Helm).
-
-```
-# Veeam Kasten values.yamlprometheus:  server:    podAnnotations:      ad.datadoghq.com/prometheus-server.check_names: |        ["openmetrics"]      ad.datadoghq.com/prometheus-server.init_configs: |        [{}]      ad.datadoghq.com/prometheus-server.instances: |        [{          "prometheus_url": "http://%%host%%:%%port%%/k10/prometheus/federate?match[]=%7Bjob%3D~%22.%2B%22%7D",          "namespace": "kasten-io",          "metrics": ["*"],          "type_overrides": {"*": "counter"}        }]
-```
-
-for example, given the above [values.yaml] file, if doing a
-  helm install, the command would be:
-
-```
-helm install k10 kasten/k10 --create-namespace --namespace kasten-io --values values.yaml
-```
-
-If doing a helm upgrade to patch your install with the above values, run
-  the following:
-
-```
-helm --namespace kasten-io get values k10 > values.yaml# note, if no values have been applied yet, then that file will be empty# add the values from the example file above and runhelm upgrade k10 kasten/k10 --namespace kasten-io --values values.yaml
-```
-
-To dive deeper into adding metrics to Datadog see the following
-  documentation links:
-
-- Kubernetes Prometheus and OpenMetrics metrics collection
-- Prometheus Helm Values - Server Pod Annotations
-- Using Veeam Kasten's Prometheus Endpoint
 
 ---
 
@@ -1533,7 +1088,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.14/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.0.15/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1712,17 +1267,11 @@ export VSPHERE_SNAPSHOT_TAGGING_CATEGORY=$(kubectl -n kasten-io get profiles $(k
 
 Veeam Kasten enables centralized monitoring of all its activity by
   integrating with Prometheus. In particular, it exposes a Prometheus
-  endpoint from which a central system can extract data.
+  endpoint from which a central system can extract data. This section documents
+  how to use the built-in Prometheus instance, and describes the metrics currently exposed by Veeam Kasten.
 
-A Grafana instance can be installed in the same Kubernetes cluster
-  where Veeam Kasten is installed to query and visualize the metrics
-  from Veeam Kasten's prometheus instance. Steps to install a new Grafana
-  instance and integrating that with Veeam Kasten's prometheus instance
-  are documented here .
-
-This section documents how to install and enable Prometheus,
-  usage of the metrics currently exposed, generation of alerts and reports
-  based on these metrics, and integration with external tools.
+Metrics can also be exported to external or on-cluster monitoring platforms such as Grafana,
+  Datadog, Splunk, Thanos and other Prometheus-compatible systems for unified visibility across multiple clusters. See Exporting Metrics to External Monitoring Systems for configuration details.
 
 ## Using Veeam Kasten's Prometheus Endpoint â
 
@@ -1740,26 +1289,6 @@ If for some reason you don't want helm to create RBAC for you
 ```
 kind: RoleapiVersion: rbac.authorization.k8s.io/v1metadata:  name: k10-prometheus-server  namespace: kasten-iorules:- apiGroups:  - ""  resources:  - nodes  - nodes/proxy  - nodes/metrics  - services  - endpoints  - pods  - ingresses  - configmaps  verbs:  - get  - list  - watch- apiGroups:  - extensions  - networking.k8s.io  resources:  - ingresses/status  - ingresses  verbs:  - get  - list  - watch---kind: RoleBindingapiVersion: rbac.authorization.k8s.io/v1metadata:  name: k10-prometheus-server  namespace: kasten-ioroleRef:  apiGroup: rbac.authorization.k8s.io  kind: Role  name:  k10-prometheus-serversubjects:  - kind: ServiceAccount    name: prometheus-server    namespace: kasten-io
 ```
-
-An external Prometheus server can be configured to scrape Veeam
-  Kasten's built-in server. The following scrape config is an example of
-  how a Prometheus server hosted in the same cluster might be configured:
-
-```
-- job_name: k10  scrape_interval: 15s  honor_labels: true  scheme: http  metrics_path: '/<k10-release-name>/prometheus/federate'  params:    'match[]':      - '{__name__=~"jobs.*"}'  static_configs:    - targets:      - 'prometheus-server.kasten-io.svc.cluster.local'      labels:        app: "k10"
-```
-
-An additional NetworkPolicy may need to be applied in certain
-    environments.
-
-Although it's possible to disable Veeam Kasten's built-in Prometheus
-  server enabled, it is recommended to leave it enabled. Disabling the
-  server reduces functionality in various parts of the system such as
-  usage data, reporting, and the multi-cluster dashboard. To disable the
-  built-in server, set the prometheus.server.enabled value to false .
-
-If the built-in server has previously been disabled, it can be
-  re-enabled during a helm upgrade (see Upgrading Veeam Kasten ) with: --set prometheus.server.enabled=true .
 
 ## Veeam Kasten Metrics â
 
@@ -1946,7 +1475,7 @@ snapshot_storage_size_bytes , also with logical and physical types,
 ### Data Transfer Metrics â
 
 Metrics are collected for individual snapshot upload and download
-  operation steps within Veeam Kasten export and import actions<k10_action_metrics> . These metrics differ from those collected for Veeam Kasten
+  operation steps within Veeam Kasten export and import actions . These metrics differ from those collected for Veeam Kasten
   actions because they are captured on a per-volume basis, whereas Veeam
   Kasten actions, in general, could involve multiple volume operations and
   other activities.
@@ -2041,7 +1570,175 @@ sum(round(increase(mc_action_ended_count{state="succeeded",cluster="<cluster-nam
 | mc_export_storage_physical_size_bytes | gauge | Exported storage consumption in bytes | *cluster- Cluster name |
 | mc_snapshot_storage_physical_size_bytes | gauge | Local backup space utilization in bytes | *cluster- Cluster name |
 
+## Generating Reports â
+
+Veeam Kasten Reporting provides regular insights into key performance
+  and operational states of the system. It uses prometheus to obtain
+  information about action runs and storage consumption. For more
+  information about Veeam Kasten Reporting, see Reporting
+
+---
+
+## Operating Monitoring Exporting Metrics
+
+## Overview â
+
+Veeam Kasten metrics can be exported to remote monitoring systems using two main methods:
+
+1. Prometheus Remote Write - Push metrics directly to remote Prometheus-compatible endpoints (Grafana, Datadog, Thanos, etc.). Recommended for most use cases.
+2. External Prometheus Integration - Configure an external Prometheus instance to scrape K10's built-in Prometheus server.
+
+This page also covers how to set up an external Grafana instance to visualize K10 metrics with custom dashboards and alerts.
+
+Choose the export method that best fits your monitoring infrastructure.
+
+## Prometheus Remote Write â
+
+Veeam Kasten's built-in Prometheus instance can be configured to push metrics to remote Prometheus-compatible endpoints using the remote_write feature. This enables integration with external monitoring platforms such as Grafana, Datadog, or other Prometheus-compatible storage systems.
+
+### Prerequisites â
+
+- Remote Prometheus-compatible endpoint (Grafana, Datadog, etc.)
+- Remote write URL and authentication credentials from your monitoring service
+- kubectl and helm CLI tools configured
+
+### Configuration Options â
+
+From your preferred data visualization/aggregation service, obtain a remote_write URL which will be the destination for your Prometheus metrics. You will also need authentication credentials (username/password or bearer token).
+
+#### Option 1: Basic Authentication (Username/Password) â
+
+Create a values file named k10-remote-write-values.yaml (or something similar):
+
+```
+clusterName: ""  # REQUIRED: Enter a cluster nameprometheus:  server:    remote_write:      - url: <insert remote backend url>        basic_auth:          username: <insert username>  # Remote backend ID          password: <insert API key>   # Remote backend API key
+```
+
+clusterName is required when remote_write is enabled; deployment will fail without it. The clusterName will appear as the cluster_name label on all exported metrics. A unique cluster_uid label is automatically added.
+
+#### Option 2: Bearer Token File Authentication (Recommended) â
+
+For enhanced security, store credentials in a Kubernetes Secret and reference them using bearer_token_file .
+
+Step 1: Create a Kubernetes Secret with your bearer token:
+
+```
+kubectl create secret generic prometheus-remote-write-token \  --from-literal=token=<your-bearer-token> \  --namespace kasten-io
+```
+
+Step 2: Create k10-remote-write-values.yaml with extraSecretMounts :
+
+```
+clusterName: ""  # REQUIRED: Enter a cluster nameprometheus:  server:    remote_write:      - url: <insert remote backend url>        bearer_token_file: /etc/prometheus-secrets/token    extraSecretMounts:      - name: remote-write-token        mountPath: /etc/prometheus-secrets        secretName: prometheus-remote-write-token        readOnly: true
+```
+
+### Optional Configurations â
+
+#### Basic Metric Filtering â
+
+Optionally add basic filtering to drop debug metrics:
+
+```
+prometheus:  server:    remote_write:      - url: <insert remote backend url>        # ... auth configuration ...    metricDrop:      - k10_debug_.*
+```
+
+For more advanced filtering, use write_relabel_configs :
+
+```
+prometheus:  server:    remote_write:      - url: <insert remote backend url>        # ... auth configuration ...        write_relabel_configs:          - source_labels: [__name__]            regex: '(catalog_actions_count|jobs_.+|action_.+_count|compliance_count)'            action: keep
+```
+
+#### Manual Cluster UID Override â
+
+If you're using GitOps, helm template , or have RBAC restrictions that prevent namespace lookups, you can manually specify the cluster UID:
+
+```
+clusterName: ""prometheus:  server:    clusterUIDOverride: ""  # Optional: manual cluster UID    remote_write:      - url: <insert remote backend url>        basic_auth:          username: <insert username>          password: <insert API key>
+```
+
+### Apply Configurations â
+
+#### If Veeam Kasten is Already Installed â
+
+Apply the new remote_write configuration:
+
+```
+helm upgrade k10 kasten/k10 \  --namespace kasten-io \  --values k10-remote-write-values.yaml
+```
+
+#### If Installing Veeam Kasten for the First Time â
+
+```
+helm repo add kasten https://charts.kasten.io/helm repo update# Replace "8.0.12" with your desired Veeam Kasten versionhelm install k10 kasten/k10 \  --namespace kasten-io \  --create-namespace \  --values k10-remote-write-values.yaml \  --set global.image.tag="8.0.12"
+```
+
+Confirm metrics in remote backend:
+
+Check your remote monitoring system. Metrics may take 1-2 minutes to appear initially.
+
+For more information on remote write configuration options, see the Prometheus remote_write documentation .
+
+## Integrating External Prometheus with Veeam Kasten â
+
+For most use cases, Prometheus Remote Write provides a simpler alternative that pushes metrics directly to remote endpoints. Use this method if you need an external Prometheus instance to actively scrape K10's metrics.
+
+An external Prometheus instance can be configured to scrape metrics from Veeam Kasten's built-in Prometheus server. This is useful when you have a centralized Prometheus deployment that needs to collect metrics from multiple sources.
+
+To integrate external Prometheus with Veeam Kasten, set the flags global.prometheus.external.host and global.prometheus.external.port . If external Prometheus is setup with a base URL, set the global.prometheus.external.baseURL flag. Make sure RBAC was enabled while setting up external Prometheus to enable target discovery.
+
+The following scrape config is an example of how a Prometheus server hosted in the same cluster might be configured:
+
+```
+- job_name: k10  scrape_interval: 15s  honor_labels: true  scheme: http  metrics_path: '/<k10-release-name>/prometheus/federate'  params:    'match[]':      - '{__name__=~"jobs.*"}'  static_configs:    - targets:      - 'prometheus-server.kasten-io.svc.cluster.local'      labels:        app: "k10"
+```
+
+An additional NetworkPolicy may need to be applied in certain environments.
+
+Although it's possible to disable Veeam Kasten's built-in Prometheus server, it is recommended to leave it enabled. Disabling the server reduces functionality in various parts of the system such as usage data, reporting, and the multi-cluster dashboard. To disable the built-in server, set the prometheus.server.enabled value to false .
+
+If the built-in server has previously been disabled, it can be re-enabled during a helm upgrade (see Upgrading Veeam Kasten ) with: --set prometheus.server.enabled=true .
+
+### Scrape Config â
+
+Update the Prometheus scrape configuration by adding two additional targets:
+
+```
+- job_name: httpServiceDiscovery  http_sd_configs:    - url: http://metering-svc.kasten-io.svc.cluster.local:8000/v0/listScrapeTargets- job_name: k10-pods  scheme: http  metrics_path: /metrics  kubernetes_sd_configs:    - role: pod      namespaces:        own_namespace: true      selectors:        - role: pod          label: "component=executor"  relabel_configs:    - action: labelmap      regex: __meta_kubernetes_pod_label_(.+)    - source_labels: ___meta_kubernetes_pod_container_port_number_      action: keep      regex: 8\d{3}
+```
+
+It is possible to obtain those targets from Veeam Kasten's Prometheus'
+  configuration, if Prometheus was installed with Veeam Kasten, you should
+  skip job :prometheus . (Note. yq utility is needed to execute commands successfully)
+
+```
+## Get prometheus jobkubectl get cm k10-k10-prometheus-config -n kasten-io -o "jsonpath={.data['prometheus\.yml']}" | yq '.scrape_configs'## Update prometheus configmap with given output.
+```
+
+The targets will show up after adding the scrape config. Note that the
+  targets will not be scraped until a network policy is added.
+
+### Network Policy â
+
+Once the scrape config is in place, the targets will be discovered but
+  Prometheus won't be able to scrape them as Veeam Kasten has strict
+  network policies for inter-service communication. To enable
+  communication between external Prometheus and Veeam Kasten, a new
+  network policy should be added as follows.
+
+Add a label to the namespace where external Prometheus is installed
+  - kubectl label namespace/prometheus app=prometheus and apply the
+  following network policy to enable communication.
+
+```
+apiVersion: networking.k8s.io/v1kind: NetworkPolicymetadata:  labels:    app: k10    heritage: Helm    release: k10  name: allow-external-prometheusspec:  ingress:    - from:        - namespaceSelector:            matchLabels:              app: prometheus  podSelector:    matchLabels:      release: k10
+```
+
+Once the network policy enables communication, all the service targets
+  will start coming up and the metrics will be scraped.
+
 ## Using Externally Installed Grafana â
+
+If you're using Prometheus Remote Write to send metrics to Grafana Cloud or another hosted Grafana service, you don't need to install Grafana on your cluster. Remote Write allows you to export metrics directly to your external monitoring platform where Grafana is already available.
 
 This document can be followed to install a separate instance of Grafana and
   setup Veeam Kasten Grafana dashboard, alerts into that.
@@ -2053,7 +1750,7 @@ Once a separate instance of Grafana is installed on the Cluster, its URL can be
   it easier to access Grafana from Veeam Kasten's dashboard.
 
 ```
---set grafana.external.url=<grafan-url>
+--set grafana.external.url=<grafana-url>
 ```
 
 ### Accessing Grafana from Veeam Kasten's dashboard â
@@ -2110,7 +1807,7 @@ Grafana can be used to create alerts to get notified moments after
   by specifying a condition or evaluation criteria and, these conditions
   can be configured using Alert rules. Each rule uses a query that fetches
   data from a data source. Each query involves a metric such as the Veeam
-  Kasten metrics described in a previous section. More can be read about
+  Kasten metrics described in the monitoring overview . More can be read about
   this by following the Grafana Alerting
 documentation .
 
@@ -2173,65 +1870,6 @@ The example below uses the same labels specified while creating the
 When an alert is generated based on the rule configured, notifications
   will be sent to the slack channel.
 
-## Integrating External Prometheus with Veeam Kasten â
-
-To integrate external Prometheus with Veeam Kasten, set the flags global.prometheus.external.host and global.prometheus.external.port .
-  If external Prometheus is setup with a base URL, set the global.prometheus.external.baseURL flag. Make sure RBAC was enabled
-  while setting up external Prometheus to enable target discovery.
-
-It's also possible to disable kasten built-in prometheus by setting the
-  flag prometheus.server.enabled: false
-
-### Scrape Config â
-
-Update the Prometheus scrape configuration by adding two additional
-  targets.
-
-```
-- job_name: httpServiceDiscovery  http_sd_configs:    - url: http://metering-svc.kasten-io.svc.cluster.local:8000/v0/listScrapeTargets- job_name: k10-pods  scheme: http  metrics_path: /metrics  kubernetes_sd_configs:    - role: pod      namespaces:        own_namespace: true      selectors:        - role: pod          label: "component=executor"  relabel_configs:    - action: labelmap      regex: __meta_kubernetes_pod_label_(.+)    - source_labels: ___meta_kubernetes_pod_container_port_number_      action: keep      regex: 8\d{3}
-```
-
-It is possible to obtain those targets from Veeam Kasten's Prometheus'
-  configuration, if Prometheus was installed with Veeam Kasten, you should
-  skip job :prometheus . (Note. yq utility is needed to execute commands successfully)
-
-```
-## Get prometheus jobkubectl get cm k10-k10-prometheus-config -n kasten-io -o "jsonpath={.data['prometheus\.yml']}" | yq '.scrape_configs'## Update prometheus configmap with given output.
-```
-
-The targets will show up after adding the scrape config. Note that the
-  targets will not be scraped until a network policy is added.
-
-### Network Policy â
-
-Once the scrape config is in place, the targets will be discovered but
-  Prometheus won't be able to scrape them as Veeam Kasten has strict
-  network policies for inter-service communication. To enable
-  communication between external Prometheus and Veeam Kasten, a new
-  network policy should be added as follows.
-
-Add a label to the namespace where external Prometheus is installed
-  - kubectl label namespace/prometheus app=prometheus and apply the
-  following network policy to enable communication.
-
-```
-apiVersion: networking.k8s.io/v1kind: NetworkPolicymetadata:  labels:    app: k10    heritage: Helm    release: k10  name: allow-external-prometheusspec:  ingress:    - from:        - namespaceSelector:            matchLabels:              app: prometheus  podSelector:    matchLabels:      release: k10
-```
-
-Once the network policy enables communication, all the service targets
-  will start coming up and the metrics will be scraped.
-
-## Generating Reports â
-
-Veeam Kasten Reporting provides regular insights into key performance
-  and operational states of the system. It uses prometheus to obtain
-  information about action runs and storage consumption. For more
-  information about Veeam Kasten Reporting, see Reporting
-
-## Integration with External Tools â
-
-Exporting Metrics to Datadog
-
 ---
 
 ## Operating Passkey
@@ -2251,6 +1889,7 @@ Veeam Kasten supports the following types of passkeys:
 - Passphrase : Uses a passphrase specified in a Kubernetes Secret
 - AWS Key Management Service : Uses AWS Customer Managed Keys (CMK)
 - HashiCorp Vault : Uses Vault Transit Secrets Engine
+- Azure Key Vault : Uses Azure Key Vault Keys
 
 ## Passkey Management Via the UI â
 
@@ -2259,10 +1898,10 @@ Admin users can view all valid passkeys under Settings > Passkey Management. Thi
 ### Create a Passkey â
 
 1. Create New Passkey: Click the "Create New Passkey" button
-2. Configure Passkey Details: Passkey Name: Enter a unique name for the passkey Passkey Type: Select from AWS Key Management Service, HashiCorp Vault, or Passphrase
+2. Configure Passkey Details: Passkey Name: Enter a unique name for the passkey Passkey Type: Select from AWS Key Management Service, HashiCorp Vault, Azure Key Vault, or Passphrase
 
 - Passkey Name: Enter a unique name for the passkey
-- Passkey Type: Select from AWS Key Management Service, HashiCorp Vault, or Passphrase
+- Passkey Type: Select from AWS Key Management Service, HashiCorp Vault, Azure Key Vault, or Passphrase
 
 #### Passphrase Configuration â
 
@@ -2271,7 +1910,7 @@ Admin users can view all valid passkeys under Settings > Passkey Management. Thi
 
 Store the passphrase securely outside of the cluster, as it will be required for disaster recovery operations.
 
-Passphrases are less secure than using a managed key service like AWS Key Management Service or HashiCorp Vault.
+Passphrases are less secure than using a managed key service like AWS Key Management Service, Azure Key Vault, or HashiCorp Vault.
 
 #### AWS Key Management Service Configuration â
 
@@ -2290,6 +1929,34 @@ Using AWS Key Management Service requires that an AWS Infrastructure Profile exi
 - Default path is typically /transit
 
 Using HashiCorp Vault requires that Veeam Kasten is configured to access Vault .
+
+#### Azure Key Vault Configuration â
+
+1. Azure Key Name : Provide the name of the Key in Azure Key Vault Example: my-key-name
+2. Azure Key Vault URL : Enter the unique URL to your Azure Key Vault Format: https://<azure_keyvault_name>.vault.azure.net Example: https://my-vault-name.vault.azure.net
+
+- Example: my-key-name
+
+- Format: https://<azure_keyvault_name>.vault.azure.net
+- Example: https://my-vault-name.vault.azure.net
+
+To use Azure Key Vault with Kasten, you must configure Kasten with credentials that have the necessary permissions to wrap and unwrap keys.
+    Example Role Key Vault Crypto Service Encryption User see Key Vault Roles for more information.
+    These credentials can be provided in one of the following ways:
+
+- Azure Infrastructure Profile: Create an Azure Infrastructure profile in Kasten and provide credentials with the required Key Vault permissions.
+- Direct Secret Injection: During Kasten installation, set the secrets.azureTenantID , secrets.azureClientId , and secrets.azureClientSecret values to supply the required credentials.
+- Azure Federated Identity: Alternatively, you can configure Kasten to communicate with Azure Key Vault by enabling Azure Federated Identity on your Azure Red Hat OpenShift (ARO) or Azure Kubernetes Service (AKS) cluster.
+
+Azure Infrastructure Profile: Create an Azure Infrastructure profile in Kasten and provide credentials with the required Key Vault permissions.
+
+Direct Secret Injection: During Kasten installation, set the secrets.azureTenantID , secrets.azureClientId , and secrets.azureClientSecret values to supply the required credentials.
+
+Azure Federated Identity: Alternatively, you can configure Kasten to communicate with Azure Key Vault by enabling Azure Federated Identity on your Azure Red Hat OpenShift (ARO) or Azure Kubernetes Service (AKS) cluster.
+
+For details on configuring federated identity, refer to the Federated Identity configuration guide .
+
+When Kasten creates a passkey using Azure Key Vault, it utilizes the latest available key version in the Key Vault at the time of creation. This specific key version is then associated with the passkey for its entire lifetime. If the key in Azure Key Vault is rotated, you must generate a new passkey to leverage the updated key version. The existing passkey will continue to be useable but will be based on the older key version. Please note that if the key version tied to an existing passkey is disabled in Key Vault, the corresponding passkey will become unusable.
 
 ### Delete a Passkey â
 
@@ -2337,6 +2004,14 @@ If using Token Auth , passing in these two values will have the effect of upgrad
 
 ```
 cat > sample-passkey.yaml <<EOFapiVersion: vault.kio.kasten.io/v1alpha1kind: Passkeymetadata:  name: passkey3spec:  vaulttransitkeyname: my-key  vaulttransitpath: my-transit-path  vaultauthrole: my-auth-role  vaultk8sserviceaccounttokenpath: /var/run/secrets/kubernetes.io/serviceaccount/tokenEOF
+```
+
+#### Azure Key Vault Passkey â
+
+A Passkey can also be used to represent an Azure Key Vault Key. The Azure Key Vault key name and Key Vault URL can be provided directly in the passkey.
+
+```
+cat > sample-passkey.yaml <<EOFapiVersion: vault.kio.kasten.io/v1alpha1kind: Passkeymetadata:  name: passkey2spec:  azurekeyname: my-key  azurekeyvaulturl: https://my-keyvault.vault.azure.net/EOF
 ```
 
 ### Listing Passkeys â
@@ -2458,7 +2133,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.14/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2468,7 +2143,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.14/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2483,7 +2158,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.14/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.

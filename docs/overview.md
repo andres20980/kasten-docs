@@ -2,10 +2,6 @@
 
 ## Overview
 
-By default, Generic Storage Backup will be disabled for all new
-    deployments of Veeam Kasten and for existing deployments when upgraded
-    to version 6.5.0 or later. For more details, refer to this page.
-
 The Veeam Kasten data management platform, purpose-built for Kubernetes,
   provides enterprise operations teams an easy-to-use, scalable, and
   secure system for backup/restore, disaster recovery, and mobility of

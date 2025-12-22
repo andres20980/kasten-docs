@@ -393,7 +393,7 @@ Prior to creating a Veeam Data Cloud Vault location profile within Veeam Kasten,
 To create a Veeam Data Cloud Vault location profile, select Create New Profile and specify Veeam Data Cloud Vault as the provider type.
 
 Select one of the storage vaults assigned to this Veeam Kasten Backup Server . If you haven't yet
-  assigned a storage vault to this registered cluster, you'll have to visit My Account to configure that.
+  assigned a storage vault to this registered cluster, you'll have to visit your VDC Account page to configure that.
   For more information on that process please visit the Veeam Data Cloud Vault user guide
 
 Upon clicking Submit , the dialog will validate the input data.
@@ -411,11 +411,15 @@ All Veeam Vault locations are configured as immutable; follow these instructions
 The following limitations should be considered when exporting
   data from Veeam Kasten to Veeam Vault:
 
+- In order to use Veeam Vault as an export location, at a minimum Kasten requires egress access be allowed to the following FQDNs: https://baaas.butler.veeam.com https://*.blob.core.windows.net
 - Veeam Vault is a generic object storage repository
 - All Veeam Vault exports are immutable.
 - Data captured in Veeam Vault remains (and continues to incur charges) until the retention period expires, even if the location profile is removed from a Kasten installation.
 - While Veeam Vault can be used to protect kubernetes data from any on-premises or cloud environment, when running in Azure Veeam highly recommends the Kasten cluster be located in the same Azure region as the Veeam Vault storage account to limit possible ingress and egress data charges
 - Removing the Veeam Vault location profile will not remove any data from Veeam Vault and prevents Kasten from running future cleanup actions.
+
+- https://baaas.butler.veeam.com
+- https://*.blob.core.windows.net
 
 ### File Storage Location â
 
@@ -1248,11 +1252,7 @@ Restoring Veeam Kasten is straightforward. Follow the standard Recovering Veeam 
 2. Create a secret to contain the DR passphrase .
 3. Provide the external storage configuration by adding a location profile referencing the object store location where backups are stored. This should resemble the profile that was created when Setting Up Immutable Backup Protection , but it is not necessary to create it with "Immutable Backups" enabled.
 4. Ascertain when the disaster was likely to have occurred. Pick a timestamp corresponding to a point-in-time prior to the disaster event. The time chosen should be no earlier than the protection period (associated with the Veeam Kasten Disaster Recovery immutable profile) in the past.
-5. Install the helm chart that creates the Veeam Kasten restore job. Provide the source cluster ID, the name of the location profile just created, and the point-in-time chosen in the previous step, formatted as a RFC3339 time stamp.
-
-```
-## e.g. to restore Veeam Kasten to 15:04:05 UTC on Jan 2, 2022:$ helm install k10-restore kasten/k10restore --namespace=kasten-io \    --set sourceClusterID=<source-clusterID> \    --set profile.name=<location-profile-name> \    --set pointInTime="2022-01-02T15:04:05Z"
-```
+5. Use UI and select point-in-time chosen in previous step. Alternatively use CLI to restore Veeam Kasten by providing the point-in-time chosen in the previous step, formatted as a RFC3339 time stamp.
 
 Upon successful recovery, Veeam Kasten will now be in the same state as
   it was at the last time the Disaster Recovery policy had been run prior to the chosen point-in-time. This includes references to restore
