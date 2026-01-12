@@ -1763,7 +1763,7 @@ An application, in turn, is made up of multiple Kubernetes resources and
 The Veeam Kasten UI has a centralized view for listing all the restore points created or imported by the cluster.
   It is accessed by clicking on the Restore Points item in the left side menu.
 
-Clicking on a specific restore point will provide additional details. From there, the Application can be
+Clicking on a specific restore point will provide additional details. From there, the namespace or VM can be
   restored by clicking on the Restore button:
 
 Additionally, local restore points can be exported by clicking on the Export option in the dropdown menu:
@@ -1773,14 +1773,14 @@ Exported restore points can be validated by selecting the Validate option in the
 Restore points can be deleted, either in bulk by selecting them first, or individually by using the
   action dropdown menu:
 
-The Restore Points page provides rich filtering capabilities. They can be filtered based on the Application,
-  the originating Policy, the Profile used for import/export and the creation date/time. Under the Application filter,
-  the cluster-scoped option can be selected to view Restore Points that include cluster-scoped resources.
-  Additionally, the Restore Points can be filtered by their type - Snapshot, Exported or Imported.
-  Selecting Include manual runs only will only list the restore points that were created
-  by manually snapshotting or exporting an application, or by manually executing a policy.
-  Selecting No expiration will only list the restore points that do not have an expiration,
+The Restore Points page provides rich filtering capabilities. Users can choose between namespace-based or VM-based backups,
+  and filter further based on name of protected resource, associated Policies, the Profile used for import/export and the creation date/time. Filtering by type allows users to identify local snapshot-based restore points, exported restore points managed by the cluster, or imported restore points created by another cluster.
+
+Selecting Include manual runs only will only list the restore points that were created
+  by performing BackupActions or ExportActions not associated with a policy, or by manually executing a policy. Selecting No expiration lists the aforementioned manually created restore points that do not have a specified expiration date,
   allowing for simple identification and removal of orphaned backup data.
+
+For namespace-based backups, the cluster-scoped option can be selected to view restore points that include cluster-scoped resources.
 
 ## Policies â
 
@@ -1873,6 +1873,10 @@ This section demonstrates how to use these concepts in the context of a
   standalone Pods), deployment and release information available from Helm
   v3, and all persistent storage resources (e.g., PersistentVolumeClaims
   and PersistentVolumes) associated with the workloads.
+
+For protecting Virtual Machines (VMs) running on KubeVirt-based platforms like Red Hat OpenShift Virtualization
+    or SUSE Virtualization (Harvester), Veeam Kasten also supports VM-based policies that allow fine-grained
+    protection of individual VMs without backing up entire namespaces. See VM-Based Backup Policies for details.
 
 Creating a new policy may be performed via either the Policies or Applications page. Initiating policy creation from the Applications page will pre-populate fields for policy name and namespace selection.
 
@@ -2721,6 +2725,9 @@ For other resources, existing objects are not restored and instead
 If desired, use restore_filtering to
   selectively control the namespaced objects that are restored.
 
+See the Restoring Individual Files section for how to restore individual files without recreating
+    the entire application stack.
+
 ## Restoring Deleted Applications â
 
 The process of restoring a deleted application is nearly identical to
@@ -2971,6 +2978,257 @@ An exported restore point can be selected to restore an application from
   a different location profile to restore from. This can be useful if, for
   example, restore points have been copied or moved to a different
   location.
+
+---
+
+## Usage Restorefiles
+
+Veeam Kasten provides the FileRecoverySession Custom Resource (CR) to request network access to files from
+  exported restore points without requiring full restore of volume
+  data.
+
+In addition to the API, the k10tools frs sub-command provides a simple CLI for performing FileRecoverySession-related operations.
+  The command includes a simple built-in SFTP client that,
+  when run in a properly configured Pod in the CR namespace,
+  enables downloading of backed up files, or in-place restoration
+  if the Pod mounts the relevant application PVCs .
+
+FileRecoverySession does not currently support restore points
+    exported to Veeam Backup & Replication (VBR). See KB4759 for details on recovering individual files using native VBR capabilities.
+
+## Requirements and Limitations â
+
+File access using FileRecoverySession is subject to the following constraints:
+
+- All specified restore points share the same Object Storage Location or NFS/SMB File Storage Location .
+- The files are present in a volume that was either: Exported in Filesystem Mode . Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, the files are present in the first partition containing a filesystem, and the filesystem type is one of ext4 , xfs or ntfs .
+- The principal creating the CR has the required permissions .
+- The total number of active FileRecoverySession CRs does not exceed namespace and cluster-wide limits specified via file recovery session related Helm parameters .
+
+- Exported in Filesystem Mode .
+- Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, the files are present in the first partition containing a filesystem, and the filesystem type is one of ext4 , xfs or ntfs .
+
+- The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem.
+- The volume has a GPT or MBR partition table, the files are present in the first partition containing a filesystem, and the filesystem type is one of ext4 , xfs or ntfs .
+
+## FileRecoverySession Example â
+
+The following YAML document illustrates a FileRecoverySession custom resource request:
+
+```
+---apiVersion: datamover.kio.kasten.io/v1alpha1kind: FileRecoverySessionmetadata:  namespace: app2  name: frs-app2spec:  volumes:    - restorePointName: "scheduled-qtkpwv58rd"      pvcName: "vol-1"    - restorePointName: "scheduled-qtkpwv58rd"      pvcName: "vol-2"  transports:    sftp:      userPublicKey: "ssh-ed25519 PUBLIC-KEY root@b3dce6cf6107"
+```
+
+A list of one or more (restorePointName, pvcName) tuples are
+  specified in the volumes field of the CR spec .
+  This can be used in different combinations in order to:
+
+- Access multiple PVCs of a multi-volume application within a single CR session by specifying multiple tuples with the same restorePointName value and different pvcName values.
+- Compare file changes between the restore points within a single CR session by specifying multiple tuples with the same pvcName value and different restorePointName values.
+
+Access multiple PVCs of a multi-volume application within
+      a single CR session by specifying multiple tuples with the same restorePointName value and different pvcName values.
+
+Compare file changes between the restore points within
+      a single CR session by specifying multiple tuples with the same pvcName value and different restorePointName values.
+
+Only exported restore points should be specified in the CR.
+  Exported restore points can be distinguished from local restore points
+  with an appropriate label query:
+
+```
+kubectl get restorepoints -n app2 -l k10.kasten.io/exportProfileNAME                   CREATED ATscheduled-qtkpwv58rd   2025-10-17T22:14:06Z
+```
+
+File data will be made available through the OpenSSH
+  implementation of the Secure File Transport Protocol (SFTP),
+  via a dedicated service created for each CR instance.
+  The desired files can be downloaded using a compatible SFTP client
+  with network access to the dynamically created service
+  associated with the CR.
+  The SFTP service will only permit access by the principal
+  whose public key was provided in the userPublicKey field of the sftp object in the transports field in the CR spec .
+
+Complete details on CR can be found in FileRecoverySession API Type .
+
+The kubectl create command can be used to create the CR from the YAML.
+  For example, assuming the YAML above was in the file frs.yaml :
+
+```
+kubectl create -f frs.yaml
+```
+
+The CR transitions through a series of states before reaching the Ready state.
+  For example, monitoring the CR immediately following the previous command
+  would appear similar to the output below:
+
+```
+# watch FileRecoverySession (frs for short) objects in a namespacekubectl get frs -n app2 -wNAME       STATE   LASTSTATUSUPDATE   AGEfrs-app2                              0sfrs-app2   Starting   0s                 0sfrs-app2   Processing   0s                 0sfrs-app2   Processing   0s                 1sfrs-app2   Processing   0s                 2sfrs-app2   Processing   0s                 6sfrs-app2   Ready        0s                 6s
+```
+
+When the CR reaches Ready , its status field will
+  contain the information needed to create an SFTP client
+  with which to access the files.
+  Continuing with the example above:
+
+```
+kubectl get filerecoverysession -n app2 frs-app2 -o yaml...status:  conditions:  ...  - lastTransitionTime: "2025-10-28T20:50:08Z"    message: Session is healthy    observedGeneration: 1    reason: Ready    status: "True"    type: IsActive  expiryTime: "2025-10-28T21:20:08Z"  lastUpdateTime: "2025-10-28T20:50:08Z"  state: Ready  transports:    sftp:      endpoints:      - frs-w2dmp.kasten-io.svc.cluster.local.      hostKeyFingerprint: "SHA256:HOST-KEY-FINGERPRINT"      hostKeySignature: "[frs-w2dmp.kasten-io.svc.cluster.local.]:2222 ssh-ed25519 HOST-KEY-SIGNATURE"      portNumber: 2222      serviceName: frs-w2dmp      serviceNamespace: kasten-io
+```
+
+Connection details for the SFTP service are
+  returned in the sftp object in the transports field in the CR status :
+
+- The endpoints field contains one or more Kubernetes DNS names for the Kubernetes Service object exposing the SFTP service. The serviceNamespace and serviceName fields identify the Kubernetes Service object.
+- The hostKeyFingerprint field provides the fingerprint of the SFTP service public host key. It is useful to visually confirm the identity when manually interacting with the SFTP service.
+- The hostKeySignature field provides the SFTP service public host key in the OpenSSH known_hosts file format.
+- The portNumber field provides the listening port used by the SFTP service.
+
+The endpoints field contains one or more Kubernetes DNS names for
+      the Kubernetes Service object exposing the SFTP service.
+      The serviceNamespace and serviceName fields identify the Kubernetes Service object.
+
+The hostKeyFingerprint field provides the fingerprint of the SFTP
+      service public host key.
+      It is useful to visually confirm the identity when manually interacting
+      with the SFTP service.
+
+The hostKeySignature field provides the SFTP service public
+      host key in the OpenSSH known_hosts file format.
+
+The portNumber field provides the listening port used by the SFTP service.
+
+The filesystems of the requested volumes are exposed by the SFTP
+  service in a single, read-only filesystem tree.
+  The root directory will contain subdirectories for each restore point,
+  and, in turn, each restore point subdirectory will contain individual
+  subdirectories named for each volume PVC, containing the filesystem of
+  that volume.
+
+When the CR fails, resets or gets deleted, it will release all accumulated
+  system and Kubernetes resources.
+  The following circumstances can cause failure:
+
+- Invalid spec data.
+- Policy violations.
+- Errors when creating Kubernetes objects associated with the CR.
+- Lack of system resources, or errors when mounting filesystems or in starting the OpenSSH SFTP service.
+- A CR in the Ready state has a limited lifetime and at the time specified in the expiryTime field its state will change to Failed .
+
+If the CR spec is modified by patching (e.g. with kubectl edit ),
+  it will transition to the Resetting state and release accumulated resources,
+  and then transition back to the Starting state to process the new generation
+  of the spec .
+  A simple shuffle of the volumes list is not considered a modification and
+  will be ignored.
+
+The CR is never deleted automatically by Veeam Kasten so that the reason for
+  failure can be determined.
+
+Veeam Kasten automatically excludes FileRecoverySession CR objects in backups.
+
+## File Restoration Techniques â
+
+Replacing an application file in-place requires invoking
+  the SFTP client in an environment that supports the following:
+
+1. Resolution of the cluster DNS address of the SFTP service.
+2. Access to the application PVC filesystem.
+
+Users must ensure that the application is
+    quiesced or that it will not fail if a file is replaced
+    while running; how to do so is application specific and
+    beyond the scope of this document.
+
+### Scenario 1 - Using an application Pod â
+
+If the application has a Pod that has access to the
+  PVC filesystem, and
+  either already contains a compatible SFTP client
+  or can easily be configured with such an SFTP client,
+  then use that Pod for the restoration.
+
+For example, if the application is a KubeVirt virtual
+  machine, an SFTP client may be installed and run within the
+  guest operating system and files can be downloaded and written
+  directly to the guest filesystem.
+
+### Scenario 2 - Using a sidecar Pod â
+
+If the application PVC's access mode is either ReadWriteMany or ReadWriteOnce then that
+  PVC is capable of being shared by multiple Pods.
+  As such, a temporary "sidecar" Pod can be created in the application namespace
+  that mounts this PVC in order to perform the in-place restoration:
+
+- Create a temporary Pod in the CR namespace that mounts the application PVC. Use a standard Linux OS image for the Pod and install the OS specific SFTP client package. Alternatively, one can use the provided k10tools image which has a built-in SFTP client for file recovery sessions.
+- Add the relevant SSH key to the temporary Pod (or mount from a Secret).
+- Specify the desired application PVC path as the SFTP destination when performing operations. For example: sftp > get /backup/path/file.txt /destination/pvc/path/file.txt
+
+Create a temporary Pod in the CR namespace that mounts the application PVC.
+
+- Use a standard Linux OS image for the Pod and install the OS specific SFTP client package.
+- Alternatively, one can use the provided k10tools image which has a built-in SFTP client for file recovery sessions.
+
+Add the relevant SSH key to the temporary Pod (or mount from a Secret).
+
+Specify the desired application PVC path as the SFTP destination when performing operations.
+      For example:
+
+```
+sftp> get /backup/path/file.txt /destination/pvc/path/file.txt
+```
+
+Temporary Pods created in the application namespace will be backed up on subsequent
+    Veeam Kasten policy runs if not excluded via a filter.
+    Any temporary Pods should be deleted once file recovery has been completed.
+
+### Scenario 3 - Using a staging host â
+
+One can use any host that has kubectl access to the application namespace as a
+  temporary "staging" location for the recovered files.
+  Essentially, after creating the FileRecoverySession CR ,
+  each file is first downloaded to the staging host using its SFTP client,
+  after which each file must be uploaded to an application Pod using the kubectl cp command.
+
+The following steps illustrate the process:
+
+- Use kubectl port-forward to set up a network route to the SFTP Service provided by the FileRecoverySession CR - the Service object details and the SFTP port number are recorded in the status.transports.sftp field of the CR. For example, use local port 8222 to connect to port 2222 of the SFTP Service: kubectl port-forward -n kasten-io svc/FRS_SVC_NAME 8222 :2222
+- Launch the staging host's SFTP client on the local port: sftp -P 8222 root@localhost
+- Download the relevant files to the staging host. sftp > get /backup/path/file.txt /local/path/file.txt
+- Use kubectl cp to copy each file from the staging host to an application Pod that has already mounted the desired PVC(s): kubectl cp /local/path/file.txt < APP-NAMESPACE > / < APP-POD > :/original/path/file.txt
+
+Use kubectl port-forward to set up a network route to the SFTP Service provided by the FileRecoverySession CR -
+      the Service object details and the SFTP port number
+      are recorded in the status.transports.sftp field of the CR.
+
+For example, use local port 8222 to connect to port 2222 of the SFTP Service:
+
+```
+kubectl port-forward -n kasten-io svc/FRS_SVC_NAME 8222:2222
+```
+
+Launch the staging host's SFTP client on the local port:
+
+```
+sftp -P 8222 root@localhost
+```
+
+Download the relevant files to the staging host.
+
+```
+sftp> get /backup/path/file.txt /local/path/file.txt
+```
+
+Use kubectl cp to copy
+      each file from the staging host to an application Pod that has already mounted the desired PVC(s):
+
+```
+kubectl cp /local/path/file.txt <APP-NAMESPACE>/<APP-POD>:/original/path/file.txt
+```
+
+The steps above require that:
+
+- The invoker has the authority to forward the FileRecoverySession CR 's SFTP Service port to a local host port.
+- The tar command be present in the application Pod's container image as it is invoked by kubectl cp .
 
 ---
 

@@ -1088,7 +1088,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.0.15/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.5.0/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1260,6 +1260,87 @@ Only snapshots created starting with version 5.0.7 will be listed by the
     in the form of "k10:<UUID>"
 
 export VSPHERE_SNAPSHOT_TAGGING_CATEGORY=$(kubectl -n kasten-io get profiles $(kubectl -n kasten-io get profiles -o=jsonpath='{.items[?(@.spec.infra.type=="VSphere")].metadata.name}') -o jsonpath='{.spec.infra.vsphere.categoryName}')
+
+## FileRecoverySession Support â
+
+The k10tools command provides support to work with FileRecoverySession (FRS)
+  CRs through its frs sub-command.
+  This includes the ability to:
+
+- Create a FRS CR in a namespace
+- List the FRS CRs in a namespace
+- Delete FRS CRs in a namespace
+- Access files from the FRS SFTP service using a built-in SFTP client.
+
+The last option needs to resolve the CR SFTP service's cluster
+  DNS address, which is typically accomplished by launching k10tools in a Pod within the application namespace.
+
+Temporary Pods created in the application namespace will be backed up on subsequent
+    Veeam Kasten policy runs if not excluded via a filter.
+    Any temporary Pods should be deleted once file recovery has been completed.
+
+The following YAML illustrates how to run k10tools in a Pod
+  configured with the SSH keys needed for FileRecoveryService
+  SFTP usage.
+  This example may be extended to mount the destination application PVCs
+  in the Pod if in-place restoration is desired, as described in File Restoration Techniques .
+
+```
+---apiVersion: v1kind: Podmetadata:  name: k10toolsspec:      securityContext:        runAsUser: 1000        runAsGroup: 1000        fsGroup: 1000      containers:      - name: k10tools        image: "gcr.io/kasten-images/k10tools:VERSION"        command: ["/bin/sh", "-c", "tail -f /dev/null" ]        volumeMounts:          - name: ssh            mountPath: /ssh      volumes:      - name: ssh        secret:          secretName: k10tools-ssh          defaultMode: 0600---apiVersion: v1kind: Secretmetadata:  name: k10tools-sshtype: Opaquedata:  pvt_key: <BASE64-ENCODED-PRIVATE-KEY>  pub_key: <BASE64-ENCODED-PUBLIC-KEY>
+```
+
+Once the Pod is created use the kubectl exec command to
+  invoke the k10tools command in the Pod, as illustrated
+  in the examples below:
+
+1. Obtain help on the frs subcommand.
+
+```
+kubectl exec k10tools -it -- /k10tools frs -h
+```
+
+1. Create a FileRecoverySession CR object in a namespace. The command is provided the path to the public SSH key configured to the Pod and a list of one or more ( pvcName , restorePointName ) tuples. The -N flag may be used to specify a name for the CR, otherwise a random name will be assigned. See Restoring Individual Files for more details.
+
+```
+kubectl exec k10tools -it -- /k10tools frs create -n NAMESPACE -N FRSNAME -k /ssh/pub_key PVCNAME:RPNAME ...
+```
+
+1. List the FileRecoverySession CR objects in a Namespace. The command displays significant details on each CR object in the Namespace, but not the entire object.
+
+```
+kubectl exec k10tools -it -- /k10tools frs list -n NAMESPACE
+```
+
+1. Delete a FileRecoverySession object.
+
+```
+kubectl exec k10tools -it -- /k10tools frs delete -n NAMESPACE -N FRSNAME
+```
+
+The next few examples demonstrate the use of the SFTP client available
+  through the frs sftp subcommand.
+  It must be invoked with the private SSH key configured
+  to the Pod, and also requires the user name associated with the key.
+
+1. Run the client in interactive mode. The example illustrates use of the built-in help function to enumerate the available loop commands.
+
+```
+kubectl exec k10tools -it -- /k10tools frs sftp -n NAMESPACE -N FRSNAME -k /ssh/pvt_key -u root> ?Commands:bye	Exit the SFTP session.get filepath localFilepath	Download a file. Use /dev/stdout to send to stdout.ls path	List a file or directory.noecho	Do not print a command before executing it.tree [-j] [path]	Traverse the filesystem from a specified path or from "/"....>
+```
+
+1. Download a file to a location in the Pod itself. One can use this mechanism for in-place restoration if the application PVC is mounted in the Pod - see File Restoration Techniques for context.
+
+```
+kubectl exec k10tools -it -- /k10tools frs sftp -n NAMESPACE -N FRSNAME -k /ssh/pvt_key -u root get /RPNAME/PVCNAME/file1 /tmp/file1
+```
+
+1. Download a file to the kubectl invocation host. The SFTP client output is written to /dev/stdout and the output from kubectl itself is redirected to a local file. Note the use of noecho \; to suppress echoing of the SFTP client get directive so as not to corrupt stdout . One can use this mechanism to view the file or stage it for later upload to the application filesystem - see File Restoration Techniques for context.
+
+```
+kubectl exec k10tools -it -- /k10tools frs sftp -n NAMESPACE -N FRSNAME -k /ssh/pvt_key -u root noecho \; get /RPNAME/PVCNAME/file1 /dev/stdout > ./file1
+```
+
+Delete the k10tools Pod and its associated Secret when no longer needed.
 
 ---
 
@@ -2113,13 +2194,12 @@ Veeam Kasten does not support distribution versions that
     are no longer actively supported by their respective
     vendor or community.
 
-| Kubernetes | RedHat Openshift | Notes | 1.33 |  | Respective OpenShift version is not yet supported |
+| Kubernetes | RedHat Openshift | Notes | 1.33 | 4.20 |  |
 | :---: | :---: | :---: | :---: | :---: | :---: |
-| 1.33 |  | Respective OpenShift version is not yet supported |
+| 1.33 | 4.20 |  |
 | 1.32 | 4.19 |  |
 | 1.31 | 4.18 |  |
 | 1.30 | 4.17 |  |
-| 1.29 | 4.16 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 
 ## Gathering Debugging Information â
 
@@ -2133,7 +2213,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2143,7 +2223,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2158,7 +2238,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.0.15/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.

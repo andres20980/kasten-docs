@@ -24,8 +24,22 @@ The following example illustrates how to create an on-demand backup
   called mysql .
 
 ```
-$ cat > sample-backup-action.yaml <<EOFapiVersion: actions.kio.kasten.io/v1alpha1kind: BackupActionmetadata:  generateName: backup-mysql-  namespace: mysql  labels:    # These labels are required for on-demand actions so that    # actions can be filtered.    # Label presence is validated.    k10.kasten.io/appName: "mysql"    k10.kasten.io/appNamespace: "mysql"spec:  subject:    # Reference to the K10App CR for the application    name: mysql    namespace: mysqlEOF$ kubectl create -f sample-backup-action.yamlactions.kio.kasten.io/backup-mysql-ax34rt created
+$ cat > sample-backup-action.yaml <<EOFapiVersion: actions.kio.kasten.io/v1alpha1kind: BackupActionmetadata:  generateName: backup-mysql-  namespace: mysql  labels:    k10.kasten.io/appName: "mysql"    k10.kasten.io/appNamespace: "mysql"    k10.kasten.io/appType: "namespace"spec:  subject:    # Reference to the K10App CR for the application    name: mysql    namespace: mysqlEOF$ kubectl create -f sample-backup-action.yamlactions.kio.kasten.io/backup-mysql-ax34rt created
 ```
+
+#### Create VM-Based BackupAction Example â
+
+The following example illustrates how to create an on-demand backup
+  action for a Virtual Machine. When backing up a VM, the subject references
+  a VirtualMachine resource.
+
+```
+$ cat > sample-vm-backup-action.yaml <<EOFapiVersion: actions.kio.kasten.io/v1alpha1kind: BackupActionmetadata:  generateName: backup-vm-  namespace: sample-ns1  labels:    k10.kasten.io/appName: "sample-vm"    k10.kasten.io/appNamespace: "sample-ns1"    k10.kasten.io/appType: "virtualMachine"spec:  subject:    # Reference to the VirtualMachine resource    kind: VirtualMachine    apiVersion: kubevirt.io/v1    name: sample-vm    namespace: sample-ns1EOF$ kubectl create -f sample-vm-backup-action.yamlactions.kio.kasten.io/backup-vm-bx82qs created
+```
+
+When a BackupAction targets a VirtualMachine, Veeam Kasten automatically
+  discovers all resources that the VM depends on through dependency graph
+  traversal. See VM Resource Discovery for details on which resources are automatically discovered and backed up.
 
 ### Check Status of BackupAction Example â
 
@@ -84,7 +98,7 @@ For listing BackupActions in all namespaces use the
 The following is a complete specification of the BackupAction API.
 
 ```
-## Standard Kubernetes API Version declaration. Required.apiVersion: actions.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: BackupActionmetadata:  ## Kubernetes labels.  ## The following labels will be auto-populated upon creation.  ## These labels can be used for filtering when getting actions.  ## Any additional custom labels can be specified if desired.  labels:    ## Populated for policy initiated BackupAction only.    k10.kasten.io/policyName: "sample-originating-policy"    k10.kasten.io/policyNamespace: "namespace-of-policy"    ## Populated for on-demand and policy initiated actions    k10.kasten.io/appName: "sample-app"    k10.kasten.io/appNamespace: "sample-app"    ## Populated for on-demand RunActions and policy initiated actions    k10.kasten.io/runActionName: "run-lhr7n6j8dw"    k10.kasten.io/runActionNamespace: "namespace-of-policy"  ## BackupAction name. May be any valid Kubernetes object name. Required.  ## BackupAction name is not mutable once created.  name: backup-action-example  ## BackupAction names must be unique and as an alternative to name above  ## one can take advantage of Kubernetes auto name generation  generateName: backup-action-  ## BackupAction namespace. Required.  ## Must be namespace of the application being backed up. Should match subject.  namespace: mysql## BackupAction spec. Required.spec:  ## Expiration timestamp in ``RFC3339`` format. Optional.  ## Garbage collector will automatically retire expired backups.  expiresAt: "2002-10-02T15:00:00Z"  ## Target application to be backed up. Required.  subject:    ## Name of the K10App resource. Required.    name: sample-app    ## Namespace of the application. Required.    namespace: sample-app  ## Scheduled time of action when initiated by policy. Optional.  scheduledTime: "2019-02-11T05:10:45Z"  ## Filters describe which Kubernetes resources should be included or excluded  ## in the backup. If no filters are specified, all the API resources in a  ## namespace are captured by the BackupAction.  #  ## Resource types are identified by group, version, and resource type names,  ## or GVR, e.g. networking.k8s.io/v1/networkpolicies. Core Kubernetes types  ## do not have a group name and are identified by just a version and resource  ## type name, e.g. v1/configmaps.  #  ## Individual resources are identified by their resource type and resource  ## name, or GVRN. In a filter, an empty or omitted group, version, resource  ## type or resource name matches any value.  #  ## Filters reduce the resources in the backup by selectively including and  ## then excluding resources.  ## - If includeResources is not specified, all the API resources in a  ##   namespace are included in the set of resources to be backed up.  ## - If includeResources is specified, resources matching any GVRN entry in  ##   includeResources are included in the set of resources to be backed up.  ## - If excludeResources is specified, resources matching any GVRN entry in  ##   excludeResources are excluded from the set of resources to be backed up.  #  ## For RestorePoint usefulness after the BackupAction, Veeam Kasten automatically  ## includes associated PVCs and PVs when a statefulset, deployment, or  ## deploymentconfig is included by includeResources unless the PVC is  ## excluded by excludeResources.  filters:    ## Include only resources that match any of the following NGVRs    includeResources:      ## Include individual resource    - name: <resource1 resource name>      group: <resource1 group>      version: <resource1 version>      resource: <resource1 type name>      ## Include resource type    - group: <resource2 group>      version: <resource2 version>      resource: <resource2 type name>    ## Exclude resources that match any of the following NGVRs    excludeResources:      ## Exclude specific instance of resource2 type    - name: <resource2 resource name>      group: <resource2 group>      version: <resource2 version>      resource: <resource2 type name>  ## Optional: Ignore exceptions and continue if possible.  ## Snapshots with exceptions will be flagged as potentially flawed.  ## Default: false  ignoreExceptions: false  ## Optional: Hooks are Kanister actions executed first or last in a BackupAction.  ## A Kanister ActionSet is created with the application namespace as its subject.  ## The Blueprint must be in the Veeam Kasten namespace. Hooks do not use Location Profile.  hooks:    ## The Kanister action referenced by preHook will be executed before    ## other phases of the BackupAction. Optional.    preHook:      blueprint: backup-hook-blueprint      actionName: before-backup    ## The Kanister action referenced by onSuccess will be executed once all    ## other phases in the BackupAction have completed successfully. Optional.    onSuccess:      blueprint: backup-hook-blueprint      actionName: on-success    ## The Kanister action referenced by onFailure will be executed only    ## when the BackupAction fails and exhausts all retries. Optional.    onFailure:      blueprint: backup-hook-blueprint      actionName: on-failure## Status of the action. Users should not set directly.status:  ## State of the action. Always present.  ## Valid values are:  ## Pending - action has been created  ## Running - action has been validated and is running  ## AttemptFailed - at least one action phase needs to retry  ## Failed - action has failed (at least one phase failed permanently)  ## Complete - action has completed successfully  ## Skipped - action has been skipped  ## Deleting - action is being deleted  state: Complete  ## Action execution progress represented as an integer percentage value in range between 0 and 100. Optional.  progress: 88  ## Initial start time of action. Always present.  startTime: "2019-02-11T05:10:45Z"  ## End time of action. Can be 'null' if action still running. Always present.  endTime: "2019-02-11T05:13:10Z"  ## RestorePoint created by a successful action.  ## Always present when the action succeeds.  restorePoint:    ## Name of the restore point.    name: backup-action-example-restorepoint    ## Namespace of the restore point. Will be the same as action name space    namespace: mysql  ## Error associated with the action.  ## Only included if the action does not succeed.  error:    message: Sample error message  ## List of exceptions associated with the action.  ## Only included if exceptions are present.  exceptions:    - message: Sample exception message
+## Standard Kubernetes API Version declaration. Required.apiVersion: actions.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: BackupActionmetadata:  ## Kubernetes labels.  ## The following labels will be auto-populated upon creation.  ## These labels can be used for filtering when getting actions.  ## Any additional custom labels can be specified if desired.  labels:    ## Populated for policy initiated BackupAction only.    k10.kasten.io/policyName: "sample-originating-policy"    k10.kasten.io/policyNamespace: "namespace-of-policy"    ## Populated for on-demand and policy initiated actions    k10.kasten.io/appName: "sample-app"    k10.kasten.io/appNamespace: "sample-app"    ## Identifies the type of resource being backed up (e.g., "namespace", "virtualMachine")    k10.kasten.io/appType: "namespace"    ## Populated for on-demand RunActions and policy initiated actions    k10.kasten.io/runActionName: "run-lhr7n6j8dw"    k10.kasten.io/runActionNamespace: "namespace-of-policy"  ## BackupAction name. May be any valid Kubernetes object name. Required.  ## BackupAction name is not mutable once created.  name: backup-action-example  ## BackupAction names must be unique and as an alternative to name above  ## one can take advantage of Kubernetes auto name generation  generateName: backup-action-  ## BackupAction namespace. Required.  ## Must be namespace of the application being backed up. Should match subject.  namespace: mysql## BackupAction spec. Required.spec:  ## Expiration timestamp in ``RFC3339`` format. Optional.  ## Garbage collector will automatically retire expired backups.  expiresAt: "2002-10-02T15:00:00Z"  ## Target application (namespace or Virtual Machine) to be backed up. Required.  ## For namespace-based backups, the subject is a K10App CR resource.  ## For VM-based backups, the subject is a VirtualMachine resource.  subject:    ## Name of the K10App CR or VirtualMachine resource. Required.    name: sample-app    ## Namespace of the application or VirtualMachine. Required.    namespace: sample-app    ## Standard Kubernetes kind declaration. Optional.    ## Specify "VirtualMachine" for VM-based backups.    ## When not specified, defaults to K10App CR (namespace-based backup).    kind: VirtualMachine    ## API version of the subject. Optional.    ## Specify "kubevirt.io/v1" for VirtualMachine subjects.    ## Required when kind is specified.    apiVersion: kubevirt.io/v1  ## Scheduled time of action when initiated by policy. Optional.  scheduledTime: "2019-02-11T05:10:45Z"  ## Filters describe which Kubernetes resources should be included or excluded  ## in the backup.  #  ## For Namespace-Based Backups:  ## If no filters are specified, all the API resources in a namespace are  ## captured by the BackupAction. Filters reduce the resources in the backup  ## by selectively including and then excluding resources.  #  ## For VM-Based Backups:  ## Filters control which VM-owned resources (discovered through the VM's  ## dependency graph) and additional namespace resources are included.  ## - includeResources/excludeResources: Apply to VM-owned resources  ## - includeExtraResources/excludeExtraResources: Apply to additional  ##   namespace resources not owned by or referenced by the VM  #  ## Resource types are identified by group, version, and resource type names,  ## or GVR, e.g. networking.k8s.io/v1/networkpolicies. Core Kubernetes types  ## do not have a group name and are identified by just a version and resource  ## type name, e.g. v1/configmaps.  #  ## Individual resources are identified by their resource type and resource  ## name, or GVRN. In a filter, an empty or omitted group, version, resource  ## type or resource name matches any value.  #  ## Filters reduce the resources in the backup by selectively including and  ## then excluding resources.  ## - If includeResources is not specified, all the API resources in a  ##   namespace (or all VM-owned resources for VM-based backups) are included  ##   in the set of resources to be backed up.  ## - If includeResources is specified, resources matching any GVRN entry in  ##   includeResources are included in the set of resources to be backed up.  ## - If excludeResources is specified, resources matching any GVRN entry in  ##   excludeResources are excluded from the set of resources to be backed up.  #  ## Veeam Kasten automatically includes associated PVCs and PVs when a  ## statefulset, deployment, or deploymentconfig is included by  ## includeResources unless the PVC is excluded by excludeResources.  filters:    ## Include only resources that match any of the following NGVRs    includeResources:      ## Include individual resource    - name: <resource1 resource name>      group: <resource1 group>      version: <resource1 version>      resource: <resource1 type name>      ## Include resource type    - group: <resource2 group>      version: <resource2 version>      resource: <resource2 type name>    ## Exclude resources that match any of the following NGVRs    excludeResources:      ## Exclude specific instance of resource2 type    - name: <resource2 resource name>      group: <resource2 group>      version: <resource2 version>      resource: <resource2 type name>    ## Extra filters (for VM-based backups only - non-VM-owned resources)    ## Include additional namespace resources not owned by the VM    includeExtraResources:      ## Include individual resource    - name: <extra resource1 resource name>      group: <extra resource1 group>      version: <extra resource1 version>      resource: <extra resource1 type name>      ## Include resource type with labels    - group: <extra resource2 group>      version: <extra resource2 version>      resource: <extra resource2 type name>    ## Exclude extra resources that match any of the following NGVRs    excludeExtraResources:      ## Exclude specific instance of extra resource type    - name: <extra resource2 resource name>      group: <extra resource2 group>      version: <extra resource2 version>      resource: <extra resource2 type name>  ## Optional: Ignore exceptions and continue if possible.  ## Snapshots with exceptions will be flagged as potentially flawed.  ## Default: false  ignoreExceptions: false  ## Optional: Hooks are Kanister actions executed first or last in a BackupAction.  ## A Kanister ActionSet is created with the application namespace as its subject.  ## The Blueprint must be in the Veeam Kasten namespace. Hooks do not use Location Profile.  hooks:    ## The Kanister action referenced by preHook will be executed before    ## other phases of the BackupAction. Optional.    preHook:      blueprint: backup-hook-blueprint      actionName: before-backup    ## The Kanister action referenced by onSuccess will be executed once all    ## other phases in the BackupAction have completed successfully. Optional.    onSuccess:      blueprint: backup-hook-blueprint      actionName: on-success    ## The Kanister action referenced by onFailure will be executed only    ## when the BackupAction fails and exhausts all retries. Optional.    onFailure:      blueprint: backup-hook-blueprint      actionName: on-failure## Status of the action. Users should not set directly.status:  ## State of the action. Always present.  ## Valid values are:  ## Pending - action has been created  ## Running - action has been validated and is running  ## AttemptFailed - at least one action phase needs to retry  ## Failed - action has failed (at least one phase failed permanently)  ## Complete - action has completed successfully  ## Skipped - action has been skipped  ## Deleting - action is being deleted  state: Complete  ## Action execution progress represented as an integer percentage value in range between 0 and 100. Optional.  progress: 88  ## Initial start time of action. Always present.  startTime: "2019-02-11T05:10:45Z"  ## End time of action. Can be 'null' if action still running. Always present.  endTime: "2019-02-11T05:13:10Z"  ## RestorePoint created by a successful action.  ## Always present when the action succeeds.  restorePoint:    ## Name of the restore point.    name: backup-action-example-restorepoint    ## Namespace of the restore point. Will be the same as action name space    namespace: mysql  ## Error associated with the action.  ## Only included if the action does not succeed.  error:    message: Sample error message  ## List of exceptions associated with the action.  ## Only included if exceptions are present.  exceptions:    - message: Sample exception message
 ```
 
 ### BackupAction Details API Type â
@@ -832,6 +846,7 @@ To understand the API better refer to the following:
 - Reports
 - Repositories
 - StorageSecurityContext
+- File Recovery Sessions
 
 ---
 
@@ -846,17 +861,18 @@ This section helps you learn about the Veeam Kasten platform and the
 
 Currently the following Veeam Kasten objects are supported:
 
-- Profile - abstracts a location (e.g. object store, NFS/SMB file store) and a set of credentials for accessing it. The Profile location is used to store and transfer application meta-data and, in some cases, actual persistent data during Veeam Kasten data management operations.
-- Policy - represents a collection of data management actions that are configured to occur on a periodic or event driven basis. Policies would typically encode a set of business rules and translate them to specific actions that Veeam Kasten will apply on the applications it has discovered.
-- PolicyPreset - is a predefined set of settings that can easily be applied to a Policy . A PolicyPreset can represent organizational SLAs requiring a user to specify only the application details to be used in a Policy .
-- Applications - abstracts an application that has been automatically discovered on the cluster where Veeam Kasten is running. The application object encapsulates information about all stateful and stateless resources that comprise the application.
-- Action - represents a data management operation that Veeam Kasten perform. Actions can be initiated on demand or as part of a policy . A number of different types of actions are supported.
-- RestorePoint - created as a result of a backup or import action, a RestorePoint represents a version-in-time of an application that has been captured by Veeam Kasten and that can be restored using a restore action .
-- StorageRepository - a representation of where and how Veeam Kasten stores its exported backup data. These objects provide a mechanism of more precisely managing and monitoring low-level data layout.
+- Profile - Abstracts a location (e.g. object store, NFS/SMB file store) and a set of credentials for accessing it. The Profile location is used to store and transfer application meta-data and, in some cases, actual persistent data during Veeam Kasten data management operations.
+- Policy - Represents a collection of data management actions that are configured to occur on a periodic or event driven basis. Policies would typically encode a set of business rules and translate them to specific actions that Veeam Kasten will apply on the applications it has discovered.
+- PolicyPreset - Predefined set of settings that can easily be applied to a Policy . A PolicyPreset can represent organizational SLAs requiring a user to specify only the application details to be used in a Policy .
+- Applications - Abstracts an application that has been automatically discovered on the cluster where Veeam Kasten is running. The application object encapsulates information about all stateful and stateless resources that comprise the application.
+- Action - Represents a data management operation that Veeam Kasten perform. Actions can be initiated on demand or as part of a policy . A number of different types of actions are supported.
+- RestorePoint - Created as a result of a backup or import action, a RestorePoint represents a version-in-time of an application that has been captured by Veeam Kasten and that can be restored using a restore action .
+- StorageRepository - Represents where and how Veeam Kasten stores its exported backup data. These objects provide a mechanism of more precisely managing and monitoring low-level data layout.
 - KastenDR - Veeam Kasten Disaster Recovery (KDR) enables the recovery of a Veeam Kasten instance in the event of various disasters, including accidental deletion of Veeam Kasten resources, failure of underlying cluster infrastructure, or malicious acts. Its representation includes resources that fetch the list of available KDR restore points and restore an instance from a KDR restore point.
-- TransformSet - store a set of Transforms as a custom resource. It provides more granular RBAC control, and the possibility of repeated use for Transforms .
-- BlueprintBinding - represents a selection of resources in a cluster and a blueprint that Veeam Kasten will use for such resources.
-- StorageSecurityContext -represents pod security context settings to access target storage to execute backup and restore operations.
+- TransformSet - Stores a set of Transforms as a custom resource. It provides more granular RBAC control, and the possibility of repeated use for Transforms .
+- BlueprintBinding - Represents a selection of resources in a cluster and a blueprint that Veeam Kasten will use for such resources.
+- StorageSecurityContext - Specifies pod security context settings to access target storage to execute backup and restore operations.
+- FileRecoverySession - Represents a request for network access to files in an exported RestorePoint without restoring the entire volume.
 
 ---
 
@@ -1001,6 +1017,87 @@ The following is a complete specification of the KastenDRRestore resource.
 
 ---
 
+## Api Filerecoverysessions
+
+A FileRecoverySession custom resource (CR) is used to request network
+  access to files in one or more exported RestorePoints in a namespace.
+
+Veeam Kasten will automatically exclude the FileRecoverySession
+    resource from all backups.
+
+### Implementation â
+
+Veeam Kasten maintains a Pod in the kasten-io namespace
+  for each active FileRecoverySession CR.
+  Within the Pod it mounts the filesystems of the requested
+  volumes and runs an OpenSSH SFTP service.
+
+The volumes referenced by the CR are not restored in their entirety,
+  but instead their data are fetched on demand via FUSE-based interfaces.
+  Block mode exports utilize the underlying node's operating system
+  to mount ext4 and xfs Linux filesystems; ntfs filesystems
+  are supported via the ntfs-3g package.
+  Block mode exports may also involve the creation of loopback devices
+  to access disk partitions.
+
+The Pod is configured with the following security configuration:
+
+- It runs with privilege (i.e. as the root user) in order to use FUSE and loopback devices and to mount filesystems.
+- It directly accesses the underlying node's /dev filesystem to access FUSE and loopback device paths.
+- It requires the SYS_ADMIN capability in order to mount filesystems.
+
+Associated with this Pod are Kubernetes Service and NetworkPolicy objects that expose and protect access to the SFTP service.
+
+### File Recovery Session Operations â
+
+The kubectl command or the Kubernetes API can be used to Create,
+  Read or List, Update, or Delete FileRecoverySession CR objects.
+
+See Restoring Individual Files for usage examples,
+  and FileRecoverySession API Type below for an explanation of the fields.
+
+Additionally, the k10tools command provides support to operate on FileRecoverySession CRs.
+
+### Permissions â
+
+The principal initiating a file recovery session requires get , create , and delete permissions for the FileRecoverySession CR
+  in the datamover.kio.kasten.io API group.
+
+These permissions are provided by both the k10-admin and k10-basic pre-configured ClusterRoles.
+  Alternatively the required permissions can be included in a custom role.
+
+### Limits on Resource Consumption â
+
+A FileRecoverySession CR consumes shared system resources including:
+
+- FUSE devices
+- Loopback devices
+- Kernel mount points
+- Network resources
+- Memory and CPU
+
+The amount of system resources consumed by any given FileRecoverySession CR
+  is proportional to the number of volume requests made in the CR, and the organizational complexity of the volume. For example, unpartitioned disks
+  use less system resources than partitioned disks.
+
+Multiple Helm parameters ,
+  are provided to limit the total concurrent volume mounts and session duration:
+
+- frs.maxMountsPerSession
+- frs.maxMountsPerNamespace
+- frs.maxSystemMounts
+- frs.sessionExpiryTimeInMinutes
+
+### FileRecoverySession API Type â
+
+The following is a complete specification of the FileRecoverySession custom resource.
+
+```
+# Standard Kubernetes API Version declaration. Required.apiVersion: datamover.kio.kasten.io/v1alpha1# Standard Kubernetes Kind declaration. Required.kind: FileRecoverySession# Standard Kubernetes metadata. Required.metadata:  # Namespace of the FileRecoverySession. Required.  namespace: app2  # Name of the FileRecoverySession. Either Name or GenerateName must be set.  name: frs-app2  # GenerateName is an optional prefix used to auto-create a unique name if Name is not set.  generateName: "frs-"# Spec of the FileRecoverySession. Required.spec:  # Volumes is a list of volume backups, each identified by the name of the volume PVC  # and a RestorePoint that captured the content of that volume at some point in time.  #  # It is possible to repeat the PVC and RestorePoint names across list entries, but the  # combination of any specific PVC and RestorePoint name must be distinct in the list.  # Specifying multiple RestorePoints for a single PVC enables the detection  # of changes between the snapshots. Specifying just a single RestorePoint is useful  # when the RestorePoint containing the data to be recovered is known.  #  # Only RestorePoints of export operations are supported, and all the specified  # RestorePoints must export data to the same location.  #  # External policy may limit the number of volume requests that can be specified.  # Runtime availability of resources may limit the ability to fulfil the request.  volumes:      # RestorePointName is the name of an apps.kio.kasten.io/v1alpha1 RestorePoint object in the Namespace.    - restorePointName: rpc-name      # PVCName is the name of a PersistentVolumeClaim object in the Namespace.      pvcName: pvc-name  # Transports specifies the transport protocols to be used.  # At least one transport protocol must be specified.  transports:    # SFTP contains configuration information for Secure FTP.    sftp:      # UserPublicKey is the public SSH key of a user authorized to use the service.      userPublicKey: "public key"# Status of the FileRecoverySession. Set by Veeam Kasten.status:  # State reflects the progress made in fulfilling the request. Value is one of:  # - Starting  #   No action has been taken yet.  # - Processing  #   Activity to fulfil the request has started.  # - Ready  #   The requested volumes can now be accessed via a requested transport protocol.  # - Failed  #   Processing of a request has failed or a fulfilled request has timed out.  # - Resetting  #   All previous progress toward fulfilling the request is being cleaned  #   up to handle a change in the request specification.  state: Starting  # Conditions is a standard Kubernetes type that provides detailed progress.  conditions: []  # ExpiryTime is set once the state becomes Ready, and specifies the max duration of the session.  expiryTime: "2025-10-28T21:20:08Z"  # LastUpdateTime is set every time the Status is updated.  lastUpdateTime: "2025-10-28T20:50:08Z"  # Transports returns connection details for the requested transport protocols when the state is Ready.  transports:    # SFTP status contains connection information for the Secure FTP service.    sftp:      # Endpoints contains a list of cluster DNS addresses for the Service object exposing the SFTP service.      endpoints:      - frs-26zl6.kasten-io.svc.cluster.local.      # HostKeyFingerprint is the fingerprint of the service host key.      hostKeyFingerprint: "SHA256:HostKeyFingerprint"      # HostKeySignature contains the service host key in the "known hosts" file format.      hostKeySignature: "[frs-26zl6.kasten-io.svc.cluster.local.]:2222 ssh-ed25519 HostKeySignature"      # The port number used by the SFTP service.      portNumber: 2222      # The name of the Kubernetes Service object exposing the SFTP service.      serviceName: frs-26zl6      # The namespace of the Kubernetes Service object exposing the SFTP service.      serviceNamespace: kasten-io
+```
+
+---
+
 ## Api K10Apps
 
 The Application resource is in developer preview and a number of
@@ -1117,6 +1214,7 @@ A Policy custom resource (CR) is used to perform operations on Veeam
 
 - Create a Backup Policy
 - Create a Backup Policy using a Policy Preset
+- Create a VM-Based Backup Policy
 - Create an Import Policy
 - Update a Policy
 - Delete a Policy
@@ -1145,6 +1243,21 @@ $ cat > sample-backup-policy-with-preset.yaml <<EOFapiVersion: config.kio.kasten
 ```
 
 For more information about PolicyPreset CR, refer to Policy Presets section.
+
+### Create a VM-Based Backup Policy â
+
+The following example illustrates how to create a backup policy which
+  protects specific Virtual Machines using the virtualMachineRef selector.
+  This policy executes hourly, retains 24 hourly and 7 daily snapshots, and
+  protects two Virtual Machines: sample-vm-1 in the sample-ns1 namespace and sample-vm-2 in the sample-ns2 namespace.
+
+```
+$ cat > vm-backup-policy.yaml <<EOFapiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: vm-backup-policy  namespace: kasten-iospec:  comment: Policy to protect specific Virtual Machines  frequency: '@hourly'  retention:    hourly: 24    daily: 7  actions:  - action: backup  selector:    matchExpressions:      - key: k10.kasten.io/virtualMachineRef        operator: In        values:          - "sample-ns1/sample-vm-1"          - "sample-ns2/sample-vm-2"EOF$ kubectl apply -f vm-backup-policy.yamlpolicy.config.kio.kasten.io/vm-backup-policy created## make sure it initializes and validates properly$ kubectl get policies.config.kio.kasten.io --namespace kasten-io -wNAME                          STATUS    AGEvm-backup-policy              Success   12s
+```
+
+When a policy uses the virtualMachineRef selector, Veeam Kasten
+  automatically discovers VM-owned resources through dependency graph traversal.
+  See VM Resource Discovery for details on which resources are automatically discovered and backed up.
 
 ### Create an Import Policy â
 
@@ -1294,6 +1407,7 @@ If a subFrequency entry is omitted, it defaults as above (taking
 ## Advanced Backup Policy Examples â
 
 - Scheduling frequency and retention
+- VM-based policy with resource filtering
 - Export snapshots to a Veeam Repository
 
 ### Scheduling frequency and retention â
@@ -1316,6 +1430,33 @@ This policy covers an application running in the namespace sampleApp .
 ```
 apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: sample-custom-backup-policy  namespace: kasten-iospec:  comment: My sample custom backup policy  frequency: '@daily'  subFrequency:    weekdays: [5]    days: [15]  backupWindow:    start:      hour: 22      minute: 30    end:      hour: 7  retention:    daily: 14    weekly: 4    monthly: 6  actions:  - action: backup  - action: export    exportParameters:      frequency: '@monthly'      profile:        name: my-profile        namespace: kasten-io      exportData:        enabled: true    retention:      monthly: 12      yearly: 5  selector:    matchLabels:      k10.kasten.io/appNamespace: sampleApp
 ```
+
+### VM-based policy with resource filtering â
+
+The following example illustrates how to create a VM-based backup policy
+  with resource filtering. This policy protects the Virtual Machine sample-vm in the sample-ns1 namespace and uses filters to control which VM-owned
+  resources and additional namespace resources are included in the backup.
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1kind: Policymetadata:  name: vm-backup-with-filters  namespace: kasten-iospec:  comment: VM backup policy with resource filtering  frequency: '@daily'  retention:    daily: 7    weekly: 4  actions:  - action: backup    backupParameters:      filters:        # Filters for VM-owned resources (discovered through dependency graph)        includeResources:          - group: kubevirt.io            version: v1            resource: virtualmachines          - group: ""            version: v1            resource: persistentvolumeclaims          - group: cdi.kubevirt.io            version: v1beta1            resource: datavolumes          - group: ""            version: v1            resource: configmaps        excludeResources:          - group: ""            version: v1            resource: configmaps            name: temp-config        # Filters for extra resources (not owned by the VM)        includeExtraResources:          - group: ""            version: v1            resource: configmaps            labels:              app: monitoring          - group: ""            version: v1            resource: secrets            labels:              backup: "true"        excludeExtraResources:          - group: ""            version: v1            resource: configmaps            name: temp-monitoring-config          - group: ""            version: v1            resource: secrets            labels:              temporary: "true"  selector:    matchExpressions:      - key: k10.kasten.io/virtualMachineRef        operator: In        values:          - "sample-ns1/sample-vm"
+```
+
+Resources Included in Backup:
+
+This policy will back up the following resources from the sample-ns1 namespace:
+
+- VM-Owned Resources : Resources discovered automatically through the VM's dependency graph, including DataVolumes , PersistentVolumeClaims , ConfigMaps , Secrets , and others. See VM Resource Discovery for the complete list. In this example, ConfigMap temp-config is excluded via excludeResources .
+- Extra Resources (not owned by the VM): ConfigMaps with the label app: monitoring , except the ConfigMap named temp-monitoring-config Secrets with the label backup: "true" , except any Secrets with the label temporary: "true"
+
+VM-Owned Resources : Resources discovered automatically through the VM's dependency graph,
+      including DataVolumes , PersistentVolumeClaims , ConfigMaps , Secrets , and others.
+      See VM Resource Discovery for the complete list.
+      In this example, ConfigMap temp-config is excluded via excludeResources .
+
+Extra Resources (not owned by the VM):
+
+- ConfigMaps with the label app: monitoring , except the ConfigMap named temp-monitoring-config
+- Secrets with the label backup: "true" , except any Secrets with the label temporary: "true"
 
 ### Export snapshots to a Veeam Repository â
 
@@ -1390,18 +1531,48 @@ This section defines which applications the policy applies to using Kubernetes l
   the value in a matchExpression, matchLabel or both must match the
   application's namespace. Only one of matchExpressions or matchLabels required.
   Only a single selector can be defined in
-  the matchExpression or matchLabel for application-scoped policies. k10.kasten.io/appNamespace is a special label indicating that
-  the selector is targeting an application namespace kasten-io-cluster is a special value for k10.kasten.io/appNamespace that indicates that cluster-scoped resources should be backed up.
-  For selector operator only In is supported. values is Array of values (labels on app names or wildcards) to use in the selector. With this construct ANY value of the label key will match and
-  use this construct if creating a policy for multiple applications.
+  the matchExpression or matchLabel for application-scoped policies.
+
+### Special Selector Keys â
+
+k10.kasten.io/appNamespace is a special label indicating that
+  the selector is targeting an application namespace. kasten-io-cluster is a special value for k10.kasten.io/appNamespace that indicates that cluster-scoped resources should be backed up.
+
+k10.kasten.io/virtualMachineRef is a special label for selecting specific
+  Virtual Machines. Values must be in the format namespace/name (e.g., sample-ns1/sample-vm ).
+  Wildcards are supported for the VM name portion: use namespace/* to select all VMs in a namespace,
+  or namespace/prefix-* to select VMs with a specific name prefix. Wildcards are not supported
+  for the namespace portion.
+
+When this selector is used, Veeam Kasten automatically discovers VM-owned resources
+  through dependency graph traversal. See VM Resource Discovery for the complete list of resources that are automatically discovered and backed up.
+
+For selector operator only In is supported. values is Array of values (labels on app names or wildcards for appNamespace ,
+  or namespace/name format with optional wildcards for virtualMachineRef ) to use in the selector.
+  With this construct ANY value of the label key will match and
+  use this construct if creating a policy for multiple applications or VMs.
 
 Label selector that resolves to a given Kubernetes resource
     will have the effect of selecting the entire application that the resource belongs to.
 
-myLabelKey1 : myLabelValue1 is map of label key and value pairs to match k10.kasten.io/appNamespace special label described above is supported. With this ALL labels constructed must match for an object.
+myLabelKey1 : myLabelValue1 is map of label key and value pairs to match.
+  The k10.kasten.io/appNamespace special label described above is supported.
+  With this ALL labels constructed must match for an object.
+
+Namespace-based selector example:
 
 ```
 selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - myApp          - myApp-*    matchLabels:      myLabelKey1: myLabelValue1      myLabelKey2: myLabelValue2
+```
+
+VM-based selector example:
+
+The virtualMachineRef and appNamespace selectors cannot be used together
+    in the same policy. Choose one based on whether you want to protect specific
+    Virtual Machines or entire namespaces.
+
+```
+selector:    matchExpressions:      - key: k10.kasten.io/virtualMachineRef        operator: In        values:          - "sample-ns1/sample-vm-1"          - "sample-ns2/sample-vm-2"          - "sample-ns3/sample-vm-*"          - "sample-ns4/*"
 ```
 
 Defines how frequently the backup runs. (Required)
@@ -1476,24 +1647,63 @@ actions:
 Backup action captures application resources and volumes. (Required when using a preset)
   Includes filters, storage profiles, exception handling, and pre/post hooks.
 
-Filters describe which Kubernetes resources should be included or excluded in the backup. If no filters are specified, all the API resources in a namespace are captured by the BackupActions created by this Policy. Filters reduce the resources in the backup by selectively including and then excluding resources.
+Filters describe which Kubernetes resources should be included or excluded in the backup.
 
-Resource types are identified by group, version, and resource type names, or GVR. Core Kubernetes types do not have a group name and are identified by just a version and resource type name, e.g. v1/configmaps.
+For Namespace-Based Policies:
 
-Individual resources are identified by their resource type and resource name, or GVRN. In a filter, an empty or omitted group, version, resource type, or resource name matches any value.
+If no filters are specified, all the API resources in a namespace are captured by
+  the BackupActions created by this Policy. Filters reduce the resources in the backup
+  by selectively including and then excluding resources.
 
-If includeResources is not specified, all the API resources in a namespace are included in the set of resources to be backed up.
+Veeam Kasten automatically includes associated PVCs and PVs when a StatefulSet,
+  Deployment, or DeploymentConfig is included by includeResources , unless the PVC
+  is excluded by excludeResources .
 
-If includeResources is specified, resources matching any GVRN entry in includeResources are included in the set of resources to be backed up.
+For VM-Based Policies:
 
-If excludeResources is specified, resources matching any GVRN entry in excludeResources are excluded from the set of resources to be backed up.
+VM-based policies (using virtualMachineRef selector) use a dual filtering system:
 
-For RestorePoint usefulness after BackupActions, Veeam Kasten automatically includes associated PVCs and PVs when a StatefulSet, Deployment, or DeploymentConfig is included by includeResources , unless the PVC is excluded by excludeResources .
+- includeResources / excludeResources : Apply to VM-owned resources discovered through the Virtual Machine's dependency graph. If no filters are specified, all discovered VM-owned resources are included.
 
-Backup policies that select cluster-scoped resources may provide optional filters that apply to any BackupClusterAction .
+VM-based policies do not automatically include all of a VM's PVCs when the VirtualMachine
+    resource type alone is specified as an include filter. Each resource type must match the
+    filter explicitly.
+
+- includeExtraResources / excludeExtraResources : Apply to additional namespace resources that are not owned by or referenced by the Virtual Machine. If no extra filters are specified, no extra resources are included. Extra resource filters must specify at least the resource type (group, version, resource). Filters with only name or labels are ignored.
+
+VM-Owned vs. Extra Resources:
+
+- VM-Owned Resources : Resources discovered automatically through the VM's dependency graph. See VM Resource Discovery for the complete list. These are filtered using includeResources and excludeResources .
+- Extra Resources : Namespace resources that are not directly owned by or referenced by the VM but should still be included in the backup. These are filtered using includeExtraResources and excludeExtraResources .
+
+VM-Owned Resources : Resources discovered automatically through the VM's
+      dependency graph. See VM Resource Discovery for the complete list. These are filtered using includeResources and excludeResources .
+
+Extra Resources : Namespace resources that are not directly owned by or
+      referenced by the VM but should still be included in the backup. These are
+      filtered using includeExtraResources and excludeExtraResources .
+
+Key Differences from Namespace-Based Filtering:
+
+- No automatic transitive inclusion: Including a VirtualMachine does not automatically include all its PVCs. Each resource type must match the filter.
+- The special actions.kio.kasten.io/defaults GVR is not supported for VM-based policies.
+- Extra resource filters must specify resource type (group, version, resource). Filters with only name or labels are ignored.
+- If no filters are specified, all discovered VM-owned resources are included but no extra resources are included.
+
+Common Filter Concepts:
+
+Resource types are identified by group, version, and resource type names, or GVR.
+  Core Kubernetes types do not have a group name and are identified by just a version
+  and resource type name, e.g. v1/configmaps.
+
+Individual resources are identified by their resource type and resource name, or GVRN.
+  In a filter, an empty or omitted group, version, resource type, or resource name matches any value.
+
+Namespace-based backup policies may provide optional filters for cluster-scoped resources that
+  apply to any BackupClusterAction .
 
 ```
-- action: backup    backupParameters:      filters:        includeResources:          - name: <resource1 resource name>            group: <resource1 group>            version: <resource1 version>            resource: <resource1 type name>          - group: <resource2 group>            version: <resource2 version>            resource: <resource2 type name>        excludeResources:          - name: <resource2 resource name>            group: <resource2 group>            version: <resource2 version>            resource: <resource2 type name>        includeClusterResources:          - name: <resource3 resource name>            group: <resource3 group>            version: <resource3 version>            resource: <resource3 type name>          - group: <resource4 group>            version: <resource4 version>            resource: <resource4 type name>        excludeClusterResources:          - name: <resource4 resource name>            group: <resource4 group>            version: <resource4 version>            resource: <resource4 type name>
+- action: backup    backupParameters:      filters:        # Standard filters (for namespace-based or VM-owned resources)        includeResources:          - name: <resource1 resource name>            group: <resource1 group>            version: <resource1 version>            resource: <resource1 type name>          - group: <resource2 group>            version: <resource2 version>            resource: <resource2 type name>        excludeResources:          - name: <resource2 resource name>            group: <resource2 group>            version: <resource2 version>            resource: <resource2 type name>        # Extra filters (for VM-based policies only - non-VM-owned resources)        includeExtraResources:          - name: <extra resource1 resource name>            group: <extra resource1 group>            version: <extra resource1 version>            resource: <extra resource1 type name>          - group: <extra resource2 group>            version: <extra resource2 version>            resource: <extra resource2 type name>        excludeExtraResources:          - name: <extra resource2 resource name>            group: <extra resource2 group>            version: <extra resource2 version>            resource: <extra resource2 type name>        # Cluster-scoped resource filters (for namespace-based policies only)        includeClusterResources:          - name: <resource3 resource name>            group: <resource3 group>            version: <resource3 version>            resource: <resource3 type name>          - group: <resource4 group>            version: <resource4 version>            resource: <resource4 type name>        excludeClusterResources:          - name: <resource4 resource name>            group: <resource4 group>            version: <resource4 version>            resource: <resource4 type name>
 ```
 
 Profile used for Kanister-enabled operations and Generic Storage Backups. Profile is not allowed when policy preset is used. ignoreExceptions is by default false and Snapshots with exceptions will be flagged as potentially flawed.
@@ -1548,7 +1758,7 @@ This section defines restoration options for VM and cluster resource restore. He
 - transforms specifies a list of transforms is optional, and each transform can be defined inline or in a referenced transform set. It specifies which resource artifacts to apply the transform to and requires at least one filter to be set. The resource group, version, type, and name are all optional. Additionally, the name of the transform itself is optional.
 - json defines an array of RFC-6902 JSON patch-like operations is optional.
 - op Operation name is required. Transforms support six command operations: âtestâ checks that an element exists (and equals the value / matches the regexp if specified), âaddâ inserts a new element to the resource definition, âremoveâ deletes an existing element from the resource definition, âcopyâ duplicates an element, overwriting the value in the new path if it already exists, âmoveâ relocates an element, overwriting the value in the new path if it already exists, and âreplaceâ replaces an existing element with a new element.
-- from is source reference for operation is optional. Required and valid only for âmoveâ and âcopyâ operations.
+- from is source reference for operation is optional. Required and valid only for âmoveâ and âcopy  â operations.
 - path is Target reference for operation is required for every operation.
 - regex is to match expression and is optional. When used with âcopyâ, âmoveâ or âreplaceâ operation, the transform will match the target text against the regex and substitute regex capturing groups with value. When used with âtestâ operation, the transform will match the target text against the regex.
 - value is any valid JSON is optional. Required for âaddâ and âreplaceâ operations. Required for âcopyâ and âmoveâ operations only when used along with regex. âTestâ operation can use either regex or value.
@@ -1572,7 +1782,7 @@ json defines an array of RFC-6902 JSON patch-like operations is optional.
 
 op Operation name is required. Transforms support six command operations: âtestâ checks that an element exists (and equals the value / matches the regexp if specified), âaddâ inserts a new element to the resource definition, âremoveâ deletes an existing element from the resource definition, âcopyâ duplicates an element, overwriting the value in the new path if it already exists, âmoveâ relocates an element, overwriting the value in the new path if it already exists, and âreplaceâ replaces an existing element with a new element.
 
-from is source reference for operation is optional. Required and valid only for âmoveâ and âcopyâ operations.
+from is source reference for operation is optional. Required and valid only for âmoveâ and âcopy  â operations.
 
 path is Target reference for operation is required for every operation.
 
@@ -2177,12 +2387,47 @@ To create this validation execute the below command:
 kubectl create -f validate-rp.yaml
 ```
 
+### RestorePoint and RestorePointContent Labels â
+
+RestorePoints and RestorePointContents are labeled automatically to help identify and filter backups.
+  The following standard labels are applied to all RestorePoints and RestorePointContents :
+
+- k10.kasten.io/appName : The name of the backed-up application or Virtual Machine
+- k10.kasten.io/appNamespace : The namespace containing the backed-up resource
+- k10.kasten.io/appType : The backup type category, either "virtualMachine" or "namespace" Set to "virtualMachine" for VM-based backups Set to "namespace" for namespace-based backups May be absent for RestorePoints created on older Veeam Kasten versions (these are namespace-based backups)
+
+- Set to "virtualMachine" for VM-based backups
+- Set to "namespace" for namespace-based backups
+- May be absent for RestorePoints created on older Veeam Kasten versions (these are namespace-based backups)
+
+#### Querying RestorePoints by Type â
+
+These labels can be used to filter RestorePoints . For example:
+
+List all namespace-based RestorePoints:
+
+```
+# RestorePoints without appType label (older Veeam Kasten versions)kubectl get restorepoints -A -l '!k10.kasten.io/appType'# RestorePoints with explicit appType=namespace labelkubectl get restorepoints -A -l k10.kasten.io/appType=namespace
+```
+
+List all VM-based RestorePoints:
+
+```
+kubectl get restorepoints -A -l k10.kasten.io/appType=virtualMachine
+```
+
+List RestorePoints for a specific VM:
+
+```
+kubectl get restorepoints -n sample-ns1 \  -l k10.kasten.io/appName=sample-vm,k10.kasten.io/appType=virtualMachine
+```
+
 ### RestorePoint API Type â
 
 The following is a complete specification of the RestorePoint resource.
 
 ```
-## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePoint## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePoint. Required.  name: sample-restore-point  ## Namespace of the RestorePoint. Required.  namespace: sample-app  ## Kubernetes labels  labels:    ## Labels that can be used for filtering.    ## Automatically populated when creating the the resource    k10.kasten.io/appName: sample-app    k10.kasten.io/appNamespace: sample-app## Restore point resource parametersspec:  ## Reference to the underlying RestorePointContent resource.  ## When creating a RestorePoint the caller need to have  ## read access to the RestorePointContent being referenced.  restorePointContentRef:    ## Name of the underlying RestorePointContent resource    name: rpc-sample-app-backip-art245## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Size of the volumes contained within this RestorePoint.  logicalSizeBytes: 17179869184  ## Reported size of the snapshots contained within this RestorePoint.  physicalSizeBytes: 4852012  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionCreationTime: '2019-02-11T03:03:47Z'
+## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePoint## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePoint. Required.  name: sample-restore-point  ## Namespace of the RestorePoint. Required.  namespace: sample-app  ## Kubernetes labels  labels:    ## Labels that can be used for filtering.    ## Automatically populated when creating the the resource    k10.kasten.io/appName: sample-app    k10.kasten.io/appNamespace: sample-app    ## Backup type category: "virtualMachine" for VM-based backups,    ## "namespace" for namespace-based backups    k10.kasten.io/appType: virtualMachine## Restore point resource parametersspec:  ## Reference to the underlying RestorePointContent resource.  ## When creating a RestorePoint the caller need to have  ## read access to the RestorePointContent being referenced.  restorePointContentRef:    ## Name of the underlying RestorePointContent resource    name: rpc-sample-app-backip-art245## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Size of the volumes contained within this RestorePoint.  logicalSizeBytes: 17179869184  ## Reported size of the snapshots contained within this RestorePoint.  physicalSizeBytes: 4852012  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionCreationTime: '2019-02-11T03:03:47Z'
 ```
 
 ## RestorePointContent â
@@ -2263,7 +2508,7 @@ The following is a complete specification of the RestorePointContent resource.
 The RestorePointContent resource cannot be created directly.
 
 ```
-## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePointContent## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePointContent. Required.  name: sample-restore-point-content  ## Kubernetes labels  labels:  ## Labels that can be used fot filtering.  ## Automatically populated when creating the the resource  k10.kasten.io/appName: sample-app  k10.kasten.io/appNamespace: sample-app## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionCreationTime: '2019-02-11T03:03:47Z'
+## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePointContent## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePointContent. Required.  name: sample-restore-point-content  ## Kubernetes labels  labels:  ## Labels that can be used fot filtering.  ## Automatically populated when creating the the resource  k10.kasten.io/appName: sample-app  k10.kasten.io/appNamespace: sample-app  ## Backup type category: "virtualMachine" for VM-based backups,  ## "namespace" for namespace-based backups  k10.kasten.io/appType: virtualMachine## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionCreationTime: '2019-02-11T03:03:47Z'
 ```
 
 ## ClusterRestorePoint â

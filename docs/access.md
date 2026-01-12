@@ -1728,7 +1728,7 @@ k10-admin will be installed under the name <release_name>-admin .
 ### K10-Admin ClusterRole â
 
 ```
-apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-adminrules:- apiGroups:  - actions.kio.kasten.io  - apps.kio.kasten.io  - config.kio.kasten.io  - reporting.kio.kasten.io  - vault.kio.kasten.io  resources:  - '*'  verbs:  - '*'- apiGroups:  - cr.kanister.io  resources:  - '*'  verbs:  - '*'- apiGroups:  - ""  resources:  - namespaces  verbs:  - create  - get  - list
+apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-adminrules:- apiGroups:  - actions.kio.kasten.io  - apps.kio.kasten.io  - config.kio.kasten.io  - datamover.kio.kasten.io  - dr.kio.kasten.io  - reporting.kio.kasten.io  - repositories.kio.kasten.io  - vault.kio.kasten.io  resources:  - '*'  verbs:  - '*'- apiGroups:  - cr.kanister.io  resources:  - '*'  verbs:  - '*'- apiGroups:  - ""  resources:  - namespaces  verbs:  - create  - get  - list
 ```
 
 ### K10-Admin Binding â
@@ -1886,7 +1886,7 @@ k10-basic will be installed under the name <release_name>-basic .
 ### K10-Basic ClusterRole â
 
 ```
-apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-basicrules:- apiGroups:  - actions.kio.kasten.io  resources:  - backupactions  - backupactions/details  - restoreactions  - restoreactions/details  - exportactions  - exportactions/details  - cancelactions  - runactions  - runactions/details  verbs:  - '*'- apiGroups:  - apps.kio.kasten.io  resources:  - restorepoints  - restorepoints/details  - applications  - applications/details  verbs:  - '*'- apiGroups:  - ""  resources:  - namespaces  verbs:  - get- apiGroups:  - config.kio.kasten.io  resources:  - policies  verbs:  - '*'
+apiVersion: rbac.authorization.k8s.io/v1kind: ClusterRolemetadata:  name: k10-basicrules:- apiGroups:  - actions.kio.kasten.io  resources:  - backupactions  - backupactions/details  - restoreactions  - restoreactions/details  - exportactions  - exportactions/details  - cancelactions  - runactions  - runactions/details  verbs:  - '*'- apiGroups:  - apps.kio.kasten.io  resources:  - restorepoints  - restorepoints/details  - applications  - applications/details  verbs:  - '*'- apiGroups:  - ""  resources:  - namespaces  verbs:  - get- apiGroups:  - config.kio.kasten.io  resources:  - policies  verbs:  - '*'- apiGroups:  - datamover.kio.kasten.io  resources:  - filerecoverysessions  verbs:  - '*'
 ```
 
 ### K10-Basic Binding â
