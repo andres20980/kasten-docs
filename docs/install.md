@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.0    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.1    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -407,6 +407,9 @@ To modify the bundled Prometheus configuration, only use the helm values
 | genericVolumeSnapshot.resources.requests.cpu | Generic Volume Snapshot restore Pods cpu request | "" |
 | genericVolumeSnapshot.resources.requests.ephemeral-storage | Generic Volume Snapshot restore Pods ephemeral storage request | "" |
 | genericVolumeSnapshot.resources.requests.memory | Generic Volume Snapshot restore Pods memory request | "" |
+| global.acm.enabled | Enable ACM integration | false |
+| global.acm.hubThanosTenantId | Hub Thanos Tenant ID for ACM | "" |
+| global.acm.managedClusterId | Managed Cluster ID for ACM | "" |
 | global.airgapped.repository | Specify the helm repository for offline (airgapped) installation | "" |
 | global.ephemeralResourceLabels | Configures custom labels to be set on all Kasten ephemeral PVCs, Network Policies, Services, and Pods. Takes precedence over keys also set in global.resourceLabels on ephemeral resources. | {} |
 | global.imagePullSecret | Provide secret which contains docker config for private repository. Usek10-ecrwhen secrets.dockerConfigPath is used. | "" |
@@ -714,7 +717,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.0    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.1    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1049,6 +1052,9 @@ To modify the bundled Prometheus configuration, only use the helm values
 | genericVolumeSnapshot.resources.requests.cpu | Generic Volume Snapshot restore Pods cpu request | "" |
 | genericVolumeSnapshot.resources.requests.ephemeral-storage | Generic Volume Snapshot restore Pods ephemeral storage request | "" |
 | genericVolumeSnapshot.resources.requests.memory | Generic Volume Snapshot restore Pods memory request | "" |
+| global.acm.enabled | Enable ACM integration | false |
+| global.acm.hubThanosTenantId | Hub Thanos Tenant ID for ACM | "" |
+| global.acm.managedClusterId | Managed Cluster ID for ACM | "" |
 | global.airgapped.repository | Specify the helm repository for offline (airgapped) installation | "" |
 | global.ephemeralResourceLabels | Configures custom labels to be set on all Kasten ephemeral PVCs, Network Policies, Services, and Pods. Takes precedence over keys also set in global.resourceLabels on ephemeral resources. | {} |
 | global.imagePullSecret | Provide secret which contains docker config for private repository. Usek10-ecrwhen secrets.dockerConfigPath is used. | "" |
@@ -1958,7 +1964,7 @@ To install the latest version of Kasten with the latest values use the
   command below:
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.5.0/fips/fips-values.yaml
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.5.1/fips/fips-values.yaml
 ```
 
 ---
@@ -2804,7 +2810,7 @@ Installing Veeam Kasten with the Iron Bank images, as
   version of Veeam Kasten that's being installed:
 
 ```
-$ curl -sO https://docs.kasten.io/downloads/8.5.0/ironbank/ironbank-values.yaml
+$ curl -sO https://docs.kasten.io/downloads/8.5.1/ironbank/ironbank-values.yaml
 ```
 
 This file contains the correct helm values that ensure the deployment of
@@ -2902,7 +2908,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.0.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.1.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2917,7 +2923,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.0.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.1.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2956,10 +2962,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.0 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.1 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.5.0).
+The following commands operate against the latest version of Veeam Kasten (8.5.1).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2968,12 +2974,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.5.0). This can be helpful if there is a requirement to tag and
+  version (8.5.1). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.0 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.1 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2986,7 +2992,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.0 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.1 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -3024,7 +3030,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.0 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.0 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.1 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.1 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3165,14 +3171,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.0/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.5.1/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.0/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.0
+$ curl https://docs.kasten.io/downloads/8.5.1/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.1
 ```
 
 Follow this guide to
@@ -3273,13 +3279,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â

@@ -1088,7 +1088,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.5.0/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.5.1/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1351,8 +1351,10 @@ Veeam Kasten enables centralized monitoring of all its activity by
   endpoint from which a central system can extract data. This section documents
   how to use the built-in Prometheus instance, and describes the metrics currently exposed by Veeam Kasten.
 
-Metrics can also be exported to external or on-cluster monitoring platforms such as Grafana,
-  Datadog, Splunk, Thanos and other Prometheus-compatible systems for unified visibility across multiple clusters. See Exporting Metrics to External Monitoring Systems for configuration details.
+Metrics can also be exported to external or on-cluster monitoring platforms for unified visibility across multiple clusters:
+
+- General (Grafana, Datadog, Thanos, etc.) : See Exporting Metrics to External Monitoring Systems .
+- Red Hat OpenShift : See Red Hat ACM Observability .
 
 ## Using Veeam Kasten's Prometheus Endpoint â
 
@@ -1660,6 +1662,209 @@ Veeam Kasten Reporting provides regular insights into key performance
 
 ---
 
+## Operating Monitoring Acm
+
+Veeam Kasten can be integrated with Red Hat Advanced Cluster Management (ACM) Observability Service to provide centralized monitoring across your Red Hat OpenShift fleet. This integration leverages Prometheus remote_write to push metrics from the K10 cluster to the ACM Hub.
+
+## Prerequisites â
+
+- Red Hat ACM installed on the Hub cluster.
+- MultiClusterObservability enabled and configured on the ACM Hub. For detailed instructions, refer to the Red Hat ACM Observability documentation .
+- Veeam Kasten installed (or ready to be installed) on the Managed Cluster.
+
+- For detailed instructions, refer to the Red Hat ACM Observability documentation .
+
+## Step 1: Configure ACM Observability â
+
+Ensure that the ACM Observability service is running and gather the necessary connection details. You can verify service availability and retrieve configurations details either through the Red Hat ACM UI or via the CLI as described below.
+
+### Retrieve Configuration via Web Console â
+
+1. Verify Installation : Log in to your OpenShift Console on the Hub Cluster . Ensure you are in the local-cluster view. Click Search in the left navigation menu. In the Resources dropdown, type and select MultiClusterObservability . Click on the observability resource instance. Ensure the status is Ready .
+2. Find the Tenant ID : Navigate to Infrastructure > Clusters . Select the local-cluster (the Hub cluster). On the Overview tab, locate the Cluster ID . This is your Tenant ID.
+3. Find the Thanos Receive Endpoint : Ensure you are in the local-cluster view. Navigate to Networking > Routes . Select the project open-cluster-management-observability . Locate the observatorium-api route. The Location column contains the base URL. Append /api/v1/receive to this URL to form the complete endpoint.
+
+Verify Installation :
+
+- Log in to your OpenShift Console on the Hub Cluster .
+- Ensure you are in the local-cluster view.
+- Click Search in the left navigation menu.
+- In the Resources dropdown, type and select MultiClusterObservability .
+- Click on the observability resource instance.
+- Ensure the status is Ready .
+
+Find the Tenant ID :
+
+- Navigate to Infrastructure > Clusters .
+- Select the local-cluster (the Hub cluster).
+- On the Overview tab, locate the Cluster ID . This is your Tenant ID.
+
+Find the Thanos Receive Endpoint :
+
+- Ensure you are in the local-cluster view.
+- Navigate to Networking > Routes .
+- Select the project open-cluster-management-observability .
+- Locate the observatorium-api route.
+- The Location column contains the base URL. Append /api/v1/receive to this URL to form the complete endpoint.
+
+### Retrieve Configuration via CLI â
+
+You will need the Thanos Receive Endpoint URL and the Tenant ID to configure K10 on managed cluster.
+
+1. Verify the Observability Service (Run on Hub Cluster ): oc get multiclusterobservability -n open-cluster-management-observability Refer to Red Hat documentation to verify the state.
+2. Identify the Thanos Receive Endpoint URL (Run on Hub Cluster ): If K10 is on the Hub Cluster , use the internal service URL: http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive If K10 is on a Managed Cluster , retrieve the external route and construct the URL: HOST = $( oc get route observatorium-api -n open-cluster-management-observability -o jsonpath = '{.spec.host}' ) echo "https:// $HOST /api/v1/receive"
+3. Find the Tenant ID (Run on Hub Cluster ): The Tenant ID is typically the Cluster ID of the ACM Hub Cluster. oc get clusterversion version -o jsonpath = '{.spec.clusterID}'
+
+Verify the Observability Service (Run on Hub Cluster ):
+
+```
+oc get multiclusterobservability -n open-cluster-management-observability
+```
+
+Refer to Red Hat documentation to verify the state.
+
+Identify the Thanos Receive Endpoint URL (Run on Hub Cluster ):
+
+- If K10 is on the Hub Cluster , use the internal service URL: http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive
+- If K10 is on a Managed Cluster , retrieve the external route and construct the URL: HOST = $( oc get route observatorium-api -n open-cluster-management-observability -o jsonpath = '{.spec.host}' ) echo "https:// $HOST /api/v1/receive"
+
+If K10 is on the Hub Cluster , use the internal service URL: http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive
+
+If K10 is on a Managed Cluster , retrieve the external route and construct the URL:
+
+```
+HOST=$(oc get route observatorium-api -n open-cluster-management-observability -o jsonpath='{.spec.host}')echo "https://$HOST/api/v1/receive"
+```
+
+Find the Tenant ID (Run on Hub Cluster ):
+      The Tenant ID is typically the Cluster ID of the ACM Hub Cluster.
+
+```
+oc get clusterversion version -o jsonpath='{.spec.clusterID}'
+```
+
+## Step 2: Configure K10 for Remote Write â
+
+Configure K10's embedded Prometheus to push metrics to the ACM Hub. This is done by updating the K10 Helm values.
+
+You can fine-tune the Prometheus remote write behavior by adding standard Prometheus configuration options under prometheus.server.remote_write[0] . Parameters such as queue_config , send_interval , and write_relabel_configs are supported and passed directly to the Prometheus server configuration. Find more details in Prometheus Remote Write
+
+### 1. Gather Configuration Values â
+
+Before creating the configuration file, ensure you have the following values:
+
+- <YOUR_TENANT_ID> : The Tenant ID required by the ACM Observability endpoint. (Required) This is typically the Hub Cluster ID (see "Find the Tenant ID" in Step 1).
+- <YOUR_CLUSTER_NAME> : A unique, friendly name for the cluster where K10 is installed (e.g., us-east-prod-01 ). OpenShift: Auto-detected from the infrastructure config if not provided. Other Platforms: Required . Must be provided explicitly.
+- <YOUR_CLUSTER_ID> : The unique identifier for the managed cluster. OpenShift: Auto-detected if not provided. Other Platforms: Required . Must be provided explicitly.
+- <YOUR_K10_DASHBOARD_URL> : The full URL used to access the K10 dashboard on this cluster (e.g., https://k10.apps.example.com/k10/ ). Recommended . This URL is attached to metrics to enable "deep linking" from the central dashboard back to the specific K10 instance.
+
+- This is typically the Hub Cluster ID (see "Find the Tenant ID" in Step 1).
+
+- OpenShift: Auto-detected from the infrastructure config if not provided.
+- Other Platforms: Required . Must be provided explicitly.
+
+- OpenShift: Auto-detected if not provided.
+- Other Platforms: Required . Must be provided explicitly.
+
+- Recommended . This URL is attached to metrics to enable "deep linking" from the central dashboard back to the specific K10 instance.
+
+### 2. Prepare the Helm Values â
+
+Create or update your k10-values.yaml file with the ACM configuration.
+
+#### Minimal Configuration (OpenShift) â
+
+On OpenShift, K10 can auto-detect the Cluster Name and Cluster ID. You only need to provide the Tenant ID and the remote write URL.
+
+```
+global:  acm:    enabled: true    hubThanosTenantId: "<YOUR_TENANT_ID>" # Requiredprometheus:  server:    remote_write:      - url: "http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive"
+```
+
+#### Full Configuration (Recommended) â
+
+For better control and to enable deep linking, provide all values explicitly.
+
+```
+clusterName: "<YOUR_CLUSTER_NAME>" # Friendly name for the dashboardglobal:  acm:    enabled: true    hubThanosTenantId: "<YOUR_TENANT_ID>"    managedClusterId: "<YOUR_CLUSTER_ID>" # Optional overrideprometheus:  server:    remote_write:      - url: "http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive"        dashboardUrl: "<YOUR_K10_DASHBOARD_URL>"        # Optional: Filter metrics sent to the remote write endpoint (defaults to K10 core metrics)        metricsRegex: "(backup|restore|import|export|job|policy|action|catalog|process).*"    # Ensure resources are sufficient for remote_write    resources:      requests:        cpu: 750m        memory: 1.5Gi
+```
+
+### 3. Apply the Configuration â
+
+Install or Upgrade K10 to apply the changes. Run these commands on the Managed Cluster .
+
+#### Using Values File (Recommended) â
+
+```
+# For new installationshelm install k10 kasten/k10 -n kasten-io --create-namespace -f k10-values.yaml# For existing installationshelm upgrade k10 kasten/k10 --reuse-values -n kasten-io -f k10-values.yaml
+```
+
+#### Using Command Line Flags â
+
+Alternatively, you can specify the configuration using --set flags:
+
+```
+# For new installationshelm install k10 kasten/k10 \    --namespace kasten-io \    --create-namespace \    --set global.acm.enabled=true \    --set global.acm.hubThanosTenantId="<YOUR_TENANT_ID>" \    --set global.acm.managedClusterId="<YOUR_CLUSTER_ID>" \    --set clusterName="<YOUR_CLUSTER_NAME>" \    --set prometheus.server.remote_write[0].url="<REMOTE_WRITE_URL>" \    --set prometheus.server.remote_write[0].dashboardUrl="<YOUR_K10_DASHBOARD_URL>"# For existing installationshelm upgrade k10 kasten/k10 \    --reuse-values \    --namespace kasten-io \    --set global.acm.enabled=true \    --set global.acm.hubThanosTenantId="<YOUR_TENANT_ID>" \    --set global.acm.managedClusterId="<YOUR_CLUSTER_ID>" \    --set clusterName="<YOUR_CLUSTER_NAME>" \    --set prometheus.server.remote_write[0].url="<REMOTE_WRITE_URL>" \    --set prometheus.server.remote_write[0].dashboardUrl="<YOUR_K10_DASHBOARD_URL>"
+```
+
+## Step 3: Verification â
+
+### 1. Verify K10 Prometheus Logs â
+
+Check the Prometheus logs to ensure remote_write is active and not encountering errors.
+
+```
+kubectl logs -n kasten-io -l app=prometheus -c prometheus-server | grep "remote_write"
+```
+
+### 2. Verify Metrics in ACM Grafana â
+
+1. Open the ACM Grafana dashboard on the Hub cluster.
+2. Navigate to Explore (or Drilldown in newer versions).
+3. Select the Thanos (or observatorium ) datasource.
+4. Query for a K10 metric, for example: action_backup_ended_overall .
+5. Verify that the metric is visible and tagged with your cluster name.
+
+## Troubleshooting â
+
+### Common Installation Errors â
+
+#### "A valid .Values.global.acm.hubThanosTenantId is required" â
+
+This error occurs during helm install or helm upgrade if the Tenant ID is missing.
+
+- Cause: global.acm.hubThanosTenantId is not set in your values file.
+- Fix: Retrieve the Hub Cluster ID (see Step 1) and add it to your k10-values.yaml .
+
+#### "global.acm.managedClusterId is required when global.acm.enabled is true" â
+
+This error occurs if K10 cannot auto-detect the Cluster ID (e.g., on non-OpenShift platforms) and it was not provided.
+
+- Cause: You are installing on a platform where Cluster ID auto-detection is not supported, or RBAC permissions prevent lookup.
+- Fix: Add global.acm.managedClusterId: "<YOUR_CLUSTER_ID>" to your k10-values.yaml .
+
+#### "clusterName is required when prometheus.server.remote_write is configured" â
+
+This error occurs if K10 cannot determine a name for the cluster.
+
+- Cause: You are installing on a non-OpenShift platform (or auto-detection failed) and did not provide a clusterName .
+- Fix: Add clusterName: "my-cluster-name" to your k10-values.yaml .
+
+### Runtime Errors (Prometheus Logs) â
+
+#### "server returned HTTP status 500 ... no matching hashring to handle tenant" â
+
+This error appears in the Prometheus logs ( kubectl logs ... -c prometheus-server ).
+
+- Cause: The hubThanosTenantId provided is incorrect or does not match a valid tenant on the ACM Hub.
+- Fix: Verify that the Tenant ID matches the Hub Cluster ID exactly.
+
+#### "server returned HTTP status 401 Unauthorized" â
+
+- Cause: The ACM Observability endpoint requires authentication (e.g., mTLS) which is not correctly configured, or the endpoint URL is incorrect.
+- Fix: Ensure you are using the correct internal or external route for the observatorium-api service.
+
+---
+
 ## Operating Monitoring Exporting Metrics
 
 ## Overview â
@@ -1737,6 +1942,8 @@ If you're using GitOps, helm template , or have RBAC restrictions that prevent n
 clusterName: ""prometheus:  server:    clusterUIDOverride: ""  # Optional: manual cluster UID    remote_write:      - url: <insert remote backend url>        basic_auth:          username: <insert username>          password: <insert API key>
 ```
 
+For more information on remote_write configuration options, see the Prometheus remote_write documentation .
+
 ### Apply Configurations â
 
 #### If Veeam Kasten is Already Installed â
@@ -1757,7 +1964,7 @@ Confirm metrics in remote backend:
 
 Check your remote monitoring system. Metrics may take 1-2 minutes to appear initially.
 
-For more information on remote write configuration options, see the Prometheus remote_write documentation .
+For additional details on configuring remote_write with Veeam Kasten, refer to Kasten Prometheus Export via remote_write .
 
 ## Integrating External Prometheus with Veeam Kasten â
 
@@ -2213,7 +2420,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2223,7 +2430,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2238,7 +2445,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.0/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
