@@ -387,10 +387,12 @@ When using Google Workload Identity Federation with Kubernetes as the
 A Veeam Data Cloud Vault Repository may be used as the destination for persistent
   volume snapshot data in compatible environments.
 
-Prior to creating a Veeam Data Cloud Vault location profile within Veeam Kasten, a Kasten instance must
+##### VDC Vault Azure Edition â
+
+Prior to creating a Veeam Data Cloud Vault (Azure) location profile within Veeam Kasten, a Kasten instance must
   first be registered with Veeam Data Cloud. Visit Settings > Registration to start that process. See Veeam Data Cloud Vault Integration Guide for additional details.
 
-To create a Veeam Data Cloud Vault location profile, select Create New Profile and specify Veeam Data Cloud Vault as the provider type.
+To create a Veeam Data Cloud Vault (Azure) location profile, select Create New Profile and specify Veeam Data Cloud Vault as the provider type.
 
 Select one of the storage vaults assigned to this Veeam Kasten Backup Server . If you haven't yet
   assigned a storage vault to this registered cluster, you'll have to visit your VDC Account page to configure that.
@@ -403,6 +405,17 @@ If registration has occurred recently, there is a possibility it may take 30
     profile validation fails and you've recently configured the registration or
     vault assignment steps.
 
+##### VDC Vault AWS Edition â
+
+Prior to creating a Veeam Data Cloud Vault (AWS) location profile, you must first create a storage vault and have its details ready. For more information, please see the Veeam Data Cloud documentation:
+
+- Adding VDC Vault AWS Edition
+- Viewing VDC Vault AWS Edition Vault Details
+
+To create the location profile, navigate to the Profiles page, select Create New Profile , and choose VDC Vault (AWS) as the provider type.
+
+You will then be prompted to enter your Access Key ID , Secret Access Key , and Vault ID , as well as the Region where your storage vault is provisioned. Click Validate Vault to confirm the details. Once validated, you can set the Protection Period , which can be between 1 and 90 days, with a default of 30. After setting the protection period, click Next , review the summary, and then click Submit to create the Location Profile.
+
 All Veeam Vault locations are configured as immutable; follow these instructions to
   learn more about configuration within Veeam Kasten.
 
@@ -411,14 +424,14 @@ All Veeam Vault locations are configured as immutable; follow these instructions
 The following limitations should be considered when exporting
   data from Veeam Kasten to Veeam Vault:
 
-- In order to use Veeam Vault as an export location, at a minimum Kasten requires egress access be allowed to the following FQDNs: https://baaas.butler.veeam.com https://*.blob.core.windows.net
+- In order to use Veeam Vault (Azure) as an export location, at a minimum Kasten requires egress access be allowed to the following FQDNs: https://baas.butler.veeam.com https://*.blob.core.windows.net
 - Veeam Vault is a generic object storage repository
 - All Veeam Vault exports are immutable.
 - Data captured in Veeam Vault remains (and continues to incur charges) until the retention period expires, even if the location profile is removed from a Kasten installation.
-- While Veeam Vault can be used to protect kubernetes data from any on-premises or cloud environment, when running in Azure Veeam highly recommends the Kasten cluster be located in the same Azure region as the Veeam Vault storage account to limit possible ingress and egress data charges
+- While Veeam Vault can be used to protect Kubernetes data from any on-premises or cloud environment, Veeam highly recommends that the Kasten cluster be located in the same cloud region (e.g., AWS or Azure) as the Veeam Vault storage account. This co-location helps to limit possible ingress and egress data charges.
 - Removing the Veeam Vault location profile will not remove any data from Veeam Vault and prevents Kasten from running future cleanup actions.
 
-- https://baaas.butler.veeam.com
+- https://baas.butler.veeam.com
 - https://*.blob.core.windows.net
 
 ### File Storage Location â
@@ -1841,6 +1854,19 @@ Actions in the running state can be cancelled. Click the running action
   action details panel. Cancellation is best-effort and may not take
   effect until the next cancellation checkpoint, typically between phases.
   See API Cancellation for more details.
+
+### Action States â
+
+Actions in Veeam Kasten progress through various states during their lifecycle:
+
+- Pending : Action has been created but not yet started
+- Running : Action has been validated and is currently executing
+- AttemptFailed : At least one action phase needs to retry
+- Failed : Action has failed (at least one phase failed permanently)
+- Complete : Action has completed successfully or with exceptions
+- Cancelled : Action was cancelled before completion
+- Skipped : Action has been skipped
+- Deleting : Action is being deleted
 
 ## Manual Actions â
 

@@ -1974,6 +1974,8 @@ The repoName field specifies the name of the repository to use; it
 A Veeam Vault Location Profile is used to
   export or import data from a Veeam Vault .
 
+#### Veeam Data Cloud Vault Azure â
+
 This configuration must be produced through the Veeam Vault registration process but is documented here for reference.
 
 This profile requires a secret whose creation is described in Veeam Data Cloud Vault Secret . Once the secret
@@ -1983,7 +1985,7 @@ This profile requires a secret whose creation is described in Veeam Data Cloud V
 $ cat <<EOF >>sample-vault-profile.yamlapiVersion: config.kio.kasten.io/v1alpha1kind: Profilemetadata:  name: sample-vault-profile  namespace: kasten-iospec:  type: Location  locationSpec:    credential:      secretType: VeeamVaultAzure      secret:        apiVersion: v1        kind: Secret        name: k10-vault-secret        namespace: kasten-io    type: ObjectStore    objectStore:      name: immutable-kasten      objectStoreType: VeeamVaultAzure      path: k10/<cluster_id>/migration      pathType: Directory      protectionPeriod: 720h0m0sEOF$ kubectl apply -f sample-vault-profile.yamlprofile.config.kio.kasten.io/sample-vault-profile created
 ```
 
-#### Determining the selected Veeam Vault â
+##### Determining the selected Veeam Vault â
 
 The Veeam storage vault selected during location profile creation is not shown again but if you require
   it, it can be determined by running the following commands by an administrator.
@@ -1994,6 +1996,20 @@ $ kubectl get profiles.config.kio.kasten.io --namespace kasten-io -w sample-vaul
 
 ```
 $ kubectl get secret --namespace kasten-io k10secret-abcde --output=jsonpath="{.data.veeam_vault_storage_account}" | base64 -dvault-storage-account-name
+```
+
+#### Veeam Data Cloud Vault AWS â
+
+Prior to creating a Veeam Data Cloud Vault (AWS) location profile, you must first create a storage vault and have its details ready. For more information, please see the Veeam Data Cloud documentation:
+
+- Adding VDC Vault AWS Edition
+- Viewing VDC Vault AWS Edition Vault Details
+
+This profile requires a secret whose creation is described in AWS S3 and S3 Compatible Bucket Secret .
+  Once the secret has been created the Veeam Vault Location Profile can be created as follows:
+
+```
+$ cat <<EOF >>sample-vault-aws-profile.yamlapiVersion: config.kio.kasten.io/v1alpha1kind: Profilemetadata:  name: sample-vault-aws-profile  namespace: kasten-iospec:  locationSpec:    credential:      secret:        apiVersion: v1        kind: secret        name: k10-s3-secret        namespace: kasten-io      secretType: AwsAccessKey    objectStore:      name: <vault_id>      objectStoreType: VeeamVaultAWS      path: k10/<cluster_id>/migration      pathType: Directory      protectionPeriod: 2160h0m0s      region: us-east-1    type: ObjectStore  type: LocationEOF
 ```
 
 For complete documentation of the Profile CR, refer to Profile API Type .
@@ -2427,7 +2443,7 @@ kubectl get restorepoints -n sample-ns1 \  -l k10.kasten.io/appName=sample-vm,k1
 The following is a complete specification of the RestorePoint resource.
 
 ```
-## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePoint## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePoint. Required.  name: sample-restore-point  ## Namespace of the RestorePoint. Required.  namespace: sample-app  ## Kubernetes labels  labels:    ## Labels that can be used for filtering.    ## Automatically populated when creating the the resource    k10.kasten.io/appName: sample-app    k10.kasten.io/appNamespace: sample-app    ## Backup type category: "virtualMachine" for VM-based backups,    ## "namespace" for namespace-based backups    k10.kasten.io/appType: virtualMachine## Restore point resource parametersspec:  ## Reference to the underlying RestorePointContent resource.  ## When creating a RestorePoint the caller need to have  ## read access to the RestorePointContent being referenced.  restorePointContentRef:    ## Name of the underlying RestorePointContent resource    name: rpc-sample-app-backip-art245## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Size of the volumes contained within this RestorePoint.  logicalSizeBytes: 17179869184  ## Reported size of the snapshots contained within this RestorePoint.  physicalSizeBytes: 4852012  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionCreationTime: '2019-02-11T03:03:47Z'
+## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePoint## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePoint. Required.  name: sample-restore-point  ## Namespace of the RestorePoint. Required.  namespace: sample-app  ## Kubernetes labels  labels:    ## Labels that can be used for filtering.    ## Automatically populated when creating the the resource    k10.kasten.io/appName: sample-app    k10.kasten.io/appNamespace: sample-app    ## Backup type category: "virtualMachine" for VM-based backups,    ## "namespace" for namespace-based backups    k10.kasten.io/appType: virtualMachine## Restore point resource parametersspec:  ## Reference to the underlying RestorePointContent resource.  ## When creating a RestorePoint the caller need to have  ## read access to the RestorePointContent being referenced.  restorePointContentRef:    ## Name of the underlying RestorePointContent resource    name: sample-restore-point-content## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Size of the volumes contained within this RestorePoint.  logicalSizeBytes: 17179869184  ## Reported size of the snapshots contained within this RestorePoint.  physicalSizeBytes: 4852012  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionTime: '2019-02-11T03:03:47Z'  ## VM snapshot metadata (only present for VM-based backups)  vmInfo:    ## VM state at snapshot time (e.g., "Running", "Stopped")    status: Running    ## Snapshot consistency level: "ApplicationConsistent" or "CrashConsistent"    snapshotConsistency: ApplicationConsistent
 ```
 
 ## RestorePointContent â
@@ -2508,7 +2524,7 @@ The following is a complete specification of the RestorePointContent resource.
 The RestorePointContent resource cannot be created directly.
 
 ```
-## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePointContent## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePointContent. Required.  name: sample-restore-point-content  ## Kubernetes labels  labels:  ## Labels that can be used fot filtering.  ## Automatically populated when creating the the resource  k10.kasten.io/appName: sample-app  k10.kasten.io/appNamespace: sample-app  ## Backup type category: "virtualMachine" for VM-based backups,  ## "namespace" for namespace-based backups  k10.kasten.io/appType: virtualMachine## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionCreationTime: '2019-02-11T03:03:47Z'
+## Standard Kubernetes API Version declaration. Required.apiVersion: apps.kio.kasten.io/v1alpha1## Standard Kubernetes Kind declaration. Required.kind: RestorePointContent## Standard Kubernetes metadata. Required.metadata:  ## Name of the RestorePointContent. Required.  name: sample-restore-point-content  ## Kubernetes labels  labels:  ## Labels that can be used fot filtering.  ## Automatically populated when creating the the resource  k10.kasten.io/appName: sample-app  k10.kasten.io/appNamespace: sample-app  ## Backup type category: "virtualMachine" for VM-based backups,  ## "namespace" for namespace-based backups  k10.kasten.io/appType: virtualMachine## Status of the RestorePointContent. Users should not set any data here.status:  ## State of the resource.  ## Possible values:  ##   Bound - corresponding RestorePoint resource exists  ##   Unbound - no RestorePoint references the resource  state: Bound  ## Reference to the RestorePoint that is bound to this RestorePointContent.  ## Only present when state is Bound.  restorePointRef:    ## Name of the RestorePoint    name: sample-restore-point    ## Namespace of the RestorePoint    namespace: sample-app  ## Scheduled backup or import time associated with the resource.  ## Could be 'null' for on-demand actions.  scheduledTime: '2019-02-11T03:03:47Z'  ## Time of actual creation by the corresponding action  actionTime: '2019-02-11T03:03:47Z'  ## VM snapshot metadata (only present for VM-based backups)  vmInfo:    ## VM state at snapshot time (e.g., "Running", "Stopped")    status: Running    ## Snapshot consistency level: "ApplicationConsistent" or "CrashConsistent"    snapshotConsistency: ApplicationConsistent
 ```
 
 ## ClusterRestorePoint â

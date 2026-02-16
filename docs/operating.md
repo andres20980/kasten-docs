@@ -1088,7 +1088,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.5.1/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.5.2/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1389,7 +1389,23 @@ When Veeam Kasten performs various actions throughout the system, it
 These action metrics include labels that describe the context of the
   action. For actions specific to an application, the application name is
   included as app . For actions initiated by a policy, the policy name is
-  included as policy . For ended actions, the final status is included as state (i.e., succeeded , failed , or cancelled ).
+  included as policy . For ended actions, the final status is included as state .
+
+#### Action States â
+
+Veeam Kasten actions progress through various states during their lifecycle. The
+  following table describes each state and its corresponding metric label value:
+
+| Action State | Metric Label | Description | Pending | pending | Action has been created but not yet started |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| Pending | pending | Action has been created but not yet started |
+| Running | running | Action has been validated and is currently executing |
+| AttemptFailed | attempt_failed | At least one action phase needs to retry |
+| Failed | failed | Action has failed (at least one phase failed permanently) |
+| Complete | succeeded | Action has completed successfully or with exceptions |
+| Cancelled | cancelled | Action was cancelled before completion |
+| Skipped | skipped | Action has been skipped |
+| Deleting | deleting | Action is being deleted |
 
 Separate metrics are collected for the number of times the action was
   started, ended, or skipped. This is indicated by the suffix of the
@@ -2420,7 +2436,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2430,7 +2446,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2445,7 +2461,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.1/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
