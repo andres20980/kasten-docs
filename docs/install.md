@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.2    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.3    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -717,7 +717,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.2    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.3    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1960,11 +1960,16 @@ To ensure that certified cryptographic modules are utilized and
   additional Helm values that can be found here: FIPS
 values .
 
-To install the latest version of Kasten with the latest values use the
-  command below:
+Save the yaml below into a file named fips-values.yaml .
 
 ```
-helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=https://docs.kasten.io/downloads/8.5.2/fips/fips-values.yaml
+# Values necessary for Kasten to be installed in FIPS Mode.# If additional values need to be set, use the --set Helm flag.fips:  enabled: trueprometheus:  server:    enabled: false
+```
+
+Once you have saved the file, install the latest version of Kasten with the following command (referencing the location to the file you have just saved):
+
+```
+helm install k10 kasten/k10 \    --namespace=kasten-io \    --values=fips-values.yaml
 ```
 
 ---
@@ -2795,29 +2800,11 @@ Veeam Kasten images can be found by using the search bar at the top of
 Images are signed by Cosign and the
   relevant information is shown for each valid image.
 
-## Installing Veeam Kasten â
+## Installing Veeam Kasten with Iron Bank Hardened Images via Helm â
 
 Deploying Veeam Kasten with Iron Bank hardened images is possible using
   the public Kasten Helm chart. Please ensure that the prerequisites have been
   met.
-
-### Fetching the Helm Chart Values for Iron Bank Images â
-
-Installing Veeam Kasten with the Iron Bank images, as
-  shown below , uses a pre-configured values file
-  specifically for Iron Bank. To view the file, download it by executing the
-  following command substituting <VERSION> with either latest or a previous
-  version of Veeam Kasten that's being installed:
-
-```
-$ curl -sO https://docs.kasten.io/downloads/8.5.2/ironbank/ironbank-values.yaml
-```
-
-This file contains the correct helm values that ensure the deployment of
-  Veeam Kasten only with Iron Bank hardened images.
-
-This file is protected and should not be modified. It is necessary to
-    specify all other values using the corresponding Helm flags, such as --set , --values , etc.
 
 ### Providing Registry1 Credentials for Veeam Kasten Helm Deployment â
 
@@ -2830,21 +2817,33 @@ Credentials can be provided by using either:
 - --set secrets.dockerConfig=<BASE64 ENCODED DOCKERCONFIG> , or
 - --set-file secrets.dockerConfigPath=<PATH TO DOCKERCONFIG>
 
-The dockerconfig encoded in base64 can be created with
+The base64 encoded dockerconfig can be created with
   the jq tool:
 
 ```
-jq -nc \--arg registry "registry1.dso.mil" \--arg username "${REGISTRY1_USERNAME}" \--arg password "${REGISTRY1_CLI_SECRET}" \--arg auth $(printf "%s:%s" "${REGISTRY1_USERNAME}" "${REGISTRY1_CLI_SECRET}" | base64) \'{"auths":{($registry):{"username":$username,"password":$password,"auth":$auth}}}' \| base64
+jq -nc \  --arg registry "registry1.dso.mil" \  --arg username "${REGISTRY1_USERNAME}" \  --arg password "${REGISTRY1_CLI_SECRET}" \  --arg auth $(printf "%s:%s" "${REGISTRY1_USERNAME}" "${REGISTRY1_CLI_SECRET}" | base64) \  '{"auths":{($registry):{"username":$username,"password":$password,"auth":$auth}}}' \  | base64
 ```
 
-### Installing Veeam Kasten with Iron Bank Hardened Images â
+### Helm Chart Values for Iron Bank Images â
 
-To install Veeam Kasten with Iron Bank hardened images, execute the
-  following command substituting <VERSION> with either latest or a previous version of
-  Veeam Kasten that's being installed::
+To install Veeam Kasten with Iron Bank images you need to use a pre-configured values file shown below.
+  Save the following values within a file named ironbank-values.yaml .
 
 ```
-$ helm upgrade k10 kasten/k10 --install --namespace=kasten-io \    --values "https://docs.kasten.io/<VERSION>/ironbank/ironbank-values.yaml"    --set secrets.dockerConfig=<BASE64 ENCODED DOCKERCONFIG> \    --set global.imagePullSecret=k10-ecr \    ...
+# Default values for k10 using Ironbank images.# If anything needs to be set specifically, use the --set flag.global:  image:    registry: registry1.dso.mil/ironbank/veeam/kasten    pullPolicy: Always  images:    configmap-reload: 'registry1.dso.mil/ironbank/opensource/prometheus-operator/prometheus-config-reloader:v0.82.2'    dex: 'registry1.dso.mil/ironbank/opensource/dexidp/dex:v2.43.1'    prometheus: 'registry1.dso.mil/ironbank/opensource/prometheus/prometheus:v3.4.0'  ironbank:    enabled: true
+```
+
+These values should only be used when deploying
+  Veeam Kasten with Iron Bank hardened images.
+
+This file should not be modified. Should you wish to
+    specify any other values, use the corresponding Helm flags, such as --set , --values , etc.
+
+Once you have saved the ironbank-values.yaml file, execute the
+  following command ensuring you correctly reference the path to the file:
+
+```
+helm upgrade k10 kasten/k10 --install --namespace=kasten-io \  --values ironbank-values.yaml \  --set secrets.dockerConfig=<BASE64 ENCODED DOCKERCONFIG> \  --set global.imagePullSecret=k10-ecr
 ```
 
 Since the only differences as compared to a standard Veeam Kasten
@@ -2908,7 +2907,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.2.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.3.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2923,7 +2922,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.2.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.3.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2962,10 +2961,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.2 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.3 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.5.2).
+The following commands operate against the latest version of Veeam Kasten (8.5.3).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2974,12 +2973,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.5.2). This can be helpful if there is a requirement to tag and
+  version (8.5.3). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.2 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.3 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2992,7 +2991,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.2 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.3 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -3030,7 +3029,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.2 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.2 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.3 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.3 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3171,14 +3170,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.2/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.5.3/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.2/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.2
+$ curl https://docs.kasten.io/downloads/8.5.3/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.3
 ```
 
 Follow this guide to
@@ -3279,13 +3278,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â

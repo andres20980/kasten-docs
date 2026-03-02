@@ -865,6 +865,11 @@ Garbage Collector daemon can currently clean up the following resource
 - RestorePointContents - expired manual backups will be removed as determined by spec.expiresAt . This can be set via kubectl or on the manual snapshot page in the UI.
 - CSISnapshot - temporary CSI snapshots created during restore operations.
 - PersistentVolumes - temporary volumes created during restore operations.
+- Profiles - temporary profiles created during restore operations
+- Services - temporary services created during restore operations
+- NetworkPolicies - temporary network policies created during restore operations
+- Secrets - temporary secrets created during restore operations
+- ConfigMaps - temporary config maps created during restore operations
 
 ---
 
@@ -1088,7 +1093,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.5.2/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.5.3/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1908,17 +1913,23 @@ Veeam Kasten's built-in Prometheus instance can be configured to push metrics to
 
 From your preferred data visualization/aggregation service, obtain a remote_write URL which will be the destination for your Prometheus metrics. You will also need authentication credentials (username/password or bearer token).
 
-#### Option 1: Basic Authentication (Username/Password) â
+#### Option 1: File-Based Basic Authentication â
 
-Create a values file named k10-remote-write-values.yaml (or something similar):
+For enhanced security, store credentials in a Kubernetes Secret and reference them using username_file and password_file .
+
+Step 1: Create a Kubernetes Secret with your username and password:
 
 ```
-clusterName: ""  # REQUIRED: Enter a cluster nameprometheus:  server:    remote_write:      - url: <insert remote backend url>        basic_auth:          username: <insert username>  # Remote backend ID          password: <insert API key>   # Remote backend API key
+kubectl create secret generic prometheus-remote-write-basic-auth \  --from-literal=username=<your-username> \  --from-literal=password=<your-password> \  --namespace kasten-io
 ```
 
-clusterName is required when remote_write is enabled; deployment will fail without it. The clusterName will appear as the cluster_name label on all exported metrics. A unique cluster_uid label is automatically added.
+Step 2: Create k10-remote-write-values.yaml with extraSecretMounts :
 
-#### Option 2: Bearer Token File Authentication (Recommended) â
+```
+clusterName: ""  # REQUIRED: Enter a cluster nameprometheus:  server:    remote_write:      - url: <insert remote backend url>        basic_auth:          username_file: /etc/prometheus-secrets/username          password_file: /etc/prometheus-secrets/password    extraSecretMounts:      - name: remote-write-basic-auth        mountPath: /etc/prometheus-secrets        secretName: prometheus-remote-write-basic-auth        readOnly: true
+```
+
+#### Option 2: Bearer Token File Authentication â
 
 For enhanced security, store credentials in a Kubernetes Secret and reference them using bearer_token_file .
 
@@ -1928,11 +1939,22 @@ Step 1: Create a Kubernetes Secret with your bearer token:
 kubectl create secret generic prometheus-remote-write-token \  --from-literal=token=<your-bearer-token> \  --namespace kasten-io
 ```
 
-Step 2: Create k10-remote-write-values.yaml with extraSecretMounts :
-
 ```
 clusterName: ""  # REQUIRED: Enter a cluster nameprometheus:  server:    remote_write:      - url: <insert remote backend url>        bearer_token_file: /etc/prometheus-secrets/token    extraSecretMounts:      - name: remote-write-token        mountPath: /etc/prometheus-secrets        secretName: prometheus-remote-write-token        readOnly: true
 ```
+
+#### Option 3: Basic Authentication with Inline Credentials â
+
+This option stores credentials in plain text within Helm values. For production environments, use file-based authentication or bearer
+    token authentication instead (see above).
+
+Create a values file named k10-remote-write-values.yaml (or something similar):
+
+```
+clusterName: ""  # REQUIRED: Enter a cluster nameprometheus:  server:    remote_write:      - url: <insert remote backend url>        basic_auth:          username: <insert username>  # Remote backend ID          password: <insert API key>   # Remote backend API key
+```
+
+clusterName is required when remote_write is enabled; deployment will fail without it. The clusterName will appear as the cluster_name label on all exported metrics. A unique cluster_uid label is automatically added.
 
 ### Optional Configurations â
 
@@ -2436,7 +2458,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2446,7 +2468,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2461,7 +2483,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.2/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.
