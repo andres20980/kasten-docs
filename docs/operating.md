@@ -1093,7 +1093,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.5.3/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.5.4/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -2445,6 +2445,7 @@ Veeam Kasten does not support distribution versions that
 | 1.32 | 4.19 |  |
 | 1.31 | 4.18 |  |
 | 1.30 | 4.17 |  |
+| 1.29 | 4.16 | Kubernetes version *only* supported when deployed as an OpenShift cluster |
 
 ## Gathering Debugging Information â
 
@@ -2458,7 +2459,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.5.4/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2468,7 +2469,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.5.4/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2483,7 +2484,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.3/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.5.4/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.

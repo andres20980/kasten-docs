@@ -3027,17 +3027,19 @@ FileRecoverySession does not currently support restore points
 File access using FileRecoverySession is subject to the following constraints:
 
 - All specified restore points share the same Object Storage Location or NFS/SMB File Storage Location .
-- The files are present in a volume that was either: Exported in Filesystem Mode . Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, the files are present in the first partition containing a filesystem, and the filesystem type is one of ext4 , xfs or ntfs .
+- The files are present in a volume that was either: Exported in Filesystem Mode . Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
 - The principal creating the CR has the required permissions .
 - The total number of active FileRecoverySession CRs does not exceed namespace and cluster-wide limits specified via file recovery session related Helm parameters .
 
 - Exported in Filesystem Mode .
-- Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, the files are present in the first partition containing a filesystem, and the filesystem type is one of ext4 , xfs or ntfs .
+- Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
 
 - The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem.
-- The volume has a GPT or MBR partition table, the files are present in the first partition containing a filesystem, and the filesystem type is one of ext4 , xfs or ntfs .
+- The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
 
 ## FileRecoverySession Example â
+
+### Creating a session â
 
 The following YAML document illustrates a FileRecoverySession custom resource request:
 
@@ -3092,6 +3094,8 @@ The CR transitions through a series of states before reaching the Ready state.
 # watch FileRecoverySession (frs for short) objects in a namespacekubectl get frs -n app2 -wNAME       STATE   LASTSTATUSUPDATE   AGEfrs-app2                              0sfrs-app2   Starting   0s                 0sfrs-app2   Processing   0s                 0sfrs-app2   Processing   0s                 1sfrs-app2   Processing   0s                 2sfrs-app2   Processing   0s                 6sfrs-app2   Ready        0s                 6s
 ```
 
+### Accessing files â
+
 When the CR reaches Ready , its status field will
   contain the information needed to create an SFTP client
   with which to access the files.
@@ -3124,11 +3128,31 @@ The hostKeySignature field provides the SFTP service public
 The portNumber field provides the listening port used by the SFTP service.
 
 The filesystems of the requested volumes are exposed by the SFTP
-  service in a single, read-only filesystem tree.
-  The root directory will contain subdirectories for each restore point,
+  service in a single, read-only filesystem tree, as illustrated below:
+
+```
+/âââ scheduled-qtkpwv58rd    âââ vol-1    âââ vol-2        âââ p1        âââ p3
+```
+
+The root directory will contain subdirectories for each restore point,
   and, in turn, each restore point subdirectory will contain individual
-  subdirectories named for each volume PVC, containing the filesystem of
-  that volume.
+  subdirectories named for each PVC.
+
+A PVC directory will directly expose the filesystem in an
+  unpartitioned volume or the filesystem in a partitioned volume
+  with a single filesystem partition (e.g. /scheduled-qtkpwv58rd/vol-1 ).
+  If there are multiple filesystem partitions in the volume, then subdirectories
+  named "p N " will be created for each such partition,
+  where N is the partition number,
+  and the filesystem of a partition will be exposed in its corresponding "p N " subdirectory (e.g. /scheduled-qtkpwv58rd/vol-2/p1 and /scheduled-qtkpwv58rd/vol-2/p3 ).
+
+### Terminating the session â
+
+Delete the CR to terminate the session.
+
+```
+kubectl delete -n app2 filerecoverysession frs-app2
+```
 
 When the CR fails, resets or gets deleted, it will release all accumulated
   system and Kubernetes resources.
