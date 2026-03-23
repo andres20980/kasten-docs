@@ -1547,7 +1547,11 @@ k10.kasten.io/virtualMachineRef is a special label for selecting specific
 When this selector is used, Veeam Kasten automatically discovers VM-owned resources
   through dependency graph traversal. See VM Resource Discovery for the complete list of resources that are automatically discovered and backed up.
 
-For selector operator only In is supported. values is Array of values (labels on app names or wildcards for appNamespace ,
+For virtualMachineRef selectors and label selectors, only the In operator is supported.
+  For appNamespace selectors, In is the required operator for selection, with an optional
+  second expression using NotIn to exclude specific namespaces from the selection. NotIn values must be valid namespace names or wildcard patterns; the bare * value and kasten-io-cluster are not allowed.
+
+values is Array of values (labels on app names or wildcards for appNamespace ,
   or namespace/name format with optional wildcards for virtualMachineRef ) to use in the selector.
   With this construct ANY value of the label key will match and
   use this construct if creating a policy for multiple applications or VMs.
@@ -1563,6 +1567,26 @@ Namespace-based selector example:
 
 ```
 selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - myApp          - myApp-*    matchLabels:      myLabelKey1: myLabelValue1      myLabelKey2: myLabelValue2
+```
+
+Namespace exclusion selector examples:
+
+To exclude specific namespaces, add a second k10.kasten.io/appNamespace expression with operator: NotIn :
+
+```
+selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - myApp-*      - key: k10.kasten.io/appNamespace        operator: NotIn        values:          - myApp-no-backup          - myApp-name
+```
+
+To protect all namespaces except those matching a pattern, use "*" as the In value:
+
+```
+selector:    matchExpressions:      - key: k10.kasten.io/appNamespace        operator: In        values:          - "*"      - key: k10.kasten.io/appNamespace        operator: NotIn        values:          - myApp-*
+```
+
+A NotIn expression can also follow label-based expressions to exclude specific namespaces from the label selection:
+
+```
+selector:    matchExpressions:      - key: myLabelKey1        operator: In        values:          - myLabelValue1      - key: myLabelKey2        operator: In        values:          - myLabelValue2      - key: k10.kasten.io/appNamespace        operator: NotIn        values:          - myApp-no-backup          - sample-app
 ```
 
 VM-based selector example:
@@ -1758,7 +1782,7 @@ This section defines restoration options for VM and cluster resource restore. He
 - transforms specifies a list of transforms is optional, and each transform can be defined inline or in a referenced transform set. It specifies which resource artifacts to apply the transform to and requires at least one filter to be set. The resource group, version, type, and name are all optional. Additionally, the name of the transform itself is optional.
 - json defines an array of RFC-6902 JSON patch-like operations is optional.
 - op Operation name is required. Transforms support six command operations: âtestâ checks that an element exists (and equals the value / matches the regexp if specified), âaddâ inserts a new element to the resource definition, âremoveâ deletes an existing element from the resource definition, âcopyâ duplicates an element, overwriting the value in the new path if it already exists, âmoveâ relocates an element, overwriting the value in the new path if it already exists, and âreplaceâ replaces an existing element with a new element.
-- from is source reference for operation is optional. Required and valid only for âmoveâ and âcopy  â operations.
+- from is source reference for operation is optional. Required and valid only for âmoveâ and âcopyâ operations.
 - path is Target reference for operation is required for every operation.
 - regex is to match expression and is optional. When used with âcopyâ, âmoveâ or âreplaceâ operation, the transform will match the target text against the regex and substitute regex capturing groups with value. When used with âtestâ operation, the transform will match the target text against the regex.
 - value is any valid JSON is optional. Required for âaddâ and âreplaceâ operations. Required for âcopyâ and âmoveâ operations only when used along with regex. âTestâ operation can use either regex or value.
@@ -1782,7 +1806,7 @@ json defines an array of RFC-6902 JSON patch-like operations is optional.
 
 op Operation name is required. Transforms support six command operations: âtestâ checks that an element exists (and equals the value / matches the regexp if specified), âaddâ inserts a new element to the resource definition, âremoveâ deletes an existing element from the resource definition, âcopyâ duplicates an element, overwriting the value in the new path if it already exists, âmoveâ relocates an element, overwriting the value in the new path if it already exists, and âreplaceâ replaces an existing element with a new element.
 
-from is source reference for operation is optional. Required and valid only for âmoveâ and âcopy  â operations.
+from is source reference for operation is optional. Required and valid only for âmoveâ and âcopyâ operations.
 
 path is Target reference for operation is required for every operation.
 
