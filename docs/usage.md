@@ -3027,15 +3027,16 @@ FileRecoverySession does not currently support restore points
 File access using FileRecoverySession is subject to the following constraints:
 
 - All specified restore points share the same Object Storage Location or NFS/SMB File Storage Location .
-- The files are present in a volume that was either: Exported in Filesystem Mode . Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
+- The files are present in a volume that was either: Exported in Filesystem Mode . Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems. The guest filesystem must not be encrypted.
 - The principal creating the CR has the required permissions .
 - The total number of active FileRecoverySession CRs does not exceed namespace and cluster-wide limits specified via file recovery session related Helm parameters .
 
 - Exported in Filesystem Mode .
-- Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
+- Exported in Block Mode and one of the following applies: The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem. The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems. The guest filesystem must not be encrypted.
 
 - The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem.
 - The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
+- The guest filesystem must not be encrypted.
 
 ## FileRecoverySession Example â
 
