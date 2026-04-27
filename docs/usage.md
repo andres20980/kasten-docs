@@ -2530,6 +2530,118 @@ This table illustrates the use of filters when backing up cluster-scoped
 | none | {Resource: clusterrolebindings} | All default cluster-scoped resources except clusterrolebindings |
 | {Group: admissionregistration, Resource: mutatingwebhookconfigurations},{Group: actions.kio.kasten.io, Resource: defaults} | none | All default cluster-scoped resources plus any mutatingwebhookconfigurations in cluster |
 
+## Filesystem Export Exclusions â
+
+Veeam Kasten supports selectively excluding files and
+  directories from filesystem-mode backups and exports using Kubernetes
+  annotations. This allows reducing backup size and duration by skipping
+  unnecessary data such as logs, temporary files, and caches without
+  requiring any changes to the application itself.
+
+Exclusion rules are applied during the export process. Excluded files
+    will not be present in the exported backup and therefore cannot be
+    restored from that backup. Ensure that exclusion rules do not
+    inadvertently omit critical application data.
+
+Exclusion rules are defined as newline-separated glob patterns (e.g., *.log , *.tmp , scratch/* , db/* ) using the k10.kasten.io/filesystem-mode-export-exclusions annotation, which can
+  be set at two levels:
+
+- StorageClass-level â Exclusion rules applied to a StorageClass affect all PVCs provisioned by that StorageClass, enabling cluster-wide exclusion policies.
+- PVC-level â Exclusion rules applied directly to a PVC provide fine-grained, per-volume control for application-specific exclusions.
+
+When exclusion rules are defined on both the StorageClass and PVC, a
+  configurable merge strategy controlled via the k10.kasten.io/filesystem-mode-export-exclusion-strategy annotation on
+  the PVC determines how they are combined:
+
+- pvc-extends-storage-class (default) â PVC and StorageClass exclusion rules are merged, so both sets of exclusions are applied during backup and export.
+- pvc-overrides-storage-class â PVC exclusion rules completely replace StorageClass rules, allowing specific volumes to define an independent exclusion policy.
+
+Filesystem export exclusions apply only to filesystem mode exports .
+    They do not affect block mode exports.
+
+### Configuring Exclusion Rules â
+
+The following examples demonstrate how to configure exclusion rules at
+  the StorageClass and PVC levels.
+
+StorageClass example:
+
+```
+apiVersion: storage.k8s.io/v1kind: StorageClassmetadata:  name: standard-ssd  annotations:    k10.kasten.io/filesystem-mode-export-exclusions: |-      scratch/      *.tmp      cache/*provisioner: ebs.csi.aws.com
+```
+
+PVC example:
+
+```
+apiVersion: v1kind: PersistentVolumeClaimmetadata:  name: app-data  annotations:    k10.kasten.io/filesystem-mode-export-exclusions: |-      *.log      temp/*spec:  storageClassName: standard-ssd  accessModes:    - ReadWriteOnce  resources:    requests:      storage: 10Gi
+```
+
+### Configuring the Exclusion Strategy â
+
+The following examples show how to set the merge strategy annotation on
+  a PVC when both StorageClass and PVC exclusion rules are present.
+
+PVC with explicit extend strategy:
+
+```
+apiVersion: v1kind: PersistentVolumeClaimmetadata:  name: app-data  annotations:    k10.kasten.io/filesystem-mode-export-exclusions: |-      *.log      debug/    k10.kasten.io/filesystem-mode-export-exclusion-strategy: pvc-extends-storage-classspec:  storageClassName: standard-ssd  accessModes:    - ReadWriteOnce  resources:    requests:      storage: 10Gi
+```
+
+PVC with override strategy:
+
+```
+apiVersion: v1kind: PersistentVolumeClaimmetadata:  name: app-data  annotations:    k10.kasten.io/filesystem-mode-export-exclusions: |-      *.log      debug/    k10.kasten.io/filesystem-mode-export-exclusion-strategy: pvc-overrides-storage-classspec:  storageClassName: standard-ssd  accessModes:    - ReadWriteOnce  resources:    requests:      storage: 10Gi
+```
+
+### Example: Exclusion Rules in Practice â
+
+Consider a volume with the following directory structure:
+
+```
+/dataâââ app.confâââ main.dbâââ reports/â   âââ summary.csvâ   âââ detail.csvâââ scratch/â   âââ partial_upload.binâ   âââ session.lockâââ logs/â   âââ access.logâ   âââ error.logâââ backup.tmp
+```
+
+StorageClass annotation:
+
+```
+scratch/*.tmp
+```
+
+PVC annotation:
+
+```
+*.log
+```
+
+#### Extend strategy (default) â
+
+Both sets of rules are merged. The resulting backup contains:
+
+```
+/dataâââ app.confâââ main.dbâââ reports/â   âââ summary.csvâ   âââ detail.csvâââ logs/
+```
+
+The following items are excluded:
+
+| Excluded Item | Matched By | scratch/(entire directory) | StorageClass rule:scratch/ |
+| :---: | :---: | :---: | :---: |
+| scratch/(entire directory) | StorageClass rule:scratch/ |
+| backup.tmp | StorageClass rule:*.tmp |
+| logs/access.log | PVC rule:*.log |
+| logs/error.log | PVC rule:*.log |
+
+#### Override strategy â
+
+If the PVC instead used pvc-overrides-storage-class , only the PVC rule *.log would apply. The StorageClass rules would be ignored, and the
+  backup would contain:
+
+```
+/dataâââ app.confâââ main.dbâââ reports/â   âââ summary.csvâ   âââ detail.csvâââ scratch/â   âââ partial_upload.binâ   âââ session.lockâââ logs/âââ backup.tmp
+```
+
+Only logs/access.log and logs/error.log would be excluded in this
+  case.
+
 ## Working With Policies â
 
 ### Using Policy Presets â

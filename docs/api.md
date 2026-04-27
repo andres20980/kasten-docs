@@ -1599,6 +1599,8 @@ The virtualMachineRef and appNamespace selectors cannot be used together
 selector:    matchExpressions:      - key: k10.kasten.io/virtualMachineRef        operator: In        values:          - "sample-ns1/sample-vm-1"          - "sample-ns2/sample-vm-2"          - "sample-ns3/sample-vm-*"          - "sample-ns4/*"
 ```
 
+Frequency:
+
 Defines how frequently the backup runs. (Required)
   Allowed values: @hourly, @daily, @weekly, @monthly, @yearly, @onDemand
   Note: Cannot be set if a preset is used.

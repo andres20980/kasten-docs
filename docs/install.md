@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.6    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.7    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -357,6 +357,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | auth.openshift.usernameClaim | The claim to be used as the username | "email" |
 | auth.openshift.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
 | auth.openshift.useServiceAccountCA | Usually found at/var/run/secrets/kubernetes.io/serviceaccount/ca.crt | false |
+| auth.secureCookies | Controls the Secure flag on auth cookies. When enabled, browsers only send auth cookies over HTTPS connections. Set to false for HTTP-only deployments. | true |
 | auth.tokenAuth.enabled | Enable token based authentication to access K10 dashboard | false |
 | awsConfig.assumeRoleDuration | The minimum value is 15 minutes, and the maximum value is determined by the maximum session duration setting for that IAM role. For documentation on how to view and edit the maximum session duration for an IAM role, refer tohttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session. The value accepts a number followed by a single character, 'm' (for minutes) or 'h' (for hours). Examples include: 60m or 2h | "" |
 | awsConfig.efsBackupVaultName | Specifies the AWS EFS backup vault name | "k10vault" |
@@ -434,7 +435,9 @@ To modify the bundled Prometheus configuration, only use the helm values
 | google.workloadIdentityFederation.enabled | Enable Google Workload Identity Federation for K10 | false |
 | google.workloadIdentityFederation.idp.aud | Audience for whom the ID Token from Identity Provider is intended | "" |
 | google.workloadIdentityFederation.idp.type | Identity Provider type for Google Workload Identity Federation for K10 | "" |
-| grafana.external.url | If Grafana instance that gets installed with K10 is disabled using grafana.enabled=false, this field can be used to specify URL of externally installed Grafana instance. | "" |
+| grafana.dashboards.enabled | When true, K10 dashboards are installed as ConfigMaps labelled for the Grafana sidecar. Has no effect if no Grafana sidecar is present. | false |
+| grafana.dashboards.folderAnnotation | Annotation key the Grafana sidecar reads to determine which folder to place the dashboard in. Override if your Grafana installation uses a different annotation convention. | "grafana_folder" |
+| grafana.link | Preferred Grafana URL. If set, the Kasten dashboard button redirects to this URL for Grafana dashboards. Takes precedence over deprecated grafana.external.url when both are set. | "" |
 | ingress.annotations | Add optional annotations to the Ingress resource | {} |
 | ingress.class | Cluster ingress controller class:nginx,GCE | "" |
 | ingress.create | Specifies whether the K10 dashboard should be exposed via ingress | false |
@@ -720,7 +723,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.6    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.7    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1005,6 +1008,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | auth.openshift.usernameClaim | The claim to be used as the username | "email" |
 | auth.openshift.usernamePrefix | Prefix that has to be used with the username obtained from the username claim | "" |
 | auth.openshift.useServiceAccountCA | Usually found at/var/run/secrets/kubernetes.io/serviceaccount/ca.crt | false |
+| auth.secureCookies | Controls the Secure flag on auth cookies. When enabled, browsers only send auth cookies over HTTPS connections. Set to false for HTTP-only deployments. | true |
 | auth.tokenAuth.enabled | Enable token based authentication to access K10 dashboard | false |
 | awsConfig.assumeRoleDuration | The minimum value is 15 minutes, and the maximum value is determined by the maximum session duration setting for that IAM role. For documentation on how to view and edit the maximum session duration for an IAM role, refer tohttps://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html#id_roles_use_view-role-max-session. The value accepts a number followed by a single character, 'm' (for minutes) or 'h' (for hours). Examples include: 60m or 2h | "" |
 | awsConfig.efsBackupVaultName | Specifies the AWS EFS backup vault name | "k10vault" |
@@ -1082,7 +1086,9 @@ To modify the bundled Prometheus configuration, only use the helm values
 | google.workloadIdentityFederation.enabled | Enable Google Workload Identity Federation for K10 | false |
 | google.workloadIdentityFederation.idp.aud | Audience for whom the ID Token from Identity Provider is intended | "" |
 | google.workloadIdentityFederation.idp.type | Identity Provider type for Google Workload Identity Federation for K10 | "" |
-| grafana.external.url | If Grafana instance that gets installed with K10 is disabled using grafana.enabled=false, this field can be used to specify URL of externally installed Grafana instance. | "" |
+| grafana.dashboards.enabled | When true, K10 dashboards are installed as ConfigMaps labelled for the Grafana sidecar. Has no effect if no Grafana sidecar is present. | false |
+| grafana.dashboards.folderAnnotation | Annotation key the Grafana sidecar reads to determine which folder to place the dashboard in. Override if your Grafana installation uses a different annotation convention. | "grafana_folder" |
+| grafana.link | Preferred Grafana URL. If set, the Kasten dashboard button redirects to this URL for Grafana dashboards. Takes precedence over deprecated grafana.external.url when both are set. | "" |
 | ingress.annotations | Add optional annotations to the Ingress resource | {} |
 | ingress.class | Cluster ingress controller class:nginx,GCE | "" |
 | ingress.create | Specifies whether the K10 dashboard should be exposed via ingress | false |
@@ -2913,7 +2919,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.6.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.7.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2928,7 +2934,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.6.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.7.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2967,10 +2973,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.6 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.7 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.5.6).
+The following commands operate against the latest version of Veeam Kasten (8.5.7).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2979,12 +2985,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.5.6). This can be helpful if there is a requirement to tag and
+  version (8.5.7). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.6 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.7 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -2997,7 +3003,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.6 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.7 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -3035,7 +3041,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.6 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.6 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.7 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.7 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3176,14 +3182,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.6/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.6/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.6
+$ curl https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.7
 ```
 
 Follow this guide to
@@ -3284,13 +3290,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.6/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.6/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â
