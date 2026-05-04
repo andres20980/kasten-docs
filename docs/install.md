@@ -72,7 +72,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.7    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.8    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -515,6 +515,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | prometheus.server.persistentVolume.storageClass | (optional) StorageClassName used to create Prometheus PVC. Setting this option overwrites global StorageClass value | "" |
 | prometheus.server.prefixURL | (optional) K10 Prometheus prefix slug at which the server can be accessed | "/k10/prometheus" |
 | prometheus.server.retention | (optional) K10 Prometheus data retention | "30d" |
+| prometheus.server.retentionSizeRatio | (optional) Ratio of the Prometheus PVC size to use as the storage retention limit (e.g. 0.8 = 80%). To set a fixed retention size, configure prometheus.server.retentionSize directly instead. | 0.8 |
 | prometheus.server.securityContext.fsGroup | (optional) Set security contextfsGroupID for Prometheus server Pod | 65534 |
 | prometheus.server.securityContext.runAsGroup | (optional) Set security contextrunAsGroupID for Prometheus server Pod | 65534 |
 | prometheus.server.securityContext.runAsNonRoot | (optional) Enable security contextrunAsNonRootfor Prometheus server Pod | true |
@@ -723,7 +724,7 @@ Multiple license secrets can exist simultaneously and Veeam Kasten
 The resulting license will look like:
 
 ```
-apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.7    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
+apiVersion: v1data:  license: Y3Vz...kind: Secretmetadata:  creationTimestamp: "2020-04-14T23:50:05Z"  labels:    app: k10    app.kubernetes.io/instance: k10    app.kubernetes.io/managed-by: Helm    app.kubernetes.io/name: k10    helm.sh/chart: k10-8.5.8    heritage: Helm    release: k10  name: k10-custom-license  namespace: kasten-iotype: Opaque
 ```
 
 Similarly, old licenses can be removed by deleting the secret that
@@ -1166,6 +1167,7 @@ To modify the bundled Prometheus configuration, only use the helm values
 | prometheus.server.persistentVolume.storageClass | (optional) StorageClassName used to create Prometheus PVC. Setting this option overwrites global StorageClass value | "" |
 | prometheus.server.prefixURL | (optional) K10 Prometheus prefix slug at which the server can be accessed | "/k10/prometheus" |
 | prometheus.server.retention | (optional) K10 Prometheus data retention | "30d" |
+| prometheus.server.retentionSizeRatio | (optional) Ratio of the Prometheus PVC size to use as the storage retention limit (e.g. 0.8 = 80%). To set a fixed retention size, configure prometheus.server.retentionSize directly instead. | 0.8 |
 | prometheus.server.securityContext.fsGroup | (optional) Set security contextfsGroupID for Prometheus server Pod | 65534 |
 | prometheus.server.securityContext.runAsGroup | (optional) Set security contextrunAsGroupID for Prometheus server Pod | 65534 |
 | prometheus.server.securityContext.runAsNonRoot | (optional) Enable security contextrunAsNonRootfor Prometheus server Pod | true |
@@ -2919,7 +2921,7 @@ If the Veeam Kasten container images were uploaded to a registry at repo.example
   below command:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.7.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.8.tgz --namespace kasten-io \    --set global.airgapped.repository=repo.example.com
 ```
 
 ### Installing Veeam Kasten with Disconnected OpenShift Operator â
@@ -2934,7 +2936,7 @@ To run Veeam Kasten in a network without the ability to connect to the
   the helm value metering.mode=airgap as shown in the command below:
 
 ```
-$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.7.tgz --namespace kasten-io \    --set metering.mode=airgap
+$ kubectl create namespace kasten-io$ helm install k10 k10-8.5.8.tgz --namespace kasten-io \    --set metering.mode=airgap
 ```
 
 If metering.mode=airgap is not set in an offline cluster, some
@@ -2973,10 +2975,10 @@ To see all available commands and flags for running k10tools image please
   run the following:
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.7 image --help
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.8 image --help
 ```
 
-The following commands operate against the latest version of Veeam Kasten (8.5.7).
+The following commands operate against the latest version of Veeam Kasten (8.5.8).
 
 k10tools image is only supported for versions 7.5.0+ of Veeam Kasten and must match the version you're installing.
 
@@ -2985,12 +2987,12 @@ For older version, please refer to their documentation: https://docs.kasten.io/<
 ### List Veeam Kasten Container Images â
 
 The following command will list all images used by the current Veeam Kasten
-  version (8.5.7). This can be helpful if there is a requirement to tag and
+  version (8.5.8). This can be helpful if there is a requirement to tag and
   push Veeam Kasten images into your private repository manually instead of using
   the Kasten provided tool documented below.
 
 ```
-$ docker run --rm gcr.io/kasten-images/k10tools:8.5.7 image list
+$ docker run --rm gcr.io/kasten-images/k10tools:8.5.8 image list
 ```
 
 ### Copy Kasten Images into a Private Repository â
@@ -3003,7 +3005,7 @@ The following command will copy the Veeam Kasten container images into your
 The following example uses a repository located at repo.example.com .
 
 ```
-$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.7 image copy --dst-registry repo.example.com
+$ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.8 image copy --dst-registry repo.example.com
 ```
 
 This command will use your local docker config if the private registry
@@ -3041,7 +3043,7 @@ If you want to use the Iron Bank hardened Veeam Kasten images in an air-gapped
   environment, execute the above commands but replace image with ironbank image :
 
 ```
-:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.7 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.7 ironbank image copy --dst-registry repo.example.com
+:substitutions:   $ docker run --rm gcr.io/kasten-images/k10tools:8.5.8 ironbank image list   $ docker run --rm -v $HOME/.docker:/home/kio/.docker gcr.io/kasten-images/k10tools:8.5.8 ironbank image copy --dst-registry repo.example.com
 ```
 
 This ensures the images are pulled from Registry1.
@@ -3182,14 +3184,14 @@ manager is installed and access to the Veeam Kasten
 Run the following command to deploy the the pre-check tool:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash
+$ curl https://docs.kasten.io/downloads/8.5.8/tools/k10_primer.sh | bash
 ```
 
 To run the pre-flight checks in an air-gapped environment, use the
   following command:
 
 ```
-$ curl https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.7
+$ curl https://docs.kasten.io/downloads/8.5.8/tools/k10_primer.sh | bash /dev/stdin -i repo.example.com/k10tools:8.5.8
 ```
 
 Follow this guide to
@@ -3290,13 +3292,13 @@ Assuming that the default kubectl context is pointed to a cluster with CSI enabl
 First, run the following command to derive the list of provisioners along with their StorageClasses and VolumeSnapshotClasses.
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash
+curl -s https://docs.kasten.io/downloads/8.5.8/tools/k10_primer.sh | bash
 ```
 
 Then, run the following command with a valid StorageClass to deploy the pre-check tool:
 
 ```
-curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
+curl -s https://docs.kasten.io/downloads/8.5.8/tools/k10_primer.sh | bash /dev/stdin csi -s ${STORAGE_CLASS}
 ```
 
 ### CSI Snapshot Configuration â

@@ -844,6 +844,341 @@ It is critical that you delete this resource only when you are prepared
 
 ---
 
+## Operating Footprint
+
+Veeam Kasten's resource requirements are almost always related to
+  the number of applications in your Kubernetes cluster and the kind
+  of data management operations being performed (e.g., snapshots
+  vs. backups).
+
+Some of the resource requirements are static (base resource
+  requirements) while other resources are only required when certain
+  work is done (dynamic resource requirements). The auto-scaling nature
+  of Veeam Kasten ensures that resources consumed by dynamic
+  requirements will always scale down to zero when no work is being
+  performed.
+
+While the below recommendations for both requests and limits should be
+  applicable to most clusters, it is important to note that the final
+  requirement will be a function of your cluster and application scale,
+  total amount of data, file size distribution, and data churn rate. You
+  can always use Prometheus or Kubernetes Vertical Pod Autoscaling (VPA)
+  with updates disabled to check your particular requirements.
+
+## Requirement Types â
+
+- Base Requirements : These are the core resources needed for Veeam Kasten's internal scheduling and cleanup services, which are mostly driven by monitoring and catalog scale requirements. The resource footprint for these base requirements is usually static and generally does not noticeably grow with either a growth in catalog size (number of Kubernetes resources protected) or number of applications protected.
+- Disaster Recovery : These are the resources needed to perform a DR of the Veeam Kasten install and are predominantly used to compress, deduplicate, encrypt, and transfer the Veeam Kasten catalog to object storage. Providing additional resources can also speed up the DR operation. The DR resource footprint is dynamic and scales down to zero when a DR is not being performed.
+- Backup Requirements : Resources for backup are required when data is transferred from volume snapshots to object storage or NFS/SMB file storage. While the backup requirements depend on your data, churn rate, and file system layout, the requirements are not unbounded and can easily fit in a relatively narrow band. Providing additional resources can also speed up backup operations. To prevent unbounded parallelism when protecting a large number of workloads, Veeam Kasten bounds the number of simultaneous backup jobs (default 9). The backup resource footprint is dynamic and scales down to zero when a backup is not being performed.
+
+Base Requirements : These are the core resources needed for Veeam
+      Kasten's internal scheduling and cleanup services, which are
+      mostly driven by monitoring and catalog scale requirements.
+      The resource footprint for these base requirements is usually
+      static and generally does not noticeably grow with either a
+      growth in catalog size (number of Kubernetes resources protected)
+      or number of applications protected.
+
+Disaster Recovery : These are the resources needed to perform a
+      DR of the Veeam Kasten install and are predominantly used to compress,
+      deduplicate, encrypt, and transfer the Veeam Kasten catalog to object
+      storage. Providing additional resources can also speed up the DR
+      operation. The DR resource footprint is dynamic and scales down to
+      zero when a DR is not being performed.
+
+Backup Requirements : Resources for backup are required when data
+      is transferred from volume snapshots to object storage or NFS/SMB file storage.
+      While the backup requirements depend on your data, churn rate, and
+      file system layout, the requirements are not unbounded and can easily
+      fit in a relatively narrow band. Providing additional resources can also
+      speed up backup operations. To prevent unbounded parallelism when
+      protecting a large number of workloads, Veeam Kasten bounds the number of
+      simultaneous backup jobs (default 9). The backup resource footprint
+      is dynamic and scales down to zero when a backup is not being
+      performed.
+
+## Requirement Guidelines â
+
+The below table lists the resource requirements for a Veeam Kasten install
+  protecting 100 applications or namespaces.
+
+It should be noted that DR jobs are also included in the maximum
+  parallelism limit ( N ) and therefore you can only have N simultaneous backup jobs or N-1 simultaneous backup jobs
+  concurrently with 1 DR job.
+
+| Type | Requested CPU (Cores) | Limit CPU (Cores) | Requested Memory (GB) | Limit Memory (GB) | Base | 1 | 2 | 1 | 4 |
+| :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| Base | 1 | 2 | 1 | 4 |
+| DR | 1 | 1 | 0.3 | 0.3 |
+| Dynamic (per parallel job) | 1 | 1 | 0.4 | 0.4 |
+| Total | 3 | 4 | 1.8 | 4.8 |
+
+Kasten temporarily consumes approximately
+    3GB of ephemeral storage on a worker node for each
+    concurrent volume export or restore operation.
+    Default worker node storage configuration can
+    vary based on distribution. Configuring worker nodes
+    with 100GB of storage is recommended to
+    prevent interruptions to Kasten operations.
+
+## Configuring Kasten-wide resource fallback defaults â
+
+Kasten can be configured to use a global fallback value for resource quota for any long-lived and
+  dynamically provisioned workloads. Global values always take the lowest priority and can be overridden
+  for the following types of workloads:
+
+- Kasten services packaged in the Helm chart (see core pod overrides )
+- Prometheus subchart resources (see Prometheus overrides )
+- Temporary worker pods (see worker pod overrides )
+- Worker metrics sidecar containers (see metrics sidecar overrides )
+
+Global default resource quota can be set through Helm in two ways:
+
+- Providing the path to one or more YAML files during helm install or helm upgrade with the --values flag: global : resources : requests : memory : <value > cpu : <value > ephemeral-storage : <value > limits : memory : <value > cpu : <value > ephemeral-storage : <value >
+- Modifying the resource values one at a time with the --set flag during helm install or helm upgrade : --set=global.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+
+Providing the path to one or more YAML files during helm install or helm upgrade with the --values flag:
+
+```
+global:  resources:    requests:      memory: <value>      cpu: <value>      ephemeral-storage: <value>    limits:      memory: <value>      cpu: <value>      ephemeral-storage: <value>
+```
+
+Modifying the resource values one at a time with the --set flag during helm install or helm upgrade :
+
+```
+--set=global.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+```
+
+## Configuring Veeam Kasten Resource Usage for Core Pods â
+
+Using Helm values, resource requests and limits can be set for
+  the core Pods that make up Veeam Kasten's base requirements. Kubernetes
+  resource management is at the container level, so in order
+  to set resource values, you will need to provide both the deployment
+  and container names. Custom resource usage can be set through
+  Helm in two ways:
+
+- Providing the path to one or more YAML files during helm install or helm upgrade with the --values flag:
+
+```
+resources:  <deployment-name>:    <container-name>:      requests:        memory: <value>        cpu: <value>        ephemeral-storage: <value>      limits:        memory: <value>        cpu: <value>        ephemeral-storage: <value>
+```
+
+See Resource units in Kubernetes for details on how to specify valid memory, CPU, and ephemeral storage values.
+
+For example, this file will modify the settings for the catalog-svc container, upgrade-init init container, and kanister-sidecar sidecar container,
+  which runs in the pod created by the catalog-svc deployment:
+
+```
+resources:  catalog-svc:    catalog-svc:      requests:        memory: "1.5Gi"        cpu: "300m"      limits:        memory: "3Gi"        cpu: "1"    upgrade-init:      requests:        memory: "120Mi"        cpu: "100m"      limits:        memory: "360Mi"        cpu: "300m"    kanister-sidecar:      requests:        memory: "800Mi"        cpu: "250m"        ephemeral-storage: "50Mi"      limits:        memory: "950Mi"        cpu: "900m"        ephemeral-storage: "50Mi"
+```
+
+- Modifying the resource values one at a time with the --set flag during helm install or helm upgrade :
+
+```
+--set=resources.<deployment-name>.<container-name>.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+```
+
+For the equivalent behavior of the example above, the following values
+  can be provided:
+
+```
+--set=resources.catalog-svc.catalog-svc.requests.memory=1.5Gi \    --set=resources.catalog-svc.catalog-svc.requests.cpu=300m \    --set=resources.catalog-svc.catalog-svc.limits.memory=3Gi \    --set=resources.catalog-svc.catalog-svc.limits.cpu=1 \    --set=resources.catalog-svc.upgrade-init.requests.memory=120Mi \    --set=resources.catalog-svc.upgrade-init.requests.cpu=100m \    --set=resources.catalog-svc.upgrade-init.limits.memory=360Mi \    --set=resources.catalog-svc.upgrade-init.limits.cpu=300m \    --set=resources.catalog-svc.kanister-sidecar.requests.memory=800Mi \    --set=resources.catalog-svc.kanister-sidecar.requests.cpu=250m \    --set=resources.catalog-svc.kanister-sidecar.requests.ephemeral-storage=50Mi \    --set=resources.catalog-svc.kanister-sidecar.limits.memory=950Mi \    --set=resources.catalog-svc.kanister-sidecar.limits.cpu=900m \    --set=resources.catalog-svc.kanister-sidecar.limits.ephemeral-storage=50Mi
+```
+
+When adjusting a container's resource limits or requests, if any setting
+  is left empty, the Helm chart will assume it should be unspecified. Likewise,
+  providing empty settings for a container will result in no limits/requests
+  being applied.
+
+For example, the following Helm values file will yield no specified resource
+  requests or limits for the kanister-sidecar container and only a CPU
+  limit for the jobs-svc container, which runs in the pod
+  created by the jobs-svc deployment:
+
+```
+resources:    catalog-svc:      kanister-sidecar:    jobs-svc:      jobs-svc:        limits:          cpu: "50m"
+```
+
+### Prometheus Pod's Resources â
+
+Resource requests and limits can be added to the Prometheus
+  pod through Prometheus child Helm charts values.
+  Custom resource usage can be set through Helm in two ways:
+
+- Providing the path to one or more YAML files during helm install or helm upgrade with the --values flag: prometheus : server : resources : requests : memory : <value > cpu : <value > ephemeral-storage : <value > limits : memory : <value > cpu : <value > ephemeral-storage : <value > configmapReload : prometheus : resources : requests : memory : <value > cpu : <value > ephemeral-storage : <value > limits : memory : <value > cpu : <value > ephemeral-storage : <value >
+- Modifying the resource values one at a time with the --set flag during helm install or helm upgrade : --set=prometheus.server.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value> \ --set=prometheus.configmapReload.prometheus.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+
+```
+prometheus:      server:        resources:          requests:            memory: <value>            cpu: <value>            ephemeral-storage: <value>          limits:            memory: <value>            cpu: <value>            ephemeral-storage: <value>      configmapReload:        prometheus:          resources:            requests:              memory: <value>              cpu: <value>              ephemeral-storage: <value>            limits:              memory: <value>              cpu: <value>              ephemeral-storage: <value>
+```
+
+```
+--set=prometheus.server.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value> \    --set=prometheus.configmapReload.prometheus.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+```
+
+## Configuring Veeam Kasten Resource Usage for Worker Pods â
+
+By default, Veeam Kasten does not assign resource requests or limits
+  to temporary worker Pods. This allows Pods responsible for data
+  movement during backup or restore operations to scale up as needed
+  to ensure timely completion. If explicit resource settings are required
+  in the environment, see the available methods below.
+
+### Configuring Cluster-Wide Worker Pod Resource Usage â
+
+Using Helm values, resource requests and limits can be set for the
+  temporary worker Pods created by Veeam Kasten to perform operations.
+  This method will set the same requests and limits for all injected
+Kanister sidecar containers used for Generic Volume Backup ,
+  as well as all other temporary worker Pods provisioned by Veeam Kasten.
+
+As it may be undesirable to configure the same requests and limits for
+  all temporary worker Pods across all applications, a granular alternative is
+  described in the following section .
+
+Veeam Kasten affinity-pvc-group- Pods have fixed
+    resource requests and limits that cannot be modified. These Pods
+    are used only for PVC/node placement prior to data restore and
+    do not require customization based on workload.
+
+If namespace level resource limitations have been configured
+    using LimitRange or ResourceQuota, the values below may be prevented
+    from being applied or result in failure of the operation. Make sure
+    resources are specified taking those restrictions into consideration.
+
+Cluster-wide resource requests and limits for Veeam Kasten worker Pods
+  can be applied through Helm in two ways:
+
+- Providing the path to one or more YAML files during helm install or helm upgrade with the --values flag: genericVolumeSnapshot : resources : requests : memory : <value > cpu : <value > ephemeral-storage : <value > limits : memory : <value > cpu : <value > ephemeral-storage : <value >
+- Modifying the resource values one at a time with the --set flag during helm install or helm upgrade : --set=genericVolumeSnapshot.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+
+```
+genericVolumeSnapshot:      resources:        requests:          memory: <value>          cpu: <value>          ephemeral-storage: <value>        limits:          memory: <value>          cpu: <value>          ephemeral-storage: <value>
+```
+
+```
+--set=genericVolumeSnapshot.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+```
+
+### Configuring Granular Worker Pod Resource Usage â
+
+The following approach allows for specifying granular resource requests
+  and limits for different types of Veeam Kasten worker Pods, as well as
+  allowing configuration on a per application basis. The purpose is to
+  accommodate "right-sizing" across different application profiles within
+  a single cluster, rather than sizing all worker Pods based on the
+  data mover requirements of the largest applications.
+
+Granular resource configuration uses the Veeam Kasten-specific custom
+  resources, ActionPodSpec and ActionPodSpecBinding . An ActionPodSpec specifies the Pod categories and their associated request and limit values.
+  An ActionPodSpec resource may be applied to a specific namespace using
+  an ActionPodSpecBinding , or may be applied via reference within a policy.
+
+An ActionPodSpec can be created in any namespace and
+  may be cross referenced from other namespaces.
+  An ActionPodSpecBinding must be created in application namespace to
+  which the referenced ActionPodSpec is being applied.
+
+To enable granular resource control,
+    set the Helm flag workerPodCRDs.enabled to true .
+
+You can also define a default ActionPodSpec during installation.
+  This will have the lowest priority and will be used if there
+  is no ActionPodSpec defined for the namespace or action.
+
+```
+--set=workerPodCRDs.defaultActionPodSpec.[name|namespace]=<value>
+```
+
+#### Examples â
+
+An ActionPodSpec with an explicit resource configuration
+  for the export-volume-to-repository Pod type and a default
+  configuration for all other temporary worker Pods:
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1    kind: ActionPodSpec    metadata:      name: aps-example      namespace: kasten-io    spec:      options:        - podType: "*"          resources:            requests:              cpu: 125m              memory: 128Mi        - podType: "export-volume-to-repository"          resources:            limits:              cpu: 2000m              memory: 512Mi              ephemeral-storage: 50Mi            requests:              cpu: 1000m              memory: 256Mi              ephemeral-storage: 50Mi
+```
+
+An ActionPodSpecBinding applying an ActionPodSpec to
+  the temporary worker Pods within a specific namespace:
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1    kind: ActionPodSpecBinding    metadata:      name: apsb-example      namespace: app-ns    spec:      actionPodSpecRef:        name: aps-example        namespace: kasten-io
+```
+
+Alternatively, a Policy referencing an ActionPodSpec to
+  affect temporary worker Pod resources provisioned as part of the backup action:
+
+```
+apiVersion: config.kio.kasten.io/v1alpha1    kind: Policy    metadata:      name: policy-template-2      namespace: kasten-io    spec:      actions:      - action: backup        backupParameters:          filters: {}          ignoreExceptions: true          profile:            name: aws            namespace: kasten-io          actionPodSpec:            name: aps-example            namespace: kasten-io
+```
+
+#### Action Pod Types â
+
+This list contains Pod types that are affected by the specified settings.
+  Typically, Pod types are associated with specific operations;
+  however, on rare occasions,
+  a single Pod type may be used for several similar operations.
+  Pod type can also be found in the k10.kasten.io/actionPodType annotation on worker Pods.
+
+| Pod Type Value | Pod Type Description | * | Wildcard value to configure any worker Pods types not explicitly specified |
+| :---: | :---: | :---: | :---: |
+| * | Wildcard value to configure any worker Pods types not explicitly specified |
+| check-repository | Performs checks on a repository during the export process |
+| create-repository | Initializes a backup repository in an export location |
+| delete-block-data-from-repository | Deletes backup data exported usingblock mode |
+| delete-collection | Deletes the application manifest data associated with a backup |
+| delete-data-from-repository | Deletes backup data exported using the default filesystem mode |
+| export-block-volume-to-repository | Exports a snapshot usingblock mode |
+| export-volume-to-repository | Exports a snapshot using the default filesystem mode |
+| file-recovery-session | Mounts backed-up volumes forFileRecoverySessionfile access. Supports environment variable overrides forsession limits. |
+| image-copy | Exports and restores container images from ImageStreams |
+| kanister-job | Created by Blueprint actions to perform custom operations |
+| list-data-from-repository | Lists data in the repository when retiring backups |
+| repository-operations | Performs background operations such as repository scans and maintenance |
+| repository-server | API server used for multiple operations including export, restore, and import |
+| restore-block-volume-from-repository | Restores a volume exported usingblock mode |
+| restore-data-dr | Restores Veeam Kasten from aDisaster Recovery backup |
+| restore-data-from-repository | Restores a volume exported using the default filesystem mode |
+| upgrade-repository | Upgrades the repository |
+| validate-repository | Validates a remote repository when restoring aDisaster Recovery backup |
+
+### Worker Pod Resource Usage Configuration Priority â
+
+The chart-wide global.resources Helm setting holds the lowest priority (if specified).
+  Then, genericVolumeSnapshot.resources is used as a general value for ephemerally created pods,
+  and will be overridden by any applied ActionPodSpec . ActionPodSpec resources that are bound to a namespace using an ActionPodSpecBinding hold a lower priority than an ActionPodSpec explicitly specified as part of a policy. ActionPodSpec configurations from multiple sources are not merged;
+  therefore, it is not possible to apply namespace-bound
+  resources to one type of Pod and policy-specific resources to another.
+
+It is possible to override resources of worker pods globally through the Kanister Pod Override ,
+  but this approach is not recommended.
+
+### Configuring Metric Sidecar Resource Usage for Worker Pods â
+
+By default, Veeam Kasten provisions a sidecar container on temporary
+  worker Pods used to collect metrics to monitor resource utilization.
+  Using Helm, resource requests and limits can be added to the metric sidecar
+  container added to worker Pods. This setting is independent of either
+  method previously detailed for configuring worker Pod resources.
+
+Custom resource requests and limits can be set through Helm in two ways:
+
+- Providing the path to one or more YAML files during helm install or helm upgrade with the --values flag: workerPodMetricSidecar : resources : requests : memory : <value > cpu : <value > ephemeral-storage : <value > limits : memory : <value > cpu : <value > ephemeral-storage : <value >
+- Modifying the resource values one at a time with the --set flag during helm install or helm upgrade : --set=workerPodMetricSidecar.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+
+```
+workerPodMetricSidecar:      resources:        requests:          memory: <value>          cpu: <value>          ephemeral-storage: <value>        limits:          memory: <value>          cpu: <value>          ephemeral-storage: <value>
+```
+
+```
+--set=workerPodMetricSidecar.resources.[requests|limits].[memory|cpu|ephemeral-storage]=<value>
+```
+
+---
+
 ## Operating Garbagecollector
 
 Veeam Kasten provides a way to collect and clean up the resources that
@@ -941,6 +1276,76 @@ The k10tools debug applications sub command can be used to obtain
 ```
 % ./k10tools debug applications  Fetching information from namespace - kasten-io | resource - ingresses  Name        |Hosts |Address        |Ports |Age |  k10-ingress |*     |138.68.228.199 |80    |36d |  Fetching information from namespace - kasten-io | resource - daemonsets  Resources not found  PVC Information -  Name                |Volume                                     |Capacity  catalog-pv-claim    |pvc-4fc67966-aee7-493c-b2fd-c6251933875c   |20Gi  jobs-pv-claim       |pvc-cdda0458-6b63-48a6-8e7f-c1b947600c9f   |20Gi  logging-pv-claim    |pvc-36a92c5b-d018-4ce8-ba79-970d15554387   |20Gi  metering-pv-claim   |pvc-8c0c6477-216d-4227-a6af-9725ce2a3dc1   |2Gi  prometheus-server   |pvc-1b14f51c-5abf-45f5-8bd9-1a58d86d58ef   |8Gi
 ```
+
+## Repository Inventory and Cleanup â
+
+The k10tools repository sub-commands report on and remediate orphaned
+  snapshots in storage repositories managed by Veeam Kasten. A storage
+  repository here is the collection of backup objects from a single
+  namespace that are saved within a Location Profile; multiple
+  repositories may exist within one Location Profile. An orphaned
+  snapshot is a repository snapshot that is not tracked by Veeam Kasten.
+  The snapshot exists in the repository but no restore point refers to
+  it. Orphans typically arise when a backup is interrupted before Veeam
+  Kasten finishes recording it, leaving a snapshot that consumes
+  repository storage but is invisible to the product. Standard retention
+  never reclaims these snapshots because there is no restore point to
+  retire.
+
+In this release, repository inventory and cleanup cover repositories
+    created under Object Storage and File Storage location profiles.
+
+Two sub-commands are provided:
+
+- k10tools repository inventory â enumerates every snapshot in every Veeam Kasten managed repository and classifies each as ACTIVE , ORPHANED , or NOT SYNCED (on read-only imported repositories). This command is read-only and safe to run at any time.
+- k10tools repository cleanup â deletes orphaned snapshots after applying the safety gates described below. Supports a dry-run mode that prints the plan without acting.
+
+Both commands are part of k10tools . For convenience, k10_repo_checker.sh launches
+  the commands in a pod in the Veeam Kasten namespace and handles pod
+  lifecycle, so no interactive kubectl exec is required.
+
+### Safety gates â
+
+Orphan deletion is gated by three independent safeguards so that
+  unexpected catalog state does not cause data loss:
+
+- Minimum age. An orphan must be at least the configured age before it is eligible for deletion. The default is 7 days ( 168h ), comfortably longer than any in-flight backup operation, so a snapshot that is not yet recorded only because the backup is still running cannot be mistaken for a true orphan. Pass -A 120h to use a different minimum age (for example, 5 days in a test environment with shorter backup windows).
+- Backstop scan. As a second line of defense, each snapshot that looks orphaned is checked against the Veeam Kasten catalog for any incidental reference before deletion is allowed. If the catalog mentions the snapshot anywhere, the snapshot is reported with a BLOCKED status and excluded from cleanup pending human review. This protects against catalog data that the primary classifier does not yet recognize. Under the direction of Kasten Support, the -Z flag can be used to delete a snapshot despite a backstop hit. Do not attempt to use this flag without a thorough understanding of the consequences.
+- Dry-run mode. Run k10_repo_checker.sh -r cleanup -X first to preview the plan without deleting anything. Re-run without -X to execute the deletions.
+
+### Inventory â
+
+```
+% ./k10_repo_checker.sh -r inventory -n kasten-ioâââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ                           K10 Repository Snapshot Inventory                            âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââSummary: 3 repositories, 12 total snapshots, 2 orphaned=== Repository: kopia-volumedata-repository-qjcr8rbps9 ===ID: fa15854a-351e-11f1-ab2f-aa3573da728aProfile: my-s3-profileType: DataTotal Snapshots: 4Orphaned Snapshots: 2Snapshot ID           Time              Age  Size     Artifact ID                           RestorePoint       Policy  Namespace  Status31b0f3189a1c55275...  2026-01-10 21:00  15d  209 MiB  4efd25ee-3520-11f1-ab2f-aa3573da728a  scheduled-fnbsr94  daily   prod       ACTIVEc96225fcc41bda117...  2026-01-08 04:12  17d  0 B                                                                                  ORPHANEDa73011e988bb4c1aa...  2026-01-07 14:22  18d  110 MiB                                                                              ORPHANED [BLOCKED: 1 catalog ref(s)]
+```
+
+Useful flags:
+
+- -R RepositoryName â limit to a single repository.
+- -p Profile â limit to repositories under a given profile.
+- -F json â emit structured JSON instead of the table view.
+- -O â show only repositories that contain at least one orphaned snapshot.
+
+### Cleanup â
+
+A cleanup run always prints the plan first. In dry-run mode it stops
+  there; otherwise it proceeds to the delete phase.
+
+```
+% ./k10_repo_checker.sh -r cleanup -n kasten-io -X=== Repository: kopia-volumedata-repository-qjcr8rbps9 ===  STATUS   SNAPSHOT                          ACTION           DETAIL  ORPHAN   c96225fcc41bda117e94f29651823f7f  delete snapshot  BLOCKED  a73011e988bb4c1aab7e77a88fa4e6ba  skip             raw catalog ref (--danger-allow-raw-refs to override)Dry-run summary: 1 would be deleted, 0 too young (min-age 7d), 1 blocked by raw catalog refs.Remove --dry-run to execute.
+```
+
+- -X â run in dry-run mode and print the plan without deleting. Omit -X to execute the deletions after the plan is printed.
+- -S SnapshotIDPrefix â target a single orphan by snapshot-ID prefix.
+- -A MinAge â override the minimum orphan age threshold (for example, -A 0s to disable the grace period, or -A 720h to require 30 days).
+- -Z â force delete orphans blocked by the backstop scan. Dangerous. Only use under Kasten Support direction.
+
+The cleanup command permanently deletes snapshot data from the storage
+    repository. Deleted snapshots cannot be restored. Always run with -X (dry-run) first, review the plan, and confirm with Kasten Support
+    before overriding any safety gate.
+
+Repository storage is not reclaimed immediately after snapshot deletion.
+    Space is freed during the next repository maintenance run.
 
 ## Veeam Kasten Primer for Pre-Flight Checks â
 
@@ -1093,7 +1498,7 @@ The checker can be invoked by the k10primer.sh script in a manner
   similar to that described in the Pre-flight Checks :
 
 ```
-% curl https://docs.kasten.io/downloads/8.5.7/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
+% curl https://docs.kasten.io/downloads/8.5.8/tools/k10_primer.sh | bash /dev/stdin blockmount -s ${STORAGE_CLASS_NAME}
 ```
 
 Alternatively, for more control over the invocation of the checker, use
@@ -1455,7 +1860,7 @@ See the Prometheus
 docs for
   more information on how to query data from Prometheus.
 
-### Veeam Kasten Artifact Metrics â
+### Veeam Kasten Artifact Metrics   â
 
 You can monitor both the rate of artifact creation and the current count
   within Veeam Kasten. Similar to the action counts mentioned above, there
@@ -1746,7 +2151,7 @@ All commands in Step 1 must be run on the ACM Hub cluster.
 
 1. Verify the Observability Service : oc get multiclusterobservability -n open-cluster-management-observability Expected output (verify the status is Ready ): NAME STATUS AGE observability Ready 14d
 2. Identify the Remote Write URL â choose the URL that matches your deployment: Same-cluster (HTTP) â writes directly to Thanos Receive: http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive Cross-cluster (HTTPS / mTLS) â writes through the Observatorium API: https://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/metrics/v1/default/api/v1/receive If Kasten cannot reach the internal service, use the external route instead: ROUTE_HOST = $( oc get route observatorium-api -n open-cluster-management-observability -o jsonpath = '{.spec.host}' ) echo "https:// ${ROUTE_HOST} /api/metrics/v1/default/api/v1/receive" warning Do not use /api/v1/receive for cross-cluster mode â that path bypasses authentication.
-3. Find the Tenant ID : The Tenant ID is the Cluster ID of the ACM Hub Cluster, captured automatically in the environment variables block (Step 3).
+3. Find the Tenant ID : oc get clusterversion version -o jsonpath = '{.spec.clusterID}' This is the Hub Cluster ID used as hubThanosTenantId in the Kasten Helm values (see Step 3 ).
 
 Verify the Observability Service :
 
@@ -1777,7 +2182,23 @@ ROUTE_HOST=$(oc get route observatorium-api -n open-cluster-management-observabi
 
 Do not use /api/v1/receive for cross-cluster mode â that path bypasses authentication.
 
-Find the Tenant ID : The Tenant ID is the Cluster ID of the ACM Hub Cluster, captured automatically in the environment variables block (Step 3).
+```
+oc get clusterversion version -o jsonpath='{.spec.clusterID}'
+```
+
+This is the Hub Cluster ID used as hubThanosTenantId in the Kasten Helm values (see Step 3 ).
+
+### Add Kasten Metrics to the MCO Custom Allowlist â
+
+Run this command on the ACM Hub cluster, regardless of whether you used the Web Console or CLI path above.
+
+MCO's metrics-collector only forwards metrics that appear in the custom allowlist. Without this step, K10 metrics will not flow through MCO even if Prometheus remote_write is functioning correctly. Apply the following ConfigMap on the Hub cluster:
+
+```
+oc apply -f - <<'EOF'apiVersion: v1kind: ConfigMapmetadata:  name: observability-metrics-custom-allowlist  namespace: open-cluster-management-observabilitydata:  metrics_list.yaml: |    names:      - action_backup_ended_count      - action_restore_ended_count      - action_export_ended_count      - action_import_ended_count      - action_run_ended_count      - catalog_actions_count      - catalog_storage_artifact_count      - metering_pvc_size      - policies_count      - policy_run_countEOF
+```
+
+If the observability-metrics-custom-allowlist ConfigMap already exists in your environment, merge these entries into the existing metrics_list.yaml rather than replacing the ConfigMap.
 
 ## Step 2: Prepare mTLS Client Certificate â
 
@@ -1829,7 +2250,7 @@ You can fine-tune the Prometheus remote write behavior by adding standard Promet
 Copy-paste the block below into your terminal and edit the values as needed:
 
 ```
-# ââ Required   âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ# Hub Cluster ID â run on the Hub cluster (see Step 1)export ACM_TENANT_ID="$(oc get clusterversion version -o jsonpath='{.spec.clusterID}')"# Remote Write URL â uncomment ONE line that matches your deployment (see Step 1):# Same-cluster (HTTP):export REMOTE_WRITE_URL="http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive"# Cross-cluster (HTTPS / mTLS):# export REMOTE_WRITE_URL="https://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/metrics/v1/default/api/v1/receive"# ââ Required on non-OpenShift (auto-detected on OpenShift) âââââââââââââââââââexport CLUSTER_NAME="us-east-prod-01"export CLUSTER_ID="$(oc get clusterversion version -o jsonpath='{.spec.clusterID}' 2>/dev/null || echo 'set-me')"# ââ Optional âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ# Deep-link from the ACM dashboard back to this Kasten instanceexport K10_DASHBOARD_URL="https://k10.apps.example.com/k10/"
+# ââ Required âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ# Hub Cluster ID â run on the Hub cluster (see Step 1)export ACM_TENANT_ID="$(oc get clusterversion version -o jsonpath='{.spec.clusterID}')"# Remote Write URL â uncomment ONE line that matches your deployment (see Step 1):# Same-cluster (HTTP):export REMOTE_WRITE_URL="http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive"# Cross-cluster (HTTPS / mTLS):# export REMOTE_WRITE_URL="https://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/metrics/v1/default/api/v1/receive"# ââ Required on non-OpenShift (auto-detected on OpenShift) âââââââââââââââââââexport CLUSTER_NAME="us-east-prod-01"export CLUSTER_ID="$(oc get clusterversion version -o jsonpath='{.spec.clusterID}' 2>/dev/null || echo 'set-me')"# ââ Optional âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ# Deep-link from the ACM dashboard back to this Kasten instanceexport K10_DASHBOARD_URL="https://k10.apps.example.com/k10/"
 ```
 
 ### 2. Prepare the Helm Values â
@@ -1902,10 +2323,10 @@ Query the Thanos query-frontend for a Kasten metric:
 kubectl port-forward -n open-cluster-management-observability \    svc/observability-thanos-query-frontend 9090:9090 &curl -s "http://localhost:9090/api/v1/query?query=catalog_actions_count" | python3 -m json.tool
 ```
 
-Look for results with your cluster name and "application": "k10" :
+Look for results tagged with your cluster name and "application": "k10" . Each metric also carries a cluster_uid label (the OpenShift cluster ID), which gives a stable identifier for queries and dashboards even if cluster names overlap:
 
 ```
-{    "status": "success",    "data": {        "resultType": "vector",        "result": [            {                "metric": {                    "__name__": "catalog_actions_count",                    "application": "k10",                    "cluster_name": "us-east-prod-01"                },                "value": [1740000000, "221"]            }        ]    }}
+{    "status": "success",    "data": {        "resultType": "vector",        "result": [            {                "metric": {                    "__name__": "catalog_actions_count",                    "application": "k10",                    "cluster_name": "us-east-prod-01",                    "cluster_uid": "1a2b3c4d-5e6f-7890-abcd-ef1234567890"                },                "value": [1740000000, "221"]            }        ]    }}
 ```
 
 If no results appear, allow 2â5 minutes for metrics to propagate, then recheck.
@@ -1993,6 +2414,24 @@ This error appears in the Prometheus logs ( kubectl logs ... -c prometheus-serve
 - Cause: Transient TLS connection issues, often seen during Prometheus startup (WAL replay) when it sends a burst of samples.
 - Fix: These are typically self-resolving â Prometheus retries automatically. Check prometheus_remote_storage_samples_failed_total ; if it stays at 0 , the retries are succeeding. If errors persist, verify network connectivity to the Observatorium API service.
 
+#### malformed HTTP response "\x00\x00\x06\x04..." in Prometheus logs â
+
+- Cause: You may be connecting to the Thanos Receive service on the wrong port. Prometheus remote_write speaks HTTP/1.1; if the target port speaks gRPC, it returns a binary frame that Prometheus cannot parse.
+- To diagnose: Inspect the ports exposed by the Thanos Receive service on the Hub cluster: oc get service -n open-cluster-management-observability \ -l app.kubernetes.io/name = thanos-receive \ -o jsonpath = '{range .items[*]}{.metadata.name}{"\n"}{range .spec.ports[*]} {.name}: {.port}{"\n"}{end}{end}' Look for the port named remote-write (typically 19291 ). Port 10901 is gRPC and will produce this error; port 10902 is HTTP admin/health. Only the remote-write port accepts Prometheus remote_write traffic.
+- Fix: If you are using the Observatorium API URL ( observability-observatorium-api at port 8080 ) as documented in Step 1, this error should not occur. If you are connecting directly to the Thanos Receive service, update your remote_write URL to use the port named remote-write (typically 19291 ) instead of port 10901 .
+
+Cause: You may be connecting to the Thanos Receive service on the wrong port. Prometheus remote_write speaks HTTP/1.1; if the target port speaks gRPC, it returns a binary frame that Prometheus cannot parse.
+
+To diagnose: Inspect the ports exposed by the Thanos Receive service on the Hub cluster:
+
+```
+oc get service -n open-cluster-management-observability \  -l app.kubernetes.io/name=thanos-receive \  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{range .spec.ports[*]}  {.name}: {.port}{"\n"}{end}{end}'
+```
+
+Look for the port named remote-write (typically 19291 ). Port 10901 is gRPC and will produce this error; port 10902 is HTTP admin/health. Only the remote-write port accepts Prometheus remote_write traffic.
+
+Fix: If you are using the Observatorium API URL ( observability-observatorium-api at port 8080 ) as documented in Step 1, this error should not occur. If you are connecting directly to the Thanos Receive service, update your remote_write URL to use the port named remote-write (typically 19291 ) instead of port 10901 .
+
 ### Connectivity Reference â
 
 | Deployment | URL | Auth | Kasten on Hub cluster | http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive | THANOS-TENANTheader (auto-injected by Kasten) |
@@ -2000,6 +2439,224 @@ This error appears in the Prometheus logs ( kubectl logs ... -c prometheus-serve
 | Kasten on Hub cluster | http://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/v1/receive | THANOS-TENANTheader (auto-injected by Kasten) |
 | Kasten on managed cluster (internal) | https://observability-observatorium-api.open-cluster-management-observability.svc:8080/api/metrics/v1/default/api/v1/receive | mTLS client certificate |
 | Kasten on managed cluster (external route) | https://<route-host>/api/metrics/v1/default/api/v1/receive | mTLS client certificate |
+
+## Deploying the Kasten ACM Dashboard â
+
+Once Kasten metrics are flowing to the ACM Thanos backend (see Step 4: Verification ), you can deploy the Kasten multi-cluster Grafana dashboard into the ACM Observability Grafana instance. The dashboard provides a unified view of backup jobs, restore points, storage usage, and policy status across all clusters managed by RHACM.
+
+### What You Get â
+
+A single Grafana dashboard accessible from ACM Observe â Dashboards â General with:
+
+- Cluster selector that filters all panels by protected Kasten cluster
+- Policy and application selectors
+- Backup job history, success/failure rates, and restore point counts
+- Local snapshot storage usage and PVC utilization
+
+### How Dashboard Injection Works â
+
+MCO runs a dashboard loader sidecar ( grafana-dashboard-loader ) inside the Grafana pod. The loader watches for ConfigMaps in the open-cluster-management-observability namespace that carry the label grafana-custom-dashboard: "true" and automatically posts them to Grafana's internal API. This is the supported injection path â no direct Grafana API access is required.
+
+```
+ConfigMap (open-cluster-management-observability)  label: grafana-custom-dashboard: "true"    âgrafana-dashboard-loader sidecar detects ConfigMap    âLoader POSTs dashboard JSON to Grafana API (internal)    âDashboard appears in ACM Observe â Dashboards â General
+```
+
+The loader retries up to 40 times at 10-second intervals if the upload fails, so it is safe to apply the ConfigMap before Grafana is fully ready.
+
+### Additional Metrics Allowlist â
+
+The Kasten ACM Dashboard uses several metrics beyond the core set added to the allowlist in Step 1 . Before deploying the dashboard, update the allowlist ConfigMap on the Hub cluster to include these additional entries:
+
+Run this command on the ACM Hub cluster.
+
+```
+oc apply -f - <<'EOF'apiVersion: v1kind: ConfigMapmetadata:  name: observability-metrics-custom-allowlist  namespace: open-cluster-management-observabilitydata:  metrics_list.yaml: |    names:      - action_backup_ended_count      - action_backup_ended_overall      - action_backup_duration_seconds_sum_overall      - action_restore_ended_count      - action_restore_ended_overall      - action_restore_duration_seconds_sum_overall      - action_export_ended_overall      - action_export_duration_seconds_sum_overall      - action_import_ended_overall      - action_import_duration_seconds_sum_overall      - action_run_ended_count      - catalog_actions_count      - catalog_storage_artifact_count      - compliance_count      - metering_pvc_size      - policies_count      - policy_run_count      - profiles_count      - kubelet_volume_stats_used_bytes      - kubelet_volume_stats_capacity_bytesEOF
+```
+
+kubelet_volume_stats_used_bytes and kubelet_volume_stats_capacity_bytes are Kubernetes kubelet metrics used by the PV Capacity section of the dashboard. ACM does not collect these by default. Without them, the PV Capacity panels show "No data." If the observability-metrics-custom-allowlist ConfigMap already exists, merge these entries into the existing metrics_list.yaml rather than replacing the whole ConfigMap.
+
+ACM's metrics-collector picks up allowlist changes automatically â no restarts are needed.
+
+### Step 1 â Download the Dashboard JSON â
+
+Download the dashboard JSON from the Grafana Cloud Dashboards repository:
+
+1. Go to the Grafana Cloud Dashboards page for the Kasten multi-cluster dashboard.
+2. Click Download JSON to save the raw dashboard JSON file locally (for example, kasten-acm-dashboard.json ).
+
+### Step 2 â Wrap the JSON in a ConfigMap â
+
+MCO's dashboard loader requires the JSON to be delivered as a ConfigMap with specific labels. Create a file named kasten-acm-dashboard-cm.yaml .
+
+A quick way to produce a correctly structured ConfigMap from the downloaded JSON:
+
+```
+oc create configmap kasten-acm-dashboard \  --from-file=kasten-acm-dashboard.json=./kasten-acm-dashboard.json \  --dry-run=client -o yaml | \  oc label --local -f - grafana-custom-dashboard=true general-folder=true -o yaml \  > kasten-acm-dashboard-cm.yaml
+```
+
+Review the output before applying to confirm the labels and namespace are correct.
+
+Required JSON edits before running the command above:
+
+- Remove the __inputs , __elements , and __requires fields if present â these are Grafana provisioning metadata and will cause import errors in MCO Grafana.
+- Set "id": null â Grafana assigns a new numeric ID on import.
+- Keep the "uid" field exactly as downloaded â the loader uses the uid as a stable identifier for updates. Removing or changing it causes a name-exists 412 conflict if the dashboard was previously loaded.
+
+Do not use Red Hat's generate-dashboard-configmap-yaml.sh tool â it strips the uid field and causes 412 conflicts on subsequent updates.
+
+The resulting ConfigMap must look like this:
+
+```
+apiVersion: v1kind: ConfigMapmetadata:  name: kasten-acm-dashboard  namespace: open-cluster-management-observability  labels:    grafana-custom-dashboard: "true"   # Required â loader checks for this exact key/value    general-folder: "true"             # Places dashboard in General folderdata:  kasten-acm-dashboard.json: |    { ... dashboard JSON ... }
+```
+
+### Step 3 â Apply the ConfigMap to the Hub Cluster â
+
+Run this command on the ACM Hub cluster. The namespace must be open-cluster-management-observability â the loader only watches its own namespace. Applying to any other namespace has no effect.
+
+```
+oc apply -f kasten-acm-dashboard-cm.yaml -n open-cluster-management-observability
+```
+
+### Step 4 â Verify the Loader Detected the ConfigMap â
+
+```
+oc logs -n open-cluster-management-observability \  $(oc get pod -n open-cluster-management-observability \    -l app=multicluster-observability-grafana \    -o jsonpath='{.items[0].metadata.name}') \  -c grafana-dashboard-loader --since=2m
+```
+
+Look for a line like:
+
+```
+Successfully updated dashboard kasten-acm-dashboard
+```
+
+If you see name-exists or 412 , see Dashboard Troubleshooting below.
+
+### Step 5 â Open ACM Grafana â
+
+Navigate to the ACM console â Observe â Dashboards â General â Kasten Multi-Cluster .
+
+### Dashboard Variables â
+
+The dashboard provides four drop-down variables at the top:
+
+| Variable | Description | datasource | Thanos datasource (auto-selected) |
+| :---: | :---: | :---: | :---: |
+| datasource | Thanos datasource (auto-selected) |
+| cluster_name | Filter by managed cluster;Allshows aggregate across all clusters |
+| policy | Filter backup panels by Kasten policy name |
+| app | Filter by application/namespace |
+
+### Updating the Dashboard â
+
+When a new version of the dashboard is published to Grafana Cloud Dashboards:
+
+1. Download the updated JSON from the Grafana Cloud Dashboards page.
+2. Rebuild the ConfigMap YAML using the same method in Step 2, keeping the same ConfigMap name and uid field from the JSON.
+3. Re-apply: oc apply -f kasten-acm-dashboard-cm.yaml -n open-cluster-management-observability
+
+Download the updated JSON from the Grafana Cloud Dashboards page.
+
+Rebuild the ConfigMap YAML using the same method in Step 2, keeping the same ConfigMap name and uid field from the JSON.
+
+Re-apply:
+
+The loader detects the ConfigMap update and re-posts the dashboard to Grafana with overwrite: true . The existing dashboard is replaced in-place â no manual deletion needed.
+
+### Dashboard Metrics Reference â
+
+The following Kasten Prometheus metrics are used in the dashboard. All metrics must flow to the MCO Thanos backend via Prometheus remote_write for the dashboard to display data.
+
+| Metric | Description | action_backup_ended_overall | Counter of completed backup actions, labeled by state (success/failed/cancelled) |
+| :---: | :---: | :---: | :---: |
+| action_backup_ended_overall | Counter of completed backup actions, labeled by state (success/failed/cancelled) |
+| action_backup_ended_count | Count of ended backup actions per policy and application |
+| action_backup_duration_seconds_sum_overall | Cumulative backup action duration in seconds |
+| action_restore_ended_overall | Counter of completed restore actions, labeled by state |
+| action_restore_duration_seconds_sum_overall | Cumulative restore action duration in seconds |
+| action_export_ended_overall | Counter of completed export actions, labeled by state |
+| action_export_duration_seconds_sum_overall | Cumulative export action duration in seconds |
+| action_import_ended_overall | Counter of completed import actions, labeled by state |
+| action_import_duration_seconds_sum_overall | Cumulative import action duration in seconds |
+| catalog_actions_count | Gauge of current actions in the Kasten catalog, labeled by type, status, and namespace |
+| catalog_storage_artifact_count | Count of stored artifacts in the Kasten catalog, labeled by category and retirement status |
+| compliance_count | Count of policy compliance states across managed applications |
+| policies_count | Count of Kasten policies, labeled by action type |
+| profiles_count | Count of Kasten location profiles, labeled by status |
+| metering_pvc_size | Total PVC capacity allocated to the Kasten catalog storage |
+
+### Cluster Name Configuration â
+
+The cluster_name label on Kasten metrics is set by Kasten's bundled Prometheus as an external label on the remote_write path â it is not present on metrics when Kasten's Prometheus is queried directly. Kasten auto-detects this value from the OpenShift infrastructure name (the node prefix, for example aro-mycluster-4kmhs ), which may not match the ACM managed cluster name shown in the dashboard variable list.
+
+To ensure cluster_name in the dashboard matches the ACM managed cluster name, two changes are required per cluster:
+
+1. Set Prometheus external labels explicitly in Kasten Helm values:
+
+```
+helm upgrade k10 kasten/k10 --reuse-values -n kasten-io \  --set prometheus.server.global.external_labels.cluster_name=<acm-managed-cluster-name>
+```
+
+Or add the following to your k10-values.yaml and run helm upgrade :
+
+```
+prometheus:  server:    global:      external_labels:        cluster_name: <acm-managed-cluster-name>
+```
+
+Setting global.clusterName alone is insufficient â it controls Kasten's application-level cluster identity but does not update the Prometheus external label used in remote_write .
+
+2. Update the ServiceMonitor (if using User Workload Monitoring federation):
+
+If you applied kasten-k10-acm-servicemonitor.yaml , it contains a metricRelabelings entry that overrides cluster_name on the UWM federation path. Before applying the ServiceMonitor to each cluster, replace the placeholder with the correct ACM cluster name:
+
+```
+replacement: REPLACE_WITH_ACM_CLUSTER_NAME
+```
+
+Change it to match the ACM managed cluster name for that cluster, then apply:
+
+```
+oc apply -f kasten-k10-acm-servicemonitor.yaml -n kasten-io
+```
+
+### Dashboard Troubleshooting â
+
+Dashboard not appearing after 5 minutes:
+
+```
+oc logs -n open-cluster-management-observability \  $(oc get pod -n open-cluster-management-observability \    -l app=multicluster-observability-grafana \    -o jsonpath='{.items[0].metadata.name}') \  -c grafana-dashboard-loader --since=10m
+```
+
+| Log message | Cause | Fix | No log lines mentioningkasten | Loader did not detect the ConfigMap | Check the ConfigMap label:oc get cm kasten-acm-dashboard -n open-cluster-management-observability -o jsonpath='{.metadata.labels}'â must havegrafana-custom-dashboard: "true" |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| No log lines mentioningkasten | Loader did not detect the ConfigMap | Check the ConfigMap label:oc get cm kasten-acm-dashboard -n open-cluster-management-observability -o jsonpath='{.metadata.labels}'â must havegrafana-custom-dashboard: "true" |
+| name-exists/ 412 | Dashboard with same title but differentuidexists in Grafana | Delete the conflicting dashboard from the Grafana UI, then delete and re-apply the ConfigMap |
+| version-mismatch/ 412 | Dashboarduidexists with a version mismatch | Loader retries automatically withoverwrite: trueâ wait for a retry cycle (~40 retries Ã 10 s) |
+| context deadline exceeded | Grafana pod not ready | Wait for Grafana to fully start; the loader will retry |
+
+Check if a conflicting dashboard exists:
+
+Port-forward to Grafana and query the API:
+
+```
+oc port-forward -n open-cluster-management-observability \  $(oc get pod -n open-cluster-management-observability \    -l app=multicluster-observability-grafana \    -o jsonpath='{.items[0].metadata.name}') 3001:3001 &curl -s "http://localhost:3001/api/search?query=Kasten" \  -H "X-Forwarded-User: WHAT_YOU_ARE_DOING_IS_VOIDING_SUPPORT_0000000000000000000000000000000000000000000000000000000000000000"
+```
+
+If multiple results appear, delete the one whose uid does not match the downloaded JSON's uid field from the Grafana UI.
+
+PV Utilization panel shows "No data" but kubelet metrics exist in Thanos:
+
+ACM's metrics-collector labels kubelet metrics with cluster , not cluster_name . The dashboard queries kubelet panels using cluster=~"$cluster_name" for this reason. If you have customized the dashboard JSON, ensure kubelet metric queries filter on the cluster label, not cluster_name .
+
+All panels show "No data":
+
+Kasten metrics are not yet flowing to MCO Thanos. Check remote_write on each Kasten cluster:
+
+```
+oc logs -n kasten-io \  $(oc get pod -n kasten-io -l app=prometheus,release=k10 \    -o jsonpath='{.items[0].metadata.name}') \  -c prometheus-server | grep "remote_write\|send"
+```
+
+If using the Thanos Receive direct endpoint, verify the port. The remote-write port is typically 19291 â port 10901 is gRPC and returns a protocol error. Refer to Troubleshooting for the full port reference.
 
 ---
 
@@ -2576,7 +3233,7 @@ Alternatively, if you run into problems with Veeam Kasten, please run
   Kasten is installed in the kasten-io namespace.
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_debug.sh | bash;
+$ curl -s https://docs.kasten.io/downloads/8.5.8/tools/k10_debug.sh | bash;
 ```
 
 By default, the debug script will generate a compressed archive file k10_debug_logs.tar.gz which will have separate log files for Veeam
@@ -2586,7 +3243,7 @@ If you installed Veeam Kasten in a different namespace or want to log to
   a different file you can specify additional option flags to the script:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
+$ curl -s https://docs.kasten.io/downloads/8.5.8/tools/k10_debug.sh | \    bash -s -- -n <k10-namespace> -o <logfile-name>;
 ```
 
 See the script usage message for additional help.
@@ -2601,7 +3258,7 @@ The debug script can optionally gather metrics from the Prometheus
   time specification. For example:
 
 ```
-$ curl -s https://docs.kasten.io/downloads/8.5.7/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
+$ curl -s https://docs.kasten.io/downloads/8.5.8/tools/k10_debug.sh | \    bash -s -- --prom-duration 4h30m --prom-start-time "-2 days -3 hours"
 ```
 
 would collect 270 minutes of metrics starting from 51 hours in the past.

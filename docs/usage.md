@@ -2598,7 +2598,7 @@ apiVersion: v1kind: PersistentVolumeClaimmetadata:  name: app-data  annotations:
 Consider a volume with the following directory structure:
 
 ```
-/dataâââ app.confâââ main.dbâââ reports/â   âââ summary.csvâ   âââ detail.csvâââ scratch/â   âââ partial_upload.binâ   âââ session.lockâââ logs/â   âââ access.logâ   âââ error.logâââ backup.tmp
+/dataâââ app.confââ  â main.dbâââ reports/â   âââ summary.csvâ   âââ detail.csvâââ scratch/â   âââ partial_upload.binâ   âââ session.lockâââ logs/â   âââ access.logâ   âââ error.logâââ backup.tmp
 ```
 
 StorageClass annotation:
@@ -3149,6 +3149,26 @@ File access using FileRecoverySession is subject to the following constraints:
 - The volume is unpartitioned and contains an ext4 , xfs or ntfs filesystem.
 - The volume has a GPT or MBR partition table, with one or more filesystem partitions containing ext4 , xfs or ntfs filesystems.
 - The guest filesystem must not be encrypted.
+
+## Configuring Limits â
+
+The file recovery session Helm parameters set cluster-wide defaults for session and mount limits.
+  These defaults can be overridden on a per-namespace basis using an ActionPodSpec with the file-recovery-session Pod type , which also supports standard resource
+  configuration (CPU and memory) as described for other worker Pod types .
+
+| Environment Variable | Helm Parameter | Default | K10_FRS_MAX_SYSTEM_MOUNTS | frs.maxSystemMounts | 16 |
+| :---: | :---: | :---: | :---: | :---: | :---: |
+| K10_FRS_MAX_SYSTEM_MOUNTS | frs.maxSystemMounts | 16 |
+| K10_FRS_MAX_MOUNTS_PER_NAMESPACE | frs.maxMountsPerNamespace | 4 |
+| K10_FRS_MAX_MOUNTS_PER_SESSION | frs.maxMountsPerSession | 4 |
+| K10_FRS_SESSION_EXPIRY_MINS | frs.sessionExpiryTimeInMinutes | 30 |
+
+The following example overrides the per-namespace mount limit and the
+  session expiry time for the app2 namespace:
+
+```
+---apiVersion: config.kio.kasten.io/v1alpha1kind: ActionPodSpecmetadata:  name: app2-aps  namespace: app2spec:  options:    - podType: "file-recovery-session"      envVars:        - name: K10_FRS_MAX_MOUNTS_PER_NAMESPACE          value: "8"        - name: K10_FRS_SESSION_EXPIRY_MINS          value: "60"---apiVersion: config.kio.kasten.io/v1alpha1kind: ActionPodSpecBindingmetadata:  name: apsb-app2  namespace: app2spec:  actionPodSpecRef:    name: app2-aps    namespace: app2
+```
 
 ## FileRecoverySession Example â
 
